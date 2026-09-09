@@ -90,32 +90,32 @@ La aplicación móvil React Native consumirá la misma API REST proporcionada po
 
 FashionStore contempla las siguientes funcionalidades:
 
-Gestión de usuarios y roles
-Gestión de clientes y empleados
-Gestión de ciudades y sucursales
-Catálogo de prendas
-Categorías, tallas y colores
-Temporadas y colecciones
-Gestión de proveedores
-Inventario por sucursal
-Reservas de múltiples prendas
-Carrito de compras
-Ventas digitales
-Punto de venta presencial
-Integración con pasarela de pago
-Actualización automática de inventario
-Reportes y dashboards
-Recomendaciones mediante inteligencia artificial
-Vestidor virtual mediante realidad aumentada
+- Gestión de usuarios y roles
+- Gestión de clientes y empleados
+- Gestión de ciudades y sucursales
+- Catálogo de prendas
+- Categorías, tallas y colores
+- Temporadas y colecciones
+- Gestión de proveedores
+- Inventario por sucursal
+- Reservas de múltiples prendas
+- Carrito de compras
+- Ventas digitales
+- Punto de venta presencial
+- Integración con pasarela de pago
+- Actualización automática de inventario
+- Reportes y dashboards
+- Recomendaciones mediante inteligencia artificial
+- Vestidor virtual mediante realidad aumentada
 
 ⚙️ Requisitos
 
 Antes de ejecutar el proyecto se necesita:
 
-Node.js 24+
-npm
-PostgreSQL
-Git
+- Node.js 24+
+- npm
+- PostgreSQL
+- Git
 
 
 📐 Metodología
@@ -126,28 +126,28 @@ Proceso Unificado de Desarrollo de Software (PUDS)
 
 con un enfoque:
 
-Iterativo
-Incremental
-Orientado a un MVP
-Modelado mediante UML 2.5+
+- Iterativo
+- Incremental
+- Orientado a un MVP
+- Modelado mediante UML 2.5+
 
 Los principales flujos de trabajo considerados son:
 
-Captura de requisitos
-Análisis
-Diseño
-Implementación
-Pruebas
+- Captura de requisitos
+- Análisis
+- Diseño
+- Implementación
+- Pruebas
 ☁️ Despliegue
 
 La solución será desplegada en Microsoft Azure.
 
 La arquitectura prevista contempla:
 
-Backend NestJS → Azure App Service / Container Apps
-Frontend React → Azure Static Web Apps
-PostgreSQL → Azure Database for PostgreSQL
-Archivos e imágenes → Azure Blob Storage
+- Backend NestJS → Azure App Service / Container Apps
+- Frontend React → Azure Static Web Apps
+- PostgreSQL → Azure Database for PostgreSQL
+- Archivos e imágenes → Azure Blob Storage
 
 
 👨‍💻 Proyecto
