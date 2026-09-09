@@ -59,10 +59,12 @@ ecommerce-web/
 │
 ├── .gitignore
 └── README.md
+```
 
 🏗️ Arquitectura
 
 La solución utiliza una arquitectura cliente-servidor basada en servicios REST.
+```
 ┌─────────────────┐
 │   React Web     │
 │   Frontend      │
@@ -81,6 +83,7 @@ La solución utiliza una arquitectura cliente-servidor basada en servicios REST.
 │   PostgreSQL    │
 │ Base de datos   │
 └─────────────────┘
+```
 La aplicación móvil React Native consumirá la misma API REST proporcionada por NestJS.
 
 📋 Funcionalidades principales
@@ -104,7 +107,6 @@ Actualización automática de inventario
 Reportes y dashboards
 Recomendaciones mediante inteligencia artificial
 Vestidor virtual mediante realidad aumentada
-
 
 ⚙️ Requisitos
 
