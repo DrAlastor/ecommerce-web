@@ -138,6 +138,7 @@ Los principales flujos de trabajo considerados son:
 - Diseño
 - Implementación
 - Pruebas
+
 ☁️ Despliegue
 
 La solución será desplegada en Microsoft Azure.
