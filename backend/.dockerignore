@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+coverage
+*.tsbuildinfo
+
+# Git
+.git
+.gitignore
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db

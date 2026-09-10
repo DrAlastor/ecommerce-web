@@ -1,0 +1,9 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fashionstore-backend-container
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
