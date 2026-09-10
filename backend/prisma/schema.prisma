@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,561 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model bitacora {
+  id_bitacora      Int      @id
+  accion           String
+  fecha_hora       DateTime @default(now()) @db.Timestamptz(6)
+  entidad_afectada String
+  ip               String?  @db.Inet
+  id_usuario       Int
+  usuario          usuario  @relation(fields: [id_usuario], references: [id_usuario], onUpdate: Restrict, map: "fk_bitacora_23")
+}
+
+model carrito {
+  id_carrito   Int            @id
+  sesion_id    String?        @unique @db.VarChar(255)
+  actualizado  DateTime       @default(now()) @db.Timestamptz(6)
+  id_cliente   Int            @unique
+  cliente      cliente        @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, onUpdate: Restrict, map: "fk_carrito_41")
+  item_carrito item_carrito[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model categoria {
+  id_categoria       Int          @id
+  nombre             String       @db.VarChar(100)
+  descripcion        String?
+  id_categoria_padre Int?
+  categoria          categoria?   @relation("categoriaTocategoria", fields: [id_categoria_padre], references: [id_categoria], onDelete: Restrict, onUpdate: Restrict, map: "fk_categoria_2")
+  other_categoria    categoria[]  @relation("categoriaTocategoria")
+  guia_talla         guia_talla[]
+  producto           producto[]
+}
+
+model ciudad {
+  id_ciudad Int         @id
+  nombre    String      @db.VarChar(100)
+  pais      String      @db.VarChar(100)
+  direccion direccion[]
+  sucursal  sucursal[]
+
+  @@unique([nombre, pais])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cliente {
+  id_cliente             Int                      @id
+  ci                     String?                  @unique @db.VarChar(30)
+  nombre                 String                   @db.VarChar(100)
+  apellido               String                   @db.VarChar(100)
+  sexo                   String?                  @db.VarChar(50)
+  fecha_nacimiento       DateTime?                @db.Date
+  preferencias_estilo    String?
+  puntos_fidelidad       Int                      @default(0)
+  carrito                carrito?
+  usuario                usuario                  @relation(fields: [id_cliente], references: [id_usuario], onUpdate: Restrict, map: "fk_cliente_19")
+  cliente_interaccion_ia cliente_interaccion_ia[]
+  direccion              direccion[]
+  lista_deseos           lista_deseos?
+  resena                 resena[]
+  reserva                reserva[]
+  venta                  venta[]
+}
+
+model cliente_interaccion_ia {
+  id_cliente_interaccion_ia Int      @id
+  tipo_interaccion          String   @db.VarChar(50)
+  fecha                     DateTime @default(now()) @db.Timestamptz(6)
+  id_cliente                Int
+  id_producto               Int
+  cliente                   cliente  @relation(fields: [id_cliente], references: [id_cliente], onUpdate: Restrict, map: "fk_cliente_interaccion_ia_49")
+  producto                  producto @relation(fields: [id_producto], references: [id_producto], onUpdate: Restrict, map: "fk_cliente_interaccion_ia_50")
+}
+
+model coleccion {
+  id_coleccion Int        @id
+  nombre       String     @db.VarChar(100)
+  descripcion  String?
+  id_temporada Int?
+  temporada    temporada? @relation(fields: [id_temporada], references: [id_temporada], onDelete: Restrict, onUpdate: Restrict, map: "fk_coleccion_3")
+  producto     producto[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model color {
+  id_color          Int                 @id
+  nombre            String              @db.VarChar(100)
+  codigo_hex        String?             @db.VarChar(7)
+  producto_variante producto_variante[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_devolucion {
+  id_detalle_devolucion Int           @id
+  cantidad              Int
+  motivo                String?
+  id_venta              Int
+  id_devolucion         Int
+  id_detalle_venta      Int
+  devolucion            devolucion    @relation(fields: [id_devolucion, id_venta], references: [id_devolucion, id_venta], onUpdate: Restrict, map: "fk_detalle_devolucion_59")
+  detalle_venta         detalle_venta @relation(fields: [id_detalle_venta, id_venta], references: [id_detalle_venta, id_venta], onUpdate: Restrict, map: "fk_detalle_devolucion_60")
+
+  @@unique([id_devolucion, id_detalle_venta])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_orden_compra {
+  id_detalle_orden_compra Int               @id
+  cantidad                Int
+  costo_unitario          Decimal           @db.Decimal(12, 2)
+  id_orden_compra         Int
+  id_producto_variante    Int
+  id_temporada            Int
+  orden_compra            orden_compra      @relation(fields: [id_orden_compra], references: [id_orden_compra], onUpdate: Restrict, map: "fk_detalle_orden_compra_55")
+  producto_variante       producto_variante @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_detalle_orden_compra_56")
+  temporada               temporada         @relation(fields: [id_temporada], references: [id_temporada], onUpdate: Restrict, map: "fk_detalle_orden_compra_57")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_reserva {
+  id_detalle_reserva   Int               @id
+  cantidad             Int
+  estado               String            @default("Pendiente") @db.VarChar(50)
+  id_reserva           Int
+  id_producto_variante Int
+  reserva              reserva           @relation(fields: [id_reserva], references: [id_reserva], onUpdate: Restrict, map: "fk_detalle_reserva_29")
+  producto_variante    producto_variante @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_detalle_reserva_30")
+
+  @@unique([id_reserva, id_producto_variante])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_venta {
+  id_detalle_venta     Int                  @id
+  cantidad             Int
+  precio_unitario      Decimal              @db.Decimal(12, 2)
+  subtotal             Decimal?             @default(dbgenerated("((cantidad)::numeric * precio_unitario)")) @db.Decimal(14, 2)
+  id_venta             Int
+  id_producto_variante Int
+  detalle_devolucion   detalle_devolucion[]
+  venta                venta                @relation(fields: [id_venta], references: [id_venta], onUpdate: Restrict, map: "fk_detalle_venta_33")
+  producto_variante    producto_variante    @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_detalle_venta_34")
+
+  @@unique([id_detalle_venta, id_venta])
+}
+
+model devolucion {
+  id_devolucion      Int                  @id
+  fecha_hora         DateTime             @default(now()) @db.Timestamptz(6)
+  motivo             String
+  estado             String               @default("pendiente") @db.VarChar(50)
+  observacion        String?
+  id_venta           Int
+  detalle_devolucion detalle_devolucion[]
+  venta              venta                @relation(fields: [id_venta], references: [id_venta], onUpdate: Restrict, map: "fk_devolucion_58")
+
+  @@unique([id_devolucion, id_venta])
+}
+
+model direccion {
+  id_direccion      Int     @id
+  tipo              String  @db.VarChar(50)
+  destinatario      String  @db.VarChar(100)
+  telefono          String? @db.VarChar(30)
+  calle             String
+  detalle           String?
+  codigo_postal     String? @db.VarChar(30)
+  es_predeterminada Boolean @default(false)
+  id_cliente        Int
+  id_ciudad         Int
+  cliente           cliente @relation(fields: [id_cliente], references: [id_cliente], onUpdate: Restrict, map: "fk_direccion_25")
+  ciudad            ciudad  @relation(fields: [id_ciudad], references: [id_ciudad], onUpdate: Restrict, map: "fk_direccion_26")
+  envio             envio[]
+}
+
+model empleado {
+  id_empleado           Int                     @id
+  codigo_empleado       String                  @unique @db.VarChar(100)
+  ci                    String                  @unique @db.VarChar(30)
+  nombre                String                  @db.VarChar(100)
+  apellido              String                  @db.VarChar(100)
+  telefono              String?                 @db.VarChar(30)
+  fecha_contratacion    DateTime                @db.Date
+  estado                String                  @default("activo") @db.VarChar(50)
+  usuario               usuario                 @relation(fields: [id_empleado], references: [id_usuario], onUpdate: Restrict, map: "fk_empleado_20")
+  empleado_sucursal     empleado_sucursal[]
+  movimiento_inventario movimiento_inventario[]
+  venta                 venta[]
+}
+
+model empleado_sucursal {
+  id_empleado Int
+  id_sucursal Int
+  empleado    empleado @relation(fields: [id_empleado], references: [id_empleado], onUpdate: Restrict, map: "fk_empleado_sucursal_21")
+  sucursal    sucursal @relation(fields: [id_sucursal], references: [id_sucursal], onUpdate: Restrict, map: "fk_empleado_sucursal_22")
+
+  @@id([id_empleado, id_sucursal])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model envio {
+  id_envio       Int       @id
+  transportista  String?   @db.VarChar(100)
+  numero_guia    String?   @db.VarChar(255)
+  estado         String    @default("pendiente") @db.VarChar(50)
+  fecha_despacho DateTime? @db.Timestamptz(6)
+  fecha_entrega  DateTime? @db.Timestamptz(6)
+  id_venta       Int
+  id_direccion   Int
+  venta          venta     @relation(fields: [id_venta], references: [id_venta], onUpdate: Restrict, map: "fk_envio_36")
+  direccion      direccion @relation(fields: [id_direccion], references: [id_direccion], onUpdate: Restrict, map: "fk_envio_37")
+}
+
+model funcion {
+  id_funcion  Int           @id
+  nombre      String        @db.VarChar(100)
+  descripcion String?
+  id_modulo   Int
+  modulo      modulo        @relation(fields: [id_modulo], references: [id_modulo], onUpdate: Restrict, map: "fk_funcion_15")
+  rol_funcion rol_funcion[]
+
+  @@unique([id_modulo, nombre])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model guia_talla {
+  id_guia_talla  Int       @id
+  parte_cuerpo   String
+  talla_etiqueta String    @db.VarChar(100)
+  min_cm         Decimal   @db.Decimal(6, 2)
+  max_cm         Decimal   @db.Decimal(6, 2)
+  id_categoria   Int
+  categoria      categoria @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "fk_guia_talla_11")
+
+  @@unique([id_categoria, parte_cuerpo, talla_etiqueta])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model imagen_producto {
+  id_imagen_producto Int      @id
+  url                String
+  texto_alternativo  String?
+  es_principal       Boolean  @default(false)
+  orden              Int      @default(0)
+  id_producto        Int
+  producto           producto @relation(fields: [id_producto], references: [id_producto], onDelete: Cascade, onUpdate: Restrict, map: "fk_imagen_producto_12")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model inventario_sucursal {
+  id_inventario_sucursal Int               @id
+  stock_disponible       Int               @default(0)
+  stock_reservado        Int               @default(0)
+  stock_minimo           Int               @default(0)
+  ultima_actualizacion   DateTime          @default(now()) @db.Timestamptz(6)
+  id_sucursal            Int
+  id_producto_variante   Int
+  sucursal               sucursal          @relation(fields: [id_sucursal], references: [id_sucursal], onUpdate: Restrict, map: "fk_inventario_sucursal_13")
+  producto_variante      producto_variante @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_inventario_sucursal_14")
+
+  @@unique([id_sucursal, id_producto_variante])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model item_carrito {
+  id_item_carrito      Int               @id
+  cantidad             Int
+  precio               Decimal           @db.Decimal(12, 2)
+  id_carrito           Int
+  id_producto_variante Int
+  carrito              carrito           @relation(fields: [id_carrito], references: [id_carrito], onDelete: Cascade, onUpdate: Restrict, map: "fk_item_carrito_42")
+  producto_variante    producto_variante @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_item_carrito_43")
+
+  @@unique([id_carrito, id_producto_variante])
+}
+
+model item_listas_deseos {
+  id_item_listas_deseos Int               @id
+  agregado              DateTime          @default(now()) @db.Timestamptz(6)
+  id_lista_deseos       Int
+  id_producto_variante  Int
+  lista_deseos          lista_deseos      @relation(fields: [id_lista_deseos], references: [id_lista_deseos], onDelete: Cascade, onUpdate: Restrict, map: "fk_item_listas_deseos_39")
+  producto_variante     producto_variante @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_item_listas_deseos_40")
+
+  @@unique([id_lista_deseos, id_producto_variante])
+}
+
+model lista_deseos {
+  id_lista_deseos    Int                  @id
+  creado             DateTime             @default(now()) @db.Timestamptz(6)
+  id_cliente         Int                  @unique
+  item_listas_deseos item_listas_deseos[]
+  cliente            cliente              @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, onUpdate: Restrict, map: "fk_lista_deseos_38")
+}
+
+model modulo {
+  id_modulo   Int       @id
+  nombre      String    @unique @db.VarChar(100)
+  descripcion String?
+  funcion     funcion[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model movimiento_inventario {
+  id_movimiento_inventario Int               @id
+  tipo_movimiento          String            @db.VarChar(50)
+  cantidad                 Int
+  fecha                    DateTime          @default(now()) @db.Timestamptz(6)
+  motivo                   String?
+  id_producto_variante     Int
+  id_sucursal              Int
+  id_empleado              Int
+  producto_variante        producto_variante @relation(fields: [id_producto_variante], references: [id_producto_variante], onUpdate: Restrict, map: "fk_movimiento_inventario_44")
+  sucursal                 sucursal          @relation(fields: [id_sucursal], references: [id_sucursal], onUpdate: Restrict, map: "fk_movimiento_inventario_45")
+  empleado                 empleado          @relation(fields: [id_empleado], references: [id_empleado], onUpdate: Restrict, map: "fk_movimiento_inventario_46")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model orden_compra {
+  id_orden_compra      Int                    @id
+  fecha_orden          DateTime               @default(now()) @db.Timestamptz(6)
+  fecha_estimada       DateTime?              @db.Date
+  fecha_recepcion      DateTime?              @db.Timestamptz(6)
+  estado               String                 @default("pendiente") @db.VarChar(50)
+  observaciones        String?
+  id_proveedor         Int
+  id_sucursal          Int
+  detalle_orden_compra detalle_orden_compra[]
+  proveedor            proveedor              @relation(fields: [id_proveedor], references: [id_proveedor], onUpdate: Restrict, map: "fk_orden_compra_53")
+  sucursal             sucursal               @relation(fields: [id_sucursal], references: [id_sucursal], onUpdate: Restrict, map: "fk_orden_compra_54")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pago {
+  id_pago             Int      @id
+  metodo_pago         String   @db.VarChar(50)
+  importe             Decimal  @db.Decimal(14, 2)
+  transaccion_externa String?  @db.VarChar(255)
+  estado              String   @default("pendiente") @db.VarChar(50)
+  fecha_pago          DateTime @default(now()) @db.Timestamptz(6)
+  id_venta            Int
+  venta               venta    @relation(fields: [id_venta], references: [id_venta], onUpdate: Restrict, map: "fk_pago_35")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model producto {
+  id_producto            Int                      @id
+  nombre                 String                   @db.VarChar(100)
+  descripcion            String?
+  precio_base            Decimal                  @db.Decimal(12, 2)
+  genero                 String?                  @db.VarChar(50)
+  estado                 String                   @default("activo") @db.VarChar(50)
+  id_categoria           Int
+  id_coleccion           Int?
+  cliente_interaccion_ia cliente_interaccion_ia[]
+  imagen_producto        imagen_producto[]
+  categoria              categoria                @relation(fields: [id_categoria], references: [id_categoria], onUpdate: Restrict, map: "fk_producto_4")
+  coleccion              coleccion?               @relation(fields: [id_coleccion], references: [id_coleccion], onDelete: Restrict, onUpdate: Restrict, map: "fk_producto_5")
+  producto_variante      producto_variante[]
+  promocion_producto     promocion_producto[]
+  proveedor_producto     proveedor_producto[]
+  resena                 resena[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model producto_variante {
+  id_producto_variante  Int                     @id
+  sku                   String                  @unique @db.VarChar(100)
+  precio_adicional      Decimal                 @default(0) @db.Decimal(12, 2)
+  modelo_3d_url         String?
+  imagen_url            String?
+  estado                String                  @default("activo") @db.VarChar(50)
+  id_producto           Int
+  id_talla              Int
+  id_color              Int
+  detalle_orden_compra  detalle_orden_compra[]
+  detalle_reserva       detalle_reserva[]
+  detalle_venta         detalle_venta[]
+  inventario_sucursal   inventario_sucursal[]
+  item_carrito          item_carrito[]
+  item_listas_deseos    item_listas_deseos[]
+  movimiento_inventario movimiento_inventario[]
+  color                 color                   @relation(fields: [id_color], references: [id_color], onUpdate: Restrict, map: "fk_producto_variante_10")
+  producto              producto                @relation(fields: [id_producto], references: [id_producto], onUpdate: Restrict, map: "fk_producto_variante_8")
+  talla                 talla                   @relation(fields: [id_talla], references: [id_talla], onUpdate: Restrict, map: "fk_producto_variante_9")
+
+  @@unique([id_producto, id_talla, id_color])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model promocion {
+  id_promocion       Int                  @id
+  nombre             String               @db.VarChar(100)
+  limite_usos        Int?
+  usos_actuales      Int                  @default(0)
+  tipo_descuento     String               @db.VarChar(50)
+  valor_descuento    Decimal              @db.Decimal(12, 2)
+  fecha_inicio       DateTime             @db.Timestamptz(6)
+  fecha_fin          DateTime             @db.Timestamptz(6)
+  estado             String               @default("activo") @db.VarChar(50)
+  promocion_producto promocion_producto[]
+}
+
+model promocion_producto {
+  id_promocion Int
+  id_producto  Int
+  promocion    promocion @relation(fields: [id_promocion], references: [id_promocion], onUpdate: Restrict, map: "fk_promocion_producto_51")
+  producto     producto  @relation(fields: [id_producto], references: [id_producto], onUpdate: Restrict, map: "fk_promocion_producto_52")
+
+  @@id([id_promocion, id_producto])
+}
+
+model proveedor {
+  id_proveedor       Int                  @id
+  razon_social       String               @db.VarChar(255)
+  nit                String               @unique @db.VarChar(30)
+  contacto_nombre    String?              @db.VarChar(100)
+  telefono           String?              @db.VarChar(30)
+  email              String?              @db.VarChar(255)
+  direccion          String?
+  orden_compra       orden_compra[]
+  proveedor_producto proveedor_producto[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model proveedor_producto {
+  costo_referencia Decimal?  @db.Decimal(12, 2)
+  estado           String    @default("activo") @db.VarChar(50)
+  id_proveedor     Int
+  id_producto      Int
+  proveedor        proveedor @relation(fields: [id_proveedor], references: [id_proveedor], onUpdate: Restrict, map: "fk_proveedor_producto_6")
+  producto         producto  @relation(fields: [id_producto], references: [id_producto], onUpdate: Restrict, map: "fk_proveedor_producto_7")
+
+  @@id([id_proveedor, id_producto])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model resena {
+  id_resena         Int      @id
+  puntuacion        Int      @db.SmallInt
+  comentario        String?
+  compra_verificada Boolean  @default(false)
+  fecha             DateTime @default(now()) @db.Timestamptz(6)
+  id_cliente        Int
+  id_producto       Int
+  cliente           cliente  @relation(fields: [id_cliente], references: [id_cliente], onUpdate: Restrict, map: "fk_resena_47")
+  producto          producto @relation(fields: [id_producto], references: [id_producto], onUpdate: Restrict, map: "fk_resena_48")
+}
+
+model reserva {
+  id_reserva       Int               @id
+  codigo           String            @unique @db.VarChar(100)
+  fecha_reserva    DateTime          @default(now()) @db.Timestamptz(6)
+  horario_estimado DateTime?         @db.Timestamptz(6)
+  estado           String            @default("pendiente") @db.VarChar(50)
+  observaciones    String?
+  id_cliente       Int
+  id_sucursal      Int
+  detalle_reserva  detalle_reserva[]
+  cliente          cliente           @relation(fields: [id_cliente], references: [id_cliente], onUpdate: Restrict, map: "fk_reserva_27")
+  sucursal         sucursal          @relation(fields: [id_sucursal], references: [id_sucursal], onUpdate: Restrict, map: "fk_reserva_28")
+}
+
+model rol {
+  id_rol      Int           @id
+  nombre      String        @unique @db.VarChar(100)
+  permiso     String?
+  rol_funcion rol_funcion[]
+  usuario     usuario[]
+}
+
+model rol_funcion {
+  descripcion String?
+  id_rol      Int
+  id_funcion  Int
+  rol         rol     @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade, onUpdate: Restrict, map: "fk_rol_funcion_16")
+  funcion     funcion @relation(fields: [id_funcion], references: [id_funcion], onDelete: Cascade, onUpdate: Restrict, map: "fk_rol_funcion_17")
+
+  @@id([id_rol, id_funcion])
+}
+
+model sucursal {
+  id_sucursal           Int                     @id
+  nombre                String                  @db.VarChar(100)
+  direccion             String
+  telefono              String?                 @db.VarChar(30)
+  hora_apertura         DateTime?               @db.Time(6)
+  hora_cierre           DateTime?               @db.Time(6)
+  estado                String                  @default("activo") @db.VarChar(50)
+  id_ciudad             Int
+  empleado_sucursal     empleado_sucursal[]
+  inventario_sucursal   inventario_sucursal[]
+  movimiento_inventario movimiento_inventario[]
+  orden_compra          orden_compra[]
+  reserva               reserva[]
+  ciudad                ciudad                  @relation(fields: [id_ciudad], references: [id_ciudad], onUpdate: Restrict, map: "fk_sucursal_1")
+}
+
+model talla {
+  id_talla          Int                 @id
+  codigo            String              @unique @db.VarChar(100)
+  producto_variante producto_variante[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model temporada {
+  id_temporada         Int                    @id
+  nombre               String                 @db.VarChar(100)
+  fecha_inicio         DateTime               @db.Date
+  fecha_fin            DateTime               @db.Date
+  estado               String                 @default("activo") @db.VarChar(50)
+  coleccion            coleccion[]
+  detalle_orden_compra detalle_orden_compra[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model token_recuperacion {
+  id_token_recuperacion Int      @id
+  token_hash            String   @unique @db.VarChar(255)
+  fecha_creacion        DateTime @default(now()) @db.Timestamptz(6)
+  fecha_expiracion      DateTime @db.Timestamptz(6)
+  usado                 Boolean  @default(false)
+  id_usuario            Int
+  usuario               usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: Restrict, map: "fk_token_recuperacion_24")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model usuario {
+  id_usuario         Int                  @id
+  email              String               @unique @db.VarChar(255)
+  password_hash      String               @db.VarChar(255)
+  estado             String               @default("activo") @db.VarChar(50)
+  id_rol             Int
+  bitacora           bitacora[]
+  cliente            cliente?
+  empleado           empleado?
+  token_recuperacion token_recuperacion[]
+  rol                rol                  @relation(fields: [id_rol], references: [id_rol], onUpdate: Restrict, map: "fk_usuario_18")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model venta {
+  id_venta       Int             @id
+  codigo_factura String?         @unique @db.VarChar(100)
+  tipo_venta     String          @db.VarChar(50)
+  subtotal       Decimal         @db.Decimal(14, 2)
+  descuento      Decimal         @default(0) @db.Decimal(14, 2)
+  total          Decimal?        @default(dbgenerated("(subtotal - descuento)")) @db.Decimal(14, 2)
+  estado         String          @default("pendiente") @db.VarChar(50)
+  fecha_venta    DateTime        @default(now()) @db.Timestamptz(6)
+  id_cliente     Int?
+  id_empleado    Int?
+  detalle_venta  detalle_venta[]
+  devolucion     devolucion[]
+  envio          envio[]
+  pago           pago[]
+  cliente        cliente?        @relation(fields: [id_cliente], references: [id_cliente], onDelete: Restrict, onUpdate: Restrict, map: "fk_venta_31")
+  empleado       empleado?       @relation(fields: [id_empleado], references: [id_empleado], onDelete: Restrict, onUpdate: Restrict, map: "fk_venta_32")
 }
