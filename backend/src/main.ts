@@ -8,7 +8,7 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`FashionStore API running on http://localhost:${port}`);
+  console.log(`Dressly Store API running on http://localhost:${port}`);
 }
 
 await bootstrap();
