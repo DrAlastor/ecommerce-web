@@ -10,7 +10,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:5173', // Vite dev server
       'http://localhost:3001', // Alternativo
-    ],
+      process.env.FRONTEND_URL, // Azure Static Web Apps (producción)
+    ].filter(Boolean),
     credentials: true,
   });
 
@@ -28,7 +29,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   console.log(`Dressly Store API running on http://localhost:${port}`);
 }
