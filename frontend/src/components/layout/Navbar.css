@@ -436,6 +436,44 @@
     display: block;
   }
 
+  .nav-container {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .brand-name {
+    font-size: 1.3rem;
+  }
+
+  .brand-tagline {
+    font-size: 0.5rem;
+  }
+
+  .nav-actions {
+    gap: 0.5rem;
+  }
+
+  .nav-login-btn span {
+    display: none;
+  }
+
+  .nav-login-btn {
+    padding: 0.5rem;
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+  }
+
+  .user-name-short, 
+  .user-profile-btn > svg {
+    display: none;
+  }
+
+  .user-profile-btn {
+    padding: 0.2rem;
+    border-radius: 50%;
+  }
+
   .mobile-nav-panel {
     display: flex;
     flex-direction: column;
