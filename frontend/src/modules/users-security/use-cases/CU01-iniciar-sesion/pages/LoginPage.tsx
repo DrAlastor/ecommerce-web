@@ -1,7 +1,7 @@
 import { useState, useCallback, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../shared/components/AuthContext';
-import { Navbar } from '../../../../../components/layout/Navbar';
+
 import type { AxiosError } from 'axios';
 import './LoginPage.css';
 

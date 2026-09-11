@@ -52,7 +52,7 @@ export const CatalogPage: React.FC = () => {
   const initialSearch = queryParams.get('search') || '';
 
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
-  const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
+  const [searchQuery] = useState<string>(initialSearch);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [sortBy, setSortBy] = useState('Recomendados');
 
@@ -62,7 +62,6 @@ export const CatalogPage: React.FC = () => {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedLengths, setSelectedLengths] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   
   // Rango de precios manual

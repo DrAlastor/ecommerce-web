@@ -13,9 +13,7 @@ export const HomePage: React.FC = () => {
     addToCart,
     toggleWishlist,
     isInWishlist,
-    searchQuery,
-    selectedCategory,
-    setSelectedCategory,
+
     toastMessage,
     setIsCartOpen,
   } = useShop();
