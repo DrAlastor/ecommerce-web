@@ -1,0 +1,470 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #FAF7F2;
+  box-shadow: 0 2px 14px rgba(35, 25, 18, 0.06);
+}
+
+/* Announcement Bar */
+.announcement-bar {
+  background: linear-gradient(90deg, #1C1510 0%, #2E221A 50%, #1C1510 100%);
+  color: #F5EFEB;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  font-weight: 500;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(196, 155, 113, 0.25);
+}
+
+.announcement-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Staff Admin Bar */
+.staff-admin-bar {
+  background: linear-gradient(90deg, #3D2D23 0%, #543E30 100%);
+  color: #F8F5F1;
+  padding: 0.45rem 1.5rem;
+  font-size: 0.8rem;
+  border-bottom: 1px solid #684D3C;
+}
+
+.staff-admin-content {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.staff-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.staff-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10B981;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px #10B981;
+}
+
+.staff-admin-link {
+  color: #F4E8DB;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.staff-admin-link:hover {
+  color: #FFFFFF;
+}
+
+/* Main Navbar */
+.main-navbar {
+  border-bottom: 1px solid #EFECE6;
+  background-color: #FFFFFF;
+}
+
+.nav-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* Brand Logo */
+.brand-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.brand-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #1A1A1A;
+}
+
+.brand-tagline {
+  font-size: 0.58rem;
+  letter-spacing: 0.32em;
+  font-weight: 600;
+  color: #A08266;
+  margin-top: 0.2rem;
+}
+
+/* Desktop Nav */
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.8rem;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333333;
+  padding: 0.4rem 0;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #C4956A;
+  transition: width 0.25s ease;
+}
+
+.nav-link:hover {
+  color: #1A1A1A;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link-sale {
+  color: #B91C1C;
+  font-weight: 600;
+}
+
+/* Search bar */
+.nav-search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #F8F6F2;
+  border: 1px solid #EBE7E1;
+  border-radius: 9999px;
+  padding: 0.35rem 0.85rem;
+  width: 280px;
+  transition: all 0.25s ease;
+}
+
+.nav-search-form:focus-within {
+  background-color: #FFFFFF;
+  border-color: #C4956A;
+  box-shadow: 0 0 0 3px rgba(196, 149, 106, 0.15);
+  width: 320px;
+}
+
+.search-icon {
+  color: #8C827A;
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+
+.nav-search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.85rem;
+  color: #1A1A1A;
+  outline: none;
+}
+
+.search-clear-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0 0.2rem;
+}
+
+/* Actions */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.action-icon-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #2D2D2D;
+  cursor: pointer;
+  padding: 0.45rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s, transform 0.15s;
+}
+
+.action-icon-btn:hover {
+  background-color: #F4EFEB;
+  color: #1A1A1A;
+  transform: translateY(-1px);
+}
+
+.action-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  font-size: 0.65rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+}
+
+.cart-badge {
+  background-color: #C4956A;
+}
+
+/* Auth Buttons */
+.nav-login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #1A1A1A;
+  color: #F8F5F1;
+  border: 1px solid #1A1A1A;
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-login-btn:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* User Profile */
+.user-profile-menu {
+  position: relative;
+}
+
+.user-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #F8F5F1;
+  border: 1px solid #EBE7E1;
+  padding: 0.35rem 0.75rem 0.35rem 0.4rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-profile-btn:hover {
+  background: #EFECE6;
+}
+
+.avatar-circle {
+  width: 28px;
+  height: 28px;
+  background: #1A1A1A;
+  color: #FAF8F5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.user-name-short {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1A1A1A;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-dropdown-card {
+  position: absolute;
+  top: 125%;
+  right: 0;
+  width: 220px;
+  background: #FFFFFF;
+  border: 1px solid #EBE7E1;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 0.75rem;
+  z-index: 200;
+  animation: fadeInDown 0.2s ease;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-dropdown-header {
+  padding-bottom: 0.5rem;
+}
+
+.user-dropdown-email {
+  font-size: 0.8rem;
+  color: #666;
+  word-break: break-all;
+  margin-bottom: 0.35rem;
+}
+
+.user-role-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #F4EFEB;
+  color: #7D5D3B;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.user-role-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #C4956A;
+}
+
+.user-points-badge {
+  margin-top: 0.45rem;
+  font-size: 0.72rem;
+  color: #92400E;
+  background: #FEF3C7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background-color: #EFECE6;
+  margin: 0.4rem 0;
+}
+
+.user-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  color: #333;
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.user-dropdown-item:hover {
+  background-color: #F8F6F2;
+}
+
+.user-dropdown-logout {
+  color: #DC2626;
+  font-weight: 500;
+}
+
+.user-dropdown-logout:hover {
+  background-color: #FEE2E2;
+}
+
+/* Mobile */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #1A1A1A;
+  padding: 0.4rem;
+}
+
+.mobile-nav-panel {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .desktop-nav,
+  .nav-search-form {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .mobile-nav-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #EFECE6;
+    background: #FFFFFF;
+    gap: 0.75rem;
+  }
+
+  .mobile-nav-item {
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1A1A1A;
+    padding: 0.5rem 0;
+    cursor: pointer;
+  }
+
+  .mobile-sale {
+    color: #B91C1C;
+    font-weight: 600;
+  }
+
+  .mobile-login {
+    color: #C4956A;
+    font-weight: 600;
+    border-top: 1px solid #EFECE6;
+    padding-top: 0.85rem;
+  }
+}
