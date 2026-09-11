@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './modules/users-security/components/AuthContext';
-import { ProtectedRoute } from './modules/users-security/components/ProtectedRoute';
+import { AuthProvider } from './modules/users-security/shared/components/AuthContext';
+import { ProtectedRoute } from './modules/users-security/shared/components/ProtectedRoute';
 import { ShopProvider } from './context/ShopContext';
-import LoginPage from './modules/users-security/pages/LoginPage';
+import LoginPage from './modules/users-security/use-cases/CU01-iniciar-sesion/pages/LoginPage';
 import { HomePage } from './pages/HomePage';
+import { CatalogPage } from './modules/catalog/use-cases/CU10-consultar-catalogo-productos/pages/CatalogPage';
 
 function AdminDashboard() {
   return (
@@ -87,6 +88,7 @@ function App() {
           <Routes>
             {/* Página Principal / Tienda Pública (Accesible para todos) */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
 
             {/* Ruta pública: Login */}
             <Route path="/login" element={<LoginPage />} />

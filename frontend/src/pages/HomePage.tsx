@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { CartDrawer } from '../components/shop/CartDrawer';
 import { WishlistDrawer } from '../components/shop/WishlistDrawer';
@@ -23,21 +24,10 @@ export const HomePage: React.FC = () => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [showLookbookModal, setShowLookbookModal] = useState(false);
+  const navigate = useNavigate();
 
-  // Filtrar productos por categoría y por búsqueda
-  const filteredProducts = PRODUCTS.filter((product) => {
-    const matchesCategory =
-      selectedCategory === 'all' ||
-      (selectedCategory === 'sale' ? product.isSale : product.categorySlug === selectedCategory);
-
-    const matchesSearch =
-      searchQuery.trim() === '' ||
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    return matchesCategory && matchesSearch;
-  });
+  // Filtrar productos para la portada (solo novedades o aleatorios, máximo 10)
+  const homeProducts = PRODUCTS.slice(0, 10);
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,10 +82,7 @@ export const HomePage: React.FC = () => {
             <div className="hero-actions">
               <button
                 className="hero-cta-btn"
-                onClick={() => {
-                  const el = document.getElementById('products-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => navigate('/catalog')}
               >
                 <span>Comprar Ahora</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -187,9 +174,7 @@ export const HomePage: React.FC = () => {
                   key={cat.id}
                   className={`category-circle-item ${isSelected ? 'selected' : ''}`}
                   onClick={() => {
-                    setSelectedCategory(cat.slug);
-                    const el = document.getElementById('products-section');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    navigate(`/catalog?category=${cat.slug}`);
                   }}
                 >
                   <div className="circle-image-wrapper">
@@ -217,11 +202,7 @@ export const HomePage: React.FC = () => {
             </div>
             <button
               className="view-all-link-btn"
-              onClick={() => {
-                setSelectedCategory('all');
-                const el = document.getElementById('products-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => navigate('/catalog')}
             >
               Ver Todas las Categorías →
             </button>
@@ -232,11 +213,7 @@ export const HomePage: React.FC = () => {
               <div
                 key={col.id}
                 className="collection-card"
-                onClick={() => {
-                  setSelectedCategory(col.categorySlug);
-                  const el = document.getElementById('products-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => navigate(`/catalog?category=${col.categorySlug}`)}
               >
                 <img src={col.image} alt={col.title} className="collection-card-img" />
                 <div className="collection-card-overlay">
@@ -265,11 +242,7 @@ export const HomePage: React.FC = () => {
                 <h3 className="promo-title">Lino Natural & Tonos Tierra</h3>
                 <button
                   className="promo-action-btn"
-                  onClick={() => {
-                    setSelectedCategory('blazers');
-                    const el = document.getElementById('products-section');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onClick={() => navigate('/catalog?category=blazers')}
                 >
                   Ver Colección Lino →
                 </button>
@@ -289,11 +262,7 @@ export const HomePage: React.FC = () => {
                 <h3 className="promo-title">Bolsos en Moca & Negro Profundo</h3>
                 <button
                   className="promo-action-btn"
-                  onClick={() => {
-                    setSelectedCategory('bolsos');
-                    const el = document.getElementById('products-section');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onClick={() => navigate('/catalog?category=bolsos')}
                 >
                   Ver Accesorios →
                 </button>
@@ -319,47 +288,15 @@ export const HomePage: React.FC = () => {
             </div>
             <button
               className="view-all-link-btn"
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => navigate('/catalog')}
             >
-              Ver Todo el Catálogo ({PRODUCTS.length}) →
+              Ver Todo el Catálogo →
             </button>
           </div>
 
-          {/* Interactive Category Filter Pills */}
-          <div className="catalog-filters-bar">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                className={`catalog-filter-btn ${selectedCategory === cat.slug ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat.slug)}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Search query notification */}
-          {searchQuery && (
-            <div className="search-active-notice">
-              Mostrando resultados para: <strong>"{searchQuery}"</strong> (
-              {filteredProducts.length} encontrados)
-            </div>
-          )}
-
           {/* Products Grid */}
-          {filteredProducts.length === 0 ? (
-            <div className="no-products-found">
-              <p>No se encontraron productos que coincidan con los filtros seleccionados.</p>
-              <button
-                className="reset-filters-btn"
-                onClick={() => setSelectedCategory('all')}
-              >
-                Ver todos los productos
-              </button>
-            </div>
-          ) : (
-            <div className="products-grid">
-              {filteredProducts.map((product) => {
+          <div className="products-grid">
+            {homeProducts.map((product) => {
                 const isFavorited = isInWishlist(product.id);
                 return (
                   <div key={product.id} className="product-card">
@@ -426,8 +363,7 @@ export const HomePage: React.FC = () => {
                   </div>
                 );
               })}
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
@@ -523,11 +459,11 @@ export const HomePage: React.FC = () => {
             <div className="footer-links-col">
               <h5>TIENDA FEMENINA</h5>
               <ul>
-                <li><a href="#products-section" onClick={() => setSelectedCategory('all')}>Todas las Prendas</a></li>
-                <li><a href="#products-section" onClick={() => setSelectedCategory('blazers')}>Blazers & Trajes</a></li>
-                <li><a href="#products-section" onClick={() => setSelectedCategory('vestidos')}>Vestidos de Gala & Lino</a></li>
-                <li><a href="#products-section" onClick={() => setSelectedCategory('bolsos')}>Bolsos & Marroquinería</a></li>
-                <li><a href="#products-section" onClick={() => setSelectedCategory('sale')}>Rebajas Especiales</a></li>
+                <li><Link to="/catalog" onClick={() => window.scrollTo(0, 0)}>Todas las Prendas</Link></li>
+                <li><Link to="/catalog?category=blazers" onClick={() => window.scrollTo(0, 0)}>Blazers & Trajes</Link></li>
+                <li><Link to="/catalog?category=vestidos" onClick={() => window.scrollTo(0, 0)}>Vestidos de Gala & Lino</Link></li>
+                <li><Link to="/catalog?category=bolsos" onClick={() => window.scrollTo(0, 0)}>Bolsos & Marroquinería</Link></li>
+                <li><Link to="/catalog?category=sale" onClick={() => window.scrollTo(0, 0)}>Rebajas Especiales</Link></li>
               </ul>
             </div>
 
@@ -587,8 +523,7 @@ export const HomePage: React.FC = () => {
                 className="lookbook-shop-btn"
                 onClick={() => {
                   setShowLookbookModal(false);
-                  const el = document.getElementById('products-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  navigate('/catalog');
                 }}
               >
                 Comprar Estos Looks →

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useShop } from '../../context/ShopContext';
-import { useAuth } from '../../modules/users-security/components/AuthContext';
+import { useAuth } from '../../modules/users-security/shared/components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './CartDrawer.css';
 
@@ -20,6 +20,17 @@ export const CartDrawer: React.FC = () => {
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
+
+  useEffect(() => {
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCartOpen]);
 
   if (!isCartOpen) return null;
 

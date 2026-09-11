@@ -3,9 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '../../../prisma/prisma.module.js';
-import { AuthController } from './auth.controller.js';
-import { AuthService } from './auth.service.js';
-import { JwtStrategy } from './strategies/jwt.strategy.js';
+
+import { LoginController } from '../use-cases/CU01-iniciar-sesion/login.controller.js';
+import { LoginService } from '../use-cases/CU01-iniciar-sesion/login.service.js';
+import { LogoutController } from '../use-cases/CU02-cerrar-sesion/logout.controller.js';
+import { LogoutService } from '../use-cases/CU02-cerrar-sesion/logout.service.js';
+import { ProfileController } from '../use-cases/CU03-gestionar-perfil/profile.controller.js';
+import { ProfileService } from '../use-cases/CU03-gestionar-perfil/profile.service.js';
+
+import { JwtStrategy } from '../shared/strategies/jwt.strategy.js';
 
 @Module({
   imports: [
@@ -21,8 +27,22 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
       }),
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  controllers: [
+    LoginController,
+    LogoutController,
+    ProfileController,
+  ],
+  providers: [
+    LoginService,
+    LogoutService,
+    ProfileService,
+    JwtStrategy,
+  ],
+  exports: [
+    LoginService,
+    LogoutService,
+    ProfileService,
+    JwtModule,
+  ],
 })
 export class AuthModule {}

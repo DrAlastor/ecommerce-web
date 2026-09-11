@@ -1,8 +1,7 @@
 .cart-drawer-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.65);
   z-index: 1000;
   display: flex;
   justify-content: flex-end;

@@ -15,7 +15,7 @@ import type {
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   hasPermission: (functionName: string) => boolean;
   getAccessLevel: (functionName: string) => string | null;
 }
@@ -78,8 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    authService.logout();
+  const logout = useCallback(async () => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    await authService.logout();
     setState({
       ...initialState,
       isLoading: false,

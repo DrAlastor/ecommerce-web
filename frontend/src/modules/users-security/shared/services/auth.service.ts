@@ -1,4 +1,4 @@
-import api from '../../../services/api/api';
+import api from '../../../../services/api/api';
 import type { LoginRequest, LoginResponse, ProfileResponse } from '../types/auth.types';
 
 export const authService = {
@@ -20,11 +20,19 @@ export const authService = {
   },
 
   /**
-   * Cierra sesión limpiando el almacenamiento local.
+   * Cierra sesión notificando al backend y limpiando el almacenamiento local.
    */
-  logout(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('authUser');
+  async logout(): Promise<void> {
+    try {
+      if (this.hasToken()) {
+        await api.post('/auth/logout');
+      }
+    } catch (error) {
+      console.error('Error durante el cierre de sesión en el servidor:', error);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('authUser');
+    }
   },
 
   /**

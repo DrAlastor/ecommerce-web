@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../modules/users-security/components/AuthContext';
+import { useAuth } from '../../modules/users-security/shared/components/AuthContext';
 import { useShop } from '../../context/ShopContext';
 import './Navbar.css';
 
@@ -17,27 +17,33 @@ export const Navbar: React.FC = () => {
     setSelectedCategory,
   } = useShop();
 
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const navigate = useNavigate();
 
   const isStaff = roleName && ['Administrador', 'Encargado de Sucursal', 'Cajero'].includes(roleName);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const element = document.getElementById('products-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (searchQuery.trim()) {
+      navigate(`/catalog?search=${encodeURIComponent(searchQuery)}`);
+      setShowMobileNav(false);
     }
   };
 
   const scrollToSection = (id: string, category?: string) => {
-    if (category) {
-      setSelectedCategory(category);
-    }
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (id === 'products-section') {
+      const url = category ? `/catalog?category=${category}` : '/catalog';
+      navigate(url);
+    } else {
+      if (category) {
+        setSelectedCategory(category);
+      }
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
     setShowMobileNav(false);
   };
@@ -45,11 +51,16 @@ export const Navbar: React.FC = () => {
   return (
     <header className="site-header">
       {/* Top Notification Bar */}
-      <div className="announcement-bar">
-        <div className="announcement-content">
-          <span>✨ ENVÍO GRATIS A TODA BOLIVIA EN COMPRAS SUPERIORES A 350 Bs | DEVOLUCIONES SIN COSTO ✨</span>
+      {showAnnouncement && (
+        <div className="announcement-bar">
+          <div className="announcement-content">
+            <span className="announcement-icon">✨</span>
+            <span>ENVÍO GRATIS A TODA BOLIVIA EN COMPRAS SUPERIORES A 350 BS | DEVOLUCIONES SIN COSTO</span>
+            <span className="announcement-icon">✨</span>
+          </div>
+          <button className="announcement-close-btn" onClick={() => setShowAnnouncement(false)}>✕</button>
         </div>
-      </div>
+      )}
 
       {/* Staff Banner if logged in as Admin/Manager/Cashier */}
       {isStaff && (
@@ -209,9 +220,10 @@ export const Navbar: React.FC = () => {
                     )}
                     <button
                       className="user-dropdown-item user-dropdown-logout"
-                      onClick={() => {
+                      onClick={async () => {
                         setShowUserMenu(false);
-                        logout();
+                        await logout();
+                        navigate('/', { replace: true });
                       }}
                     >
                       Cerrar Sesión
