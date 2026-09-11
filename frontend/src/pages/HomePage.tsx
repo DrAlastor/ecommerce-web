@@ -16,6 +16,7 @@ export const HomePage: React.FC = () => {
 
     toastMessage,
     setIsCartOpen,
+    selectedCategory,
   } = useShop();
 
   const [activeSlide, setActiveSlide] = useState(1);
