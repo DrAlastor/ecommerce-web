@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import api from '../../../../../services/api/api';
 import './RegisterPage.css';
 
 // ---- Inline SVG Icons ----
@@ -64,7 +65,7 @@ export default function RegisterPage() {
     setErrorMsg('');
 
     try {
-      await axios.post('http://localhost:3000/auth/register', {
+      await api.post('/auth/register', {
         nombre: formData.nombre,
         apellido: formData.apellido,
         email: formData.email,

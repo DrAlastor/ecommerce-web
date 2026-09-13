@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+import api from '../../../../../services/api/api';
 import '../../CU01-iniciar-sesion/pages/LoginPage.css';
 
 const ResetPasswordPage: React.FC = () => {
@@ -46,21 +48,18 @@ const ResetPasswordPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/password/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: cleanToken, newPassword }),
+      await api.post('/auth/password/reset', {
+        token: cleanToken,
+        newPassword,
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Error al restablecer contraseña');
-      }
 
       setSuccess('Tu contraseña ha sido restablecida exitosamente. Redirigiendo al inicio de sesión...');
       setTimeout(() => navigate('/login'), 2200);
-    } catch (err: any) {
-      setError(err.message || 'Error de conexión');
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Error al restablecer contraseña'
+        : 'Error de conexión';
+      setError(Array.isArray(message) ? message.join(', ') : message);
     } finally {
       setLoading(false);
     }
@@ -93,6 +92,7 @@ const ResetPasswordPage: React.FC = () => {
               disabled={loading}
               className="login-input"
               style={{ letterSpacing: '2px', textAlign: 'center', fontSize: '1.2rem' }}
+              maxLength={6}
             />
           </div>
 
@@ -101,7 +101,7 @@ const ResetPasswordPage: React.FC = () => {
             <input
               id="newPassword"
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={loading}
@@ -114,7 +114,7 @@ const ResetPasswordPage: React.FC = () => {
             <input
               id="confirmPassword"
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}

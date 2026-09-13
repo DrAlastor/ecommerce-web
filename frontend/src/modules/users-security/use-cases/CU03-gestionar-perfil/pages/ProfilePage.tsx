@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import api from '../../../../../services/api/api';
 import { useAuth } from '../../../shared/components/AuthContext';
 import './ProfilePage.css';
 
@@ -40,9 +41,7 @@ export default function ProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/auth/profile', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/auth/profile');
         
         const cliente = response.data.user.cliente;
         const empleado = response.data.user.empleado;
@@ -106,9 +105,7 @@ export default function ProfilePage() {
         }
       }
 
-      await axios.patch('http://localhost:3000/auth/profile', payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.patch('/auth/profile', payload);
       setMessage({ type: 'success', text: 'Perfil actualizado exitosamente' });
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Error al actualizar el perfil';
@@ -134,11 +131,9 @@ export default function ProfilePage() {
     setIsChangingPassword(true);
 
     try {
-      await axios.patch('http://localhost:3000/auth/password/change', {
+      await api.patch('/auth/password/change', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setPasswordMessage({ type: 'success', text: 'Contraseña actualizada exitosamente' });
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });

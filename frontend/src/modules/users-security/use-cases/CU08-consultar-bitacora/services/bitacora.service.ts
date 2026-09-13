@@ -1,6 +1,6 @@
-import axios from 'axios';
+import api from '../../../../../services/api/api';
 
-const API_URL = '/api/users-security/bitacora';
+const API_URL = '/users-security/bitacora';
 
 export interface BitacoraParams {
   page?: number;
@@ -35,10 +35,8 @@ export interface BitacoraResponse {
 
 export const bitacoraService = {
   getLogs: async (params: BitacoraParams): Promise<BitacoraResponse> => {
-    const token = localStorage.getItem('accessToken');
-    const { data } = await axios.get(API_URL, {
+    const { data } = await api.get(API_URL, {
       params,
-      headers: { Authorization: `Bearer ${token}` },
     });
     return data;
   },

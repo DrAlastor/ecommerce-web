@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
+import api from '../../../../../services/api/api';
 import '../../CU01-iniciar-sesion/pages/LoginPage.css';
 
 const ForgotPasswordPage: React.FC = () => {
@@ -16,27 +18,22 @@ const ForgotPasswordPage: React.FC = () => {
       setError('Por favor, ingresa tu correo electrónico');
       return;
     }
-    
+
+    const cleanEmail = email.trim().toLowerCase();
     setError('');
     setSuccess('');
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/password/forgot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
+      await api.post('/auth/password/forgot', { email: cleanEmail });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Error al solicitar recuperación');
-      }
-
-      setSuccess('Código de verificación enviado vía correo electrónico. Revisa tu bandeja de entrada o spam.');
-      setTimeout(() => navigate(`/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`), 2200);
-    } catch (err: any) {
-      setError(err.message || 'Error de conexión');
+      setSuccess('Código de verificación enviado por correo electrónico. Revisa tu bandeja de entrada o spam.');
+      setTimeout(() => navigate(`/reset-password?email=${encodeURIComponent(cleanEmail)}`), 2200);
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || 'Error al solicitar recuperación'
+        : 'Error de conexión';
+      setError(Array.isArray(message) ? message.join(', ') : message);
     } finally {
       setLoading(false);
     }
@@ -46,7 +43,9 @@ const ForgotPasswordPage: React.FC = () => {
     <div className="login-container">
       <div className="login-box" style={{ maxWidth: '450px' }}>
         <h2 className="login-title">Recuperar Contraseña</h2>
-        <p className="login-subtitle">Ingresa tu correo y te enviaremos un código para restablecer tu contraseña.</p>
+        <p className="login-subtitle">
+          Ingresa tu correo y te enviaremos un código para restablecer tu contraseña.
+        </p>
 
         {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
         {success && <div className="success-message" style={{ color: 'green', marginBottom: '1rem', textAlign: 'center' }}>{success}</div>}
