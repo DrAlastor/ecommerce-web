@@ -1,0 +1,851 @@
+/* ==========================================================================
+   ManageRolesPage.css — Dressly Luxury Administration Style
+   ========================================================================== */
+
+.roles-page {
+  padding: 2rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  color: #1c1917;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Encabezado Principal
+   -------------------------------------------------------------------------- */
+.roles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.roles-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f5efe6;
+  color: #854d0e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  margin-bottom: 0.6rem;
+  border: 1px solid #e7dec8;
+}
+
+.roles-header-title h1 {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.roles-header-title p {
+  color: #78716c;
+  font-size: 0.95rem;
+  max-width: 720px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #44403c;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #fafaf9;
+  border-color: #d6d3d1;
+  color: #1c1917;
+  transform: translateY(-1px);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: roles-spin 1s linear infinite;
+}
+
+@keyframes roles-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   Alertas de Feedback
+   -------------------------------------------------------------------------- */
+.roles-feedback-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  font-size: 0.92rem;
+  animation: roles-slide-down 0.25s ease-out;
+}
+
+@keyframes roles-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.roles-feedback-alert.success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.roles-feedback-alert.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* --------------------------------------------------------------------------
+   Layout en 2 Columnas
+   -------------------------------------------------------------------------- */
+.roles-layout-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .roles-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Columna Izquierda: Tarjetas de Roles
+   -------------------------------------------------------------------------- */
+.roles-sidebar-panel {
+  background: #ffffff;
+  border: 1px solid #f0eeeb;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 1.5rem;
+}
+
+.roles-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f5f4f0;
+}
+
+.roles-sidebar-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0;
+}
+
+.roles-count-tag {
+  background: #f5f5f4;
+  color: #78716c;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.roles-list-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.role-item-card {
+  padding: 1.15rem;
+  border-radius: 12px;
+  background: #faf8f5;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.role-item-card:hover {
+  background: #f5f1ea;
+  transform: translateY(-2px);
+  border-color: #e5ded4;
+}
+
+.role-item-card.selected {
+  background: #ffffff;
+  border-color: #b45309;
+  box-shadow: 0 8px 24px -4px rgba(180, 83, 9, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.role-item-card.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  background: #b45309;
+  border-radius: 0 4px 4px 0;
+}
+
+.role-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.role-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3ece1;
+  color: #92400e;
+}
+
+.role-item-card.selected .role-card-icon {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.role-card-id {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a8a29e;
+}
+
+.role-card-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin: 0 0 0.35rem 0;
+}
+
+.role-card-desc {
+  font-size: 0.8rem;
+  color: #78716c;
+  margin: 0 0 0.85rem 0;
+  line-height: 1.4;
+}
+
+.role-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: #57534e;
+  border-top: 1px solid #efeae2;
+  padding-top: 0.6rem;
+}
+
+.role-metric-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.roles-loading-skeleton .skeleton-card {
+  height: 110px;
+  background: linear-gradient(90deg, #f5f5f4 25%, #e7e5e4 50%, #f5f5f4 75%);
+  background-size: 200% 100%;
+  animation: roles-shimmer 1.5s infinite;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+
+@keyframes roles-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Columna Derecha: Panel de Configuración
+   -------------------------------------------------------------------------- */
+.roles-content-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.roles-detail-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  color: #78716c;
+  border: 1px solid #f0eeeb;
+  gap: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   Resumen del Rol Seleccionado
+   -------------------------------------------------------------------------- */
+.role-overview-card {
+  background: #ffffff;
+  border: 1px solid #f0eeeb;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+}
+
+.role-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.role-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #b45309;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.role-overview-header h2 {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0;
+}
+
+.admin-protected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-security-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 0.9rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin-bottom: 1.5rem;
+}
+
+.admin-security-callout strong {
+  color: #78350f;
+}
+
+.role-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.metric-box {
+  padding: 1.15rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.metric-box.total {
+  background: #faf8f5;
+  border: 1px solid #ede8e0;
+}
+
+.metric-box.edit {
+  background: #fefce8;
+  border: 1px solid #fef08a;
+}
+
+.metric-box.read {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.metric-box.total .metric-label { color: #78716c; }
+.metric-box.edit .metric-label { color: #854d0e; }
+.metric-box.read .metric-label { color: #1e40af; }
+
+.metric-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1c1917;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-number small {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #a8a29e;
+}
+
+/* --------------------------------------------------------------------------
+   Acordeón por Módulo
+   -------------------------------------------------------------------------- */
+.modules-permissions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 5rem; /* espacio para barra flotante */
+}
+
+.module-accordion-card {
+  background: #ffffff;
+  border: 1px solid #f0eeeb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s ease;
+}
+
+.module-accordion-card:hover {
+  border-color: #e2ded7;
+}
+
+.module-accordion-header {
+  padding: 1.15rem 1.5rem;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  gap: 1rem;
+  flex-wrap: wrap;
+  transition: background 0.15s ease;
+}
+
+.module-accordion-card:not(.collapsed) .module-accordion-header {
+  border-bottom-color: #f0eeeb;
+  background: #faf8f5;
+}
+
+.module-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex: 1;
+}
+
+.module-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #f5ede2;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.module-title-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.module-title-line h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin: 0;
+}
+
+.module-functions-counter {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f0ece3;
+  color: #78350f;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.module-desc-text {
+  font-size: 0.82rem;
+  color: #78716c;
+  margin: 0.15rem 0 0 0;
+}
+
+.module-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-quick-action {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #57534e;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-quick-action:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+  border-color: #d6d3d1;
+}
+
+.btn-quick-action.desmarcar:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.btn-collapse-toggle {
+  background: transparent;
+  border: none;
+  color: #78716c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0.4rem;
+  border-radius: 6px;
+}
+
+.btn-collapse-toggle:hover {
+  background: #e7e5e4;
+  color: #1c1917;
+}
+
+/* --------------------------------------------------------------------------
+   Tabla de Funciones
+   -------------------------------------------------------------------------- */
+.module-functions-body {
+  padding: 0;
+}
+
+.functions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.functions-table th {
+  background: #fafaf9;
+  color: #78716c;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #f0eeeb;
+}
+
+.functions-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f5f4f0;
+  vertical-align: middle;
+}
+
+.function-row {
+  transition: background 0.15s ease;
+}
+
+.function-row.row-enabled {
+  background: #ffffff;
+}
+
+.function-row.row-disabled {
+  background: #fafaf9;
+  opacity: 0.7;
+}
+
+.function-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.function-name-text {
+  font-weight: 600;
+  color: #1c1917;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.function-desc-text {
+  font-size: 0.78rem;
+  color: #78716c;
+}
+
+.lock-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Toggle Switch */
+.toggle-switch-label {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.toggle-switch-label input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e7e5e4;
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch-label input:checked + .toggle-slider {
+  background-color: #059669;
+}
+
+.toggle-switch-label input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-switch-label input:disabled + .toggle-slider {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Selector de Niveles (Pills) */
+.level-pills-selector {
+  display: inline-flex;
+  background: #f5f4f0;
+  padding: 3px;
+  border-radius: 8px;
+  gap: 3px;
+  float: right;
+}
+
+.level-pill {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #78716c;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+}
+
+.level-pill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.level-pill.lectura.active {
+  background: #ffffff;
+  color: #1e40af;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.level-pill.edicion.active {
+  background: #ffffff;
+  color: #b45309;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Barra de Acciones Flotante / Sticky
+   -------------------------------------------------------------------------- */
+.roles-action-bar {
+  position: sticky;
+  bottom: 1.5rem;
+  background: #1c1917;
+  color: #ffffff;
+  padding: 1rem 1.75rem;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2rem;
+  z-index: 50;
+  transition: all 0.3s ease;
+}
+
+.roles-action-bar.has-changes {
+  border-color: #d97706;
+  box-shadow: 0 10px 30px rgba(217, 119, 6, 0.2);
+}
+
+.action-bar-status {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.unsaved-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fde68a;
+}
+
+.saved-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #86efac;
+}
+
+.action-bar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.btn-roles-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-roles-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-roles-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-roles-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #d97706;
+  border: 1px solid #b45309;
+  color: #ffffff;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+}
+
+.btn-roles-primary:hover:not(:disabled) {
+  background: #b45309;
+  transform: translateY(-1px);
+}
+
+.btn-roles-primary:disabled {
+  background: #78716c;
+  border-color: #57534e;
+  box-shadow: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}

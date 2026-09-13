@@ -1,0 +1,182 @@
+/* e:\P1\ecommerce-web\frontend\src\modules\users-security\use-cases\CU03-gestionar-perfil\pages\ProfilePage.css */
+
+.profile-page-wrapper {
+  background-color: #F8F5F1;
+  min-height: 100vh;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.profile-container {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+.profile-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  transition: opacity 0.2s;
+}
+
+.profile-back-btn:hover {
+  opacity: 0.7;
+}
+
+.profile-loading {
+  text-align: center;
+  padding: 100px 0;
+  font-size: 1.2rem;
+  color: var(--color-text-light);
+}
+
+.profile-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.profile-header h1 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.profile-header p {
+  color: var(--color-text-light);
+}
+
+.profile-content {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  padding: 3rem;
+  border: 1px solid rgba(196, 149, 106, 0.1);
+}
+
+.profile-message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.profile-message.success {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.profile-message.error {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+}
+
+.form-section h2 {
+  font-size: 1.35rem;
+  font-family: var(--font-serif);
+  color: var(--color-text);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.disabled-input {
+  background-color: #F3F4F6;
+  color: #6B7280;
+  cursor: not-allowed;
+}
+
+.profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.save-btn {
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.save-btn:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .profile-content {
+    padding: 1.5rem;
+  }
+}

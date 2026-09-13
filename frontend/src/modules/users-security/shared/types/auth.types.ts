@@ -19,6 +19,21 @@ export interface AuthUser {
   id_usuario: number;
   email: string;
   estado: string;
+  cliente?: {
+    id_cliente: number;
+    nombre: string;
+    apellido: string;
+  };
+  empleado?: {
+    id_empleado: number;
+    nombre: string;
+    apellido: string;
+    codigo_empleado: string;
+    ci: string;
+    telefono: string | null;
+    fecha_contratacion: string;
+    estado: string;
+  };
 }
 
 export interface LoginResponse {

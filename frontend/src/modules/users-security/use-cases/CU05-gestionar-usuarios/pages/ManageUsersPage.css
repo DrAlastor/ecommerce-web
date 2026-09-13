@@ -1,0 +1,191 @@
+.manage-users-page {
+  padding: 2rem;
+  font-family: var(--font-sans);
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.filter-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  min-width: 150px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.users-table th, .users-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.users-table th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table tr:hover {
+  background: var(--bg-secondary);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-activo {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-inactivo {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.role-badge {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.connection-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+.connection-pill.online {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.connection-pill.offline {
+  background: #f5f5f4;
+  color: #78716c;
+  border-color: #e7e5e4;
+}
+
+.connection-pill.small {
+  font-size: 0.68rem;
+  padding: 0.15rem 0.5rem;
+}
+
+.connection-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.connection-pill.online .connection-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.connection-pill.offline .connection-dot {
+  background: #a8a29e;
+}
+
+.btn-action {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-primary);
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pagination-controls button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}

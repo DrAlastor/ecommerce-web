@@ -1,0 +1,222 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-secondary);
+  font-family: var(--font-sans);
+}
+
+/* Sidebar */
+.admin-sidebar {
+  width: 260px;
+  background-color: var(--bg-primary);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.admin-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.admin-logo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.admin-logo span {
+  color: var(--color-secondary);
+  font-weight: 400;
+}
+
+.admin-sidebar-menu, .admin-sidebar-footer {
+  padding: 1.5rem 1rem;
+}
+
+.admin-sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-light);
+}
+
+.admin-sidebar-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  display: block;
+  padding-left: 0.75rem;
+  text-transform: uppercase;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.admin-nav-item:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.admin-nav-item.active {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.admin-module-toggle {
+  cursor: pointer;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.admin-sub-menu {
+  display: flex;
+  flex-direction: column;
+  padding-left: 2.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  gap: 0.25rem;
+}
+
+.admin-nav-subitem {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.admin-nav-subitem:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.admin-nav-subitem.active {
+  color: var(--color-primary);
+  font-weight: 600;
+  background-color: transparent;
+}
+
+/* Header */
+.admin-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-header {
+  height: 64px;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  z-index: 5;
+}
+
+.admin-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.admin-user-profile:hover {
+  background-color: var(--bg-secondary);
+}
+
+.admin-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.admin-user-role {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+/* Dropdown */
+.admin-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 180px;
+  padding: 0.5rem 0;
+  z-index: 50;
+}
+
+.admin-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.admin-dropdown-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+.admin-dropdown-item.text-danger {
+  color: #DC2626;
+}
+
+.admin-dropdown-divider {
+  height: 1px;
+  background-color: var(--border-light);
+  margin: 0.25rem 0;
+}
+
+/* Main Content */
+.admin-main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}

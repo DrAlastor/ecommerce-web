@@ -1,0 +1,189 @@
+/* e:\P1\ecommerce-web\frontend\src\modules\users-security\use-cases\CU03-gestionar-perfil\pages\RegisterPage.css */
+
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--color-background);
+}
+
+.register-left {
+  flex: 1;
+  background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .register-left {
+    display: block;
+  }
+}
+
+.register-image-overlay {
+  position: absolute;
+  bottom: 10%;
+  left: 10%;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.register-quote {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  font-weight: 300;
+}
+
+.register-quote-author {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.register-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: #ffffff;
+}
+
+.register-box {
+  width: 100%;
+  max-width: 440px;
+}
+
+.register-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.register-title {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.register-subtitle {
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-group-row .input-group {
+  flex: 1;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+  background-color: #F9FAFB;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--color-text);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.error-message {
+  background-color: #FEE2E2;
+  color: #DC2626;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.register-btn {
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.register-btn:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.register-footer {
+  margin-top: 2.5rem;
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+}
+
+.login-link {
+  color: var(--color-text);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.25rem;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.register-back-btn {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  z-index: 10;
+}
+
+.register-back-btn:hover {
+  text-decoration: underline;
+}

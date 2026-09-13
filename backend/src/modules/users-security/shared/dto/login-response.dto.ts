@@ -14,6 +14,8 @@ export interface UserDto {
   id_usuario: number;
   email: string;
   estado: string;
+  cliente?: any;
+  empleado?: any;
 }
 
 export interface LoginResponseDto {

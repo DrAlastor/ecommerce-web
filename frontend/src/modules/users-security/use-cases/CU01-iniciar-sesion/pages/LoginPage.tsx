@@ -227,8 +227,8 @@ export default function LoginPage() {
           <div className="brand-decorative-line" />
 
           <h1 className="brand-headline">
-            Elevate Your<br />
-            Everyday Style
+            Eleva tu estilo <br />
+            de cada día
           </h1>
 
           <p className="brand-description">
@@ -370,7 +370,7 @@ export default function LoginPage() {
 
             {/* Forgot password */}
             <div className="forgot-password-wrapper">
-              <Link to="/forgot-password" className="forgot-password-link">
+              <Link to="/forgot-password" className="login-link">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>

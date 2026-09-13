@@ -34,9 +34,9 @@ const initialState: AuthState = {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>(initialState);
 
-  // Restaurar sesión al montar
+  // Restaurar sesión al montar y sincronizar permisos en tiempo real
   useEffect(() => {
-    const restoreSession = () => {
+    const restoreSession = async () => {
       const stored = authService.getStoredAuth();
       const token = localStorage.getItem('accessToken');
 
@@ -49,6 +49,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           funciones: stored.funciones,
           accessToken: token,
         });
+
+        // Sincronizar en segundo plano con la base de datos para obtener funciones y permisos actualizados
+        try {
+          const profile = await authService.getProfile();
+          if (profile && profile.funciones) {
+            setState((prev) => ({
+              ...prev,
+              user: profile.user,
+              rol: profile.rol,
+              funciones: profile.funciones,
+            }));
+            const updatedAuth = {
+              ...stored,
+              user: profile.user,
+              rol: profile.rol,
+              funciones: profile.funciones,
+            };
+            localStorage.setItem('authUser', JSON.stringify(updatedAuth));
+          }
+        } catch (err) {
+          console.warn('No se pudo sincronizar el perfil con el backend:', err);
+        }
       } else {
         setState((prev) => ({ ...prev, isLoading: false }));
       }

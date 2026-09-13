@@ -4,17 +4,23 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import type { FuncionDto, LoginResponseDto } from '../../shared/dto/login-response.dto.js';
 
+import { BitacoraService } from '../../shared/services/bitacora.service.js';
+import { ActiveSessionService } from '../../shared/services/active-session.service.js';
+
 @Injectable()
 export class LoginService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly bitacora: BitacoraService,
+    private readonly activeSessionService: ActiveSessionService,
   ) {}
 
   async validateUser(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
     const usuario = await this.prisma.usuario.findUnique({
       where: { email: normalizedEmail },
+      include: { cliente: true, empleado: true }
     });
 
     if (!usuario) {
@@ -34,7 +40,16 @@ export class LoginService {
     return userWithoutPassword;
   }
 
-  async login(user: any): Promise<LoginResponseDto> {
+  async login(user: any, ip?: string): Promise<LoginResponseDto> {
+    // Registrar al usuario como CONECTADO en tiempo real
+    this.activeSessionService.connect(user.id_usuario);
+
+    await this.bitacora.logInicioSesion(
+      user.id_usuario,
+      `Usuario: ${user.email} (ID: ${user.id_usuario})`,
+      ip,
+    );
+
     const rol = await this.prisma.rol.findUnique({
       where: { id_rol: user.id_rol },
     });
@@ -60,7 +75,13 @@ export class LoginService {
 
     return {
       accessToken,
-      user: { id_usuario: user.id_usuario, email: user.email, estado: user.estado },
+      user: {
+        id_usuario: user.id_usuario,
+        email: user.email,
+        estado: user.estado,
+        cliente: user.cliente,
+        empleado: user.empleado
+      },
       rol: { id_rol: rol.id_rol, nombre: rol.nombre },
       funciones,
     };

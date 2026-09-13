@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from '../modules/users-security/shared/components/AuthContext';
 import type { ReactNode } from 'react';
 import type { Product, CartItem } from '../types/shop.types';
 
@@ -28,9 +29,16 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+  const storageSuffix = user ? `_user_${user.id_usuario}` : '_guest';
+  const cartKey = `dressly_cart${storageSuffix}`;
+  const wishlistKey = `dressly_wishlist${storageSuffix}`;
+
+  const [currentKey, setCurrentKey] = useState(cartKey);
+
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      const saved = localStorage.getItem('dressly_cart');
+      const saved = localStorage.getItem(cartKey);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -39,12 +47,27 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [wishlist, setWishlist] = useState<number[]>(() => {
     try {
-      const saved = localStorage.getItem('dressly_wishlist');
+      const saved = localStorage.getItem(wishlistKey);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
+
+  // Si cambia el usuario (login/logout), cambiamos sincronamente el estado
+  // para evitar sobreescribir datos en localStorage por el useEffect.
+  if (!isLoading && cartKey !== currentKey) {
+    setCurrentKey(cartKey);
+    try {
+      const savedCart = localStorage.getItem(cartKey);
+      setCart(savedCart ? JSON.parse(savedCart) : []);
+      const savedWishlist = localStorage.getItem(wishlistKey);
+      setWishlist(savedWishlist ? JSON.parse(savedWishlist) : []);
+    } catch {
+      setCart([]);
+      setWishlist([]);
+    }
+  }
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
@@ -53,20 +76,22 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (isLoading) return;
     try {
-      localStorage.setItem('dressly_cart', JSON.stringify(cart));
+      localStorage.setItem(cartKey, JSON.stringify(cart));
     } catch (e) {
       console.error('Error saving cart:', e);
     }
-  }, [cart]);
+  }, [cart, cartKey, isLoading]);
 
   useEffect(() => {
+    if (isLoading) return;
     try {
-      localStorage.setItem('dressly_wishlist', JSON.stringify(wishlist));
+      localStorage.setItem(wishlistKey, JSON.stringify(wishlist));
     } catch (e) {
       console.error('Error saving wishlist:', e);
     }
-  }, [wishlist]);
+  }, [wishlist, wishlistKey, isLoading]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
