@@ -1,50 +1,121 @@
-name: Azure Static Web Apps CI/CD
+name: Azure Fullstack CI/CD
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
 
 on:
   push:
     branches:
       - main
       - alessandro-dev
+      - luis-dev
     paths:
+      - 'backend/**'
       - 'frontend/**'
       - '.github/workflows/azure-static-web-apps.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+      - alessandro-dev
+      - luis-dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/azure-static-web-apps.yml'
+
+env:
+  AZURE_RESOURCE_GROUP: fashionstore-rg
+  BACKEND_APP_NAME: dressly-api-2026
+  ACR_NAME: dresslyacr
+  ACR_LOGIN_SERVER: dresslyacr.azurecr.io
+  BACKEND_IMAGE_NAME: dressly-backend
+  VITE_API_URL: https://dressly-api-2026.azurewebsites.net
 
 jobs:
-  build_and_deploy_job:
+  deploy_backend:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: Build and Deploy Backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Build backend image
+        run: |
+          docker build \
+            -t "$ACR_LOGIN_SERVER/$BACKEND_IMAGE_NAME:${{ github.sha }}" \
+            -t "$ACR_LOGIN_SERVER/$BACKEND_IMAGE_NAME:latest" \
+            ./backend
+
+      - name: Push backend image
+        run: |
+          docker push "$ACR_LOGIN_SERVER/$BACKEND_IMAGE_NAME:${{ github.sha }}"
+          docker push "$ACR_LOGIN_SERVER/$BACKEND_IMAGE_NAME:latest"
+
+      - name: Point App Service to new image
+        run: |
+          az webapp config container set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$BACKEND_APP_NAME" \
+            --container-image-name "$ACR_LOGIN_SERVER/$BACKEND_IMAGE_NAME:${{ github.sha }}" \
+            --container-registry-url "https://$ACR_LOGIN_SERVER"
+
+      - name: Restart backend App Service
+        run: |
+          az webapp restart \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$BACKEND_APP_NAME"
+
+      - name: Verify backend health
+        run: |
+          sleep 30
+          curl --fail "$VITE_API_URL/db-check"
+
+  deploy_frontend:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
+    name: Build and Deploy Frontend
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
 
-      - name: Build And Deploy
-        id: builddeploy
+      - name: Build and Deploy Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/frontend"
-          api_location: ""
-          output_location: "dist"
+          action: upload
+          app_location: /frontend
+          api_location: ''
+          output_location: dist
         env:
-          VITE_API_URL: https://dressly-api-2026.azurewebsites.net
+          VITE_API_URL: ${{ env.VITE_API_URL }}
 
-  close_pull_request_job:
+  close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    name: Close Pull Request Job
+    name: Close Static Web App Preview
+
     steps:
       - name: Close PR
-        id: closepr
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          action: "close"
+          action: close
