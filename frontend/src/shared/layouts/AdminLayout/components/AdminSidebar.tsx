@@ -34,6 +34,11 @@ const getUseCaseRoute = (nombre: string) => {
   if (norm === 'gestionar roles') return '/admin/roles';
   if (norm === 'gestionar empleados') return '/admin/empleados';
   if (norm === 'consultar bitacora') return '/admin/bitacora';
+  if (norm === 'gestionar productos') return '/admin/catalog?tab=products';
+  if (norm === 'gestionar categorias') return '/admin/catalog?tab=categories';
+  if (norm === 'gestionar variantes') return '/admin/catalog?tab=products';
+  if (norm === 'gestionar proveedores') return '/admin/proveedores';
+  if (norm === 'consultar catalogo') return '/catalog';
   const slug = norm.replace(/[^a-z0-9]+/g, '-');
   return `/admin/${slug}`;
 };
@@ -64,9 +69,10 @@ export const AdminSidebar: React.FC = () => {
       }
     });
 
-    // Para Administrador, garantizar la presencia ordenada de las funciones de Usuarios y Seguridad
+    // Para Administrador, garantizar la presencia ordenada de las funciones de Usuarios y Seguridad y Catálogo
     const isSuperAdmin = rol?.id_rol === 1 || rol?.nombre?.toLowerCase() === 'administrador';
     if (isSuperAdmin) {
+      // 1. Usuarios y Seguridad
       let targetModuleKey = Array.from(map.keys()).find(k =>
         k.toLowerCase().includes('usuario') && k.toLowerCase().includes('seguridad')
       );
@@ -84,7 +90,6 @@ export const AdminSidebar: React.FC = () => {
         });
       }
 
-      // Ordenar las funciones del módulo de seguridad
       const order = ['gestionar usuarios', 'gestionar roles', 'gestionar empleados', 'consultar bitacora'];
       list.sort((a, b) => {
         const idxA = order.indexOf(a.nombre.toLowerCase());
@@ -93,6 +98,33 @@ export const AdminSidebar: React.FC = () => {
         if (idxA !== -1) return -1;
         if (idxB !== -1) return 1;
         return a.nombre.localeCompare(b.nombre);
+      });
+
+      // 2. Catálogo
+      let catalogKey = Array.from(map.keys()).find(k =>
+        k.toLowerCase().includes('catalogo') || k.toLowerCase().includes('catálogo')
+      );
+      if (!catalogKey) {
+        catalogKey = 'Catálogo';
+        map.set(catalogKey, []);
+      }
+      const catList = map.get(catalogKey)!;
+      const requiredCatalogFuncs = [
+        { id_funcion: 4, nombre: 'Gestionar productos' },
+        { id_funcion: 5, nombre: 'Gestionar categorias' },
+        { id_funcion: 6, nombre: 'Gestionar variantes' },
+        { id_funcion: 7, nombre: 'Consultar catalogo' },
+        { id_funcion: 13, nombre: 'Gestionar proveedores' },
+      ];
+      requiredCatalogFuncs.forEach(cf => {
+        if (!catList.some(fn => fn.nombre.toLowerCase() === cf.nombre.toLowerCase())) {
+          catList.push({
+            id_funcion: cf.id_funcion,
+            nombre: cf.nombre,
+            modulo: catalogKey,
+            nivel_acceso: 'Edicion',
+          });
+        }
       });
     }
 

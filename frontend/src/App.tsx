@@ -5,6 +5,7 @@ import { ShopProvider } from './context/ShopContext';
 import LoginPage from './modules/users-security/use-cases/CU01-iniciar-sesion/pages/LoginPage';
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './modules/catalog/use-cases/CU10-consultar-catalogo-productos/pages/CatalogPage';
+import { ProductDetailPage } from './modules/catalog/use-cases/CU11-consultar-detalle-disponibilidad/pages/ProductDetailPage';
 import RegisterPage from './modules/users-security/use-cases/CU03-gestionar-perfil/pages/RegisterPage';
 import ProfilePage from './modules/users-security/use-cases/CU03-gestionar-perfil/pages/ProfilePage';
 import ForgotPasswordPage from './modules/users-security/use-cases/CU04-gestionar-contrasena/pages/ForgotPasswordPage';
@@ -15,6 +16,9 @@ import { ManageUsersPage } from './modules/users-security/use-cases/CU05-gestion
 import { BitacoraPage } from './modules/users-security/use-cases/CU08-consultar-bitacora/pages/BitacoraPage';
 import { ManageRolesPage } from './modules/users-security/use-cases/CU06-gestionar-roles-permisos/pages/ManageRolesPage';
 import { ManageEmployeesPage } from './modules/users-security/use-cases/CU07-gestionar-empleados/pages/ManageEmployeesPage';
+import { ManageCatalogPage } from './modules/catalog/use-cases/CU12-gestionar-catalogo-productos/pages/ManageCatalogPage';
+import { ManageSuppliersPage } from './modules/catalog/use-cases/CU13-gestionar-proveedores/pages/ManageSuppliersPage';
+import { RecommendationsPage } from './modules/catalog/use-cases/CU26-obtener-recomendaciones-ia/pages/RecommendationsPage';
 
 function POSDashboard() {
   return (
@@ -62,6 +66,15 @@ function App() {
             {/* Página Principal / Tienda Pública (Accesible para todos) */}
             <Route path="/" element={<HomePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route
+              path="/recommendations"
+              element={
+                <ProtectedRoute allowedRoles={['Cliente']}>
+                  <RecommendationsPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Ruta pública: Login */}
             <Route path="/login" element={<LoginPage />} />
@@ -84,7 +97,15 @@ function App() {
               <Route path="empleados" element={<ManageEmployeesPage />} />
               <Route path="employees" element={<ManageEmployeesPage />} />
               <Route path="gestionar-empleados" element={<ManageEmployeesPage />} />
-              {/* Rutas futuras de los módulos se agregarán aquí como hijos */}
+              {/* Módulo 2 — Catálogo Comercial (CU12) */}
+              <Route path="catalog" element={<ManageCatalogPage />} />
+              <Route path="gestionar-productos" element={<ManageCatalogPage />} />
+              <Route path="gestionar-categorias" element={<ManageCatalogPage />} />
+              <Route path="gestionar-variantes" element={<ManageCatalogPage />} />
+              <Route path="productos" element={<ManageCatalogPage />} />
+              {/* Modulo 2 - Proveedores y ordenes de compra (CU13) */}
+              <Route path="proveedores" element={<ManageSuppliersPage />} />
+              <Route path="gestionar-proveedores" element={<ManageSuppliersPage />} />
               <Route path="*" element={<DashboardIndex />} />
             </Route>
 
