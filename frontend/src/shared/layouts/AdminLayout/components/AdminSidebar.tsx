@@ -40,10 +40,7 @@ const getUseCaseRoute = (nombre: string) => {
 
 export const AdminSidebar: React.FC = () => {
   const { funciones, rol } = useAuth();
-  const [openModules, setOpenModules] = useState<Record<string, boolean>>({
-    'Usuarios y Seguridad': true,
-    'Gestión de Usuarios y Seguridad': true,
-  });
+  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
 
   const toggleModule = (modulo: string) => {
     setOpenModules(prev => ({ ...prev, [modulo]: !prev[modulo] }));
@@ -51,7 +48,14 @@ export const AdminSidebar: React.FC = () => {
 
   const modulesWithFunctions = useMemo(() => {
     const map = new Map<string, any[]>();
-    funciones.forEach((f) => {
+    
+    // Filtrar funciones que el usuario tenga asignadas y cuyo nivel de acceso NO sea 'Ninguno'
+    const allowedFunciones = funciones.filter((f) => {
+      const access = (f.nivel_acceso || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      return access !== 'ninguno' && access !== '';
+    });
+
+    allowedFunciones.forEach((f) => {
       if (f.modulo && f.nombre) {
         if (!map.has(f.modulo)) map.set(f.modulo, []);
         if (!map.get(f.modulo)!.some(fn => fn.nombre === f.nombre)) {
@@ -60,7 +64,7 @@ export const AdminSidebar: React.FC = () => {
       }
     });
 
-    // Garantizar que la función "Gestionar empleados" siempre esté en el módulo "Usuarios y Seguridad" para Administrador
+    // Para Administrador, garantizar la presencia ordenada de las funciones de Usuarios y Seguridad
     const isSuperAdmin = rol?.id_rol === 1 || rol?.nombre?.toLowerCase() === 'administrador';
     if (isSuperAdmin) {
       let targetModuleKey = Array.from(map.keys()).find(k =>
@@ -80,7 +84,7 @@ export const AdminSidebar: React.FC = () => {
         });
       }
 
-      // Ordenar las funciones del módulo
+      // Ordenar las funciones del módulo de seguridad
       const order = ['gestionar usuarios', 'gestionar roles', 'gestionar empleados', 'consultar bitacora'];
       list.sort((a, b) => {
         const idxA = order.indexOf(a.nombre.toLowerCase());
@@ -94,6 +98,21 @@ export const AdminSidebar: React.FC = () => {
 
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [funciones, rol]);
+
+  // Expandir automáticamente todos los módulos disponibles para el usuario
+  React.useEffect(() => {
+    if (modulesWithFunctions.length > 0) {
+      setOpenModules(prev => {
+        const next = { ...prev };
+        modulesWithFunctions.forEach(([mod]) => {
+          if (next[mod] === undefined) {
+            next[mod] = true;
+          }
+        });
+        return next;
+      });
+    }
+  }, [modulesWithFunctions]);
 
   return (
     <aside className="admin-sidebar">

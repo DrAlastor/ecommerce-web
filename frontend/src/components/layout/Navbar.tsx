@@ -19,10 +19,18 @@ export const Navbar: React.FC = () => {
 
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [showAnnouncement, setShowAnnouncement] = useState(() => {
+    return sessionStorage.getItem('dressly_announcement_dismissed') !== 'true';
+  });
   const navigate = useNavigate();
 
-  const isStaff = roleName && ['Administrador', 'Encargado de Sucursal', 'Cajero'].includes(roleName);
+  const handleDismissAnnouncement = () => {
+    setShowAnnouncement(false);
+    sessionStorage.setItem('dressly_announcement_dismissed', 'true');
+  };
+
+  const isClient = (roleName || '').toLowerCase().trim() === 'cliente';
+  const isStaff = Boolean(user?.empleado) || (Boolean(roleName) && !isClient);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +41,19 @@ export const Navbar: React.FC = () => {
   };
 
   const scrollToSection = (id: string, category?: string) => {
+    setShowMobileNav(false);
+    if (id === 'hero-section') {
+      if (window.location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+
     if (id === 'products-section') {
       const url = category ? `/catalog?category=${category}` : '/catalog';
       navigate(url);
@@ -43,9 +64,10 @@ export const Navbar: React.FC = () => {
       const element = document.getElementById(id);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
+      } else if (window.location.pathname !== '/') {
+        navigate(`/#${id}`);
       }
     }
-    setShowMobileNav(false);
   };
 
   return (
@@ -58,7 +80,7 @@ export const Navbar: React.FC = () => {
             <span>ENVÍO GRATIS A TODA BOLIVIA EN COMPRAS SUPERIORES A 350 BS | DEVOLUCIONES SIN COSTO</span>
             <span className="announcement-icon">✨</span>
           </div>
-          <button className="announcement-close-btn" onClick={() => setShowAnnouncement(false)}>✕</button>
+          <button className="announcement-close-btn" onClick={handleDismissAnnouncement} aria-label="Cerrar anuncio">✕</button>
         </div>
       )}
 
@@ -71,10 +93,10 @@ export const Navbar: React.FC = () => {
               Sesión activa: <strong>{roleName}</strong> ({user?.email})
             </div>
             <Link
-              to={roleName === 'Cajero' ? '/pos' : '/admin'}
+              to="/admin"
               className="staff-admin-link"
             >
-              Ir al {roleName === 'Cajero' ? 'Punto de Venta' : 'Panel de Administración'} →
+              Ir al Panel de Administración →
             </Link>
           </div>
         </div>

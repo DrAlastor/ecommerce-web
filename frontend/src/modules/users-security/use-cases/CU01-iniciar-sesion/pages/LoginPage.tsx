@@ -94,20 +94,13 @@ function HeartIcon() {
 // ---- Helpers ----
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function getRoleRedirectPath(roleName: string): string {
-  const normalized = roleName.toLowerCase();
-  switch (normalized) {
-    case 'administrador':
-      return '/admin';
-    case 'encargado de sucursal':
-    case 'encargado':
-      return '/admin/branches';
-    case 'cajero':
-      return '/pos';
-    case 'cliente':
-    default:
-      return '/';
+function getRoleRedirectPath(roleName?: string, isEmpleado?: boolean): string {
+  if (isEmpleado) return '/admin';
+  const normalized = (roleName || '').toLowerCase().trim();
+  if (normalized && normalized !== 'cliente') {
+    return '/admin';
   }
+  return '/';
 }
 
 // ---- Component ----
@@ -174,8 +167,8 @@ export default function LoginPage() {
       // Obtener el rol del localStorage para redirección
       const stored = localStorage.getItem('authUser');
       if (stored) {
-        const { rol } = JSON.parse(stored);
-        const redirectPath = from || getRoleRedirectPath(rol.nombre);
+        const parsed = JSON.parse(stored);
+        const redirectPath = from || getRoleRedirectPath(parsed.rol?.nombre, Boolean(parsed.user?.empleado));
         navigate(redirectPath, { replace: true });
       } else {
         navigate('/', { replace: true });

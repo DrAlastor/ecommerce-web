@@ -183,9 +183,10 @@
   background-color: #F8F6F2;
   border: 1px solid #EBE7E1;
   border-radius: 9999px;
-  padding: 0.35rem 0.85rem;
-  width: 280px;
+  padding: 0.45rem 0.95rem;
+  width: 290px;
   transition: all 0.25s ease;
+  line-height: 1;
 }
 
 .nav-search-form:focus-within {
@@ -197,8 +198,9 @@
 
 .search-icon {
   color: #8C827A;
-  margin-right: 0.4rem;
+  margin-right: 0.5rem;
   flex-shrink: 0;
+  display: block;
 }
 
 .nav-search-input {
@@ -208,6 +210,9 @@
   font-size: 0.85rem;
   color: #1A1A1A;
   outline: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .search-clear-btn {
@@ -217,6 +222,10 @@
   cursor: pointer;
   font-size: 1.1rem;
   padding: 0 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* Actions */

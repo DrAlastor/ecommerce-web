@@ -66,11 +66,11 @@ function App() {
             {/* Ruta pública: Login */}
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Rutas protegidas: Administrador / Encargado */}
+            {/* Rutas protegidas del Panel Interno: Cualquier empleado o administrador */}
             <Route
               path="/admin"
               element={
-                <ProtectedRoute allowedRoles={['Administrador', 'Encargado de Sucursal']}>
+                <ProtectedRoute requireStaff>
                   <AdminLayout />
                 </ProtectedRoute>
               }
@@ -105,7 +105,7 @@ function App() {
             <Route
               path="/profile"
               element={
-                <ProtectedRoute allowedRoles={['Cliente', 'Administrador', 'Encargado de Sucursal', 'Cajero']}>
+                <ProtectedRoute>
                   <ProfilePage />
                 </ProtectedRoute>
               }
