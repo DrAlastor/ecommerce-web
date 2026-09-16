@@ -1,0 +1,351 @@
+{
+  "generatedAt": "2026-09-15T20:45:48.665Z",
+  "modulo": [
+    {
+      "id_modulo": 1,
+      "nombre": "Usuarios y Seguridad",
+      "descripcion": "Usuarios, roles, autenticacion, recuperacion y bitacora"
+    },
+    {
+      "id_modulo": 2,
+      "nombre": "Catalogo",
+      "descripcion": "Productos, categorias, tallas, colores, colecciones e imagenes"
+    },
+    {
+      "id_modulo": 3,
+      "nombre": "Inventario y Proveedores",
+      "descripcion": "Existencias, movimientos, proveedores y ordenes de compra"
+    },
+    {
+      "id_modulo": 4,
+      "nombre": "Reservas",
+      "descripcion": "Reservas de prendas para prueba en sucursal"
+    },
+    {
+      "id_modulo": 5,
+      "nombre": "Ventas y Pagos",
+      "descripcion": "Ventas presenciales y digitales, pagos, envios y devoluciones"
+    },
+    {
+      "id_modulo": 6,
+      "nombre": "IA y Realidad Aumentada",
+      "descripcion": "Recomendaciones inteligentes y vestidor virtual"
+    },
+    {
+      "id_modulo": 7,
+      "nombre": "Reportes",
+      "descripcion": "Indicadores, reportes y dashboards empresariales"
+    }
+  ],
+  "funcion": [
+    {
+      "id_funcion": 1,
+      "nombre": "Gestionar usuarios",
+      "descripcion": "Crear, editar, activar y desactivar usuarios",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 2,
+      "nombre": "Gestionar roles",
+      "descripcion": "Administrar roles y permisos",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 3,
+      "nombre": "Consultar bitacora",
+      "descripcion": "Consultar acciones auditadas del sistema",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 4,
+      "nombre": "Gestionar productos",
+      "descripcion": "Crear y actualizar productos",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 5,
+      "nombre": "Gestionar categorias",
+      "descripcion": "Administrar categorias del catalogo",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 6,
+      "nombre": "Gestionar variantes",
+      "descripcion": "Administrar combinaciones de talla y color",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 7,
+      "nombre": "Consultar catalogo",
+      "descripcion": "Buscar y consultar productos disponibles",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 8,
+      "nombre": "Gestionar inventario",
+      "descripcion": "Consultar y ajustar existencias por sucursal",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 9,
+      "nombre": "Registrar movimientos",
+      "descripcion": "Registrar entradas y salidas de inventario",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 10,
+      "nombre": "Gestionar proveedores",
+      "descripcion": "Administrar informacion de proveedores",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 11,
+      "nombre": "Gestionar ordenes de compra",
+      "descripcion": "Crear y recibir ordenes de compra",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 12,
+      "nombre": "Crear reserva",
+      "descripcion": "Reservar varias prendas para una sucursal",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 13,
+      "nombre": "Gestionar reservas",
+      "descripcion": "Preparar, confirmar o cancelar reservas",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 14,
+      "nombre": "Registrar venta",
+      "descripcion": "Registrar ventas presenciales o digitales",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 15,
+      "nombre": "Procesar pago",
+      "descripcion": "Registrar y confirmar pagos",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 16,
+      "nombre": "Gestionar envios",
+      "descripcion": "Administrar despachos y entregas",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 17,
+      "nombre": "Usar vestidor virtual",
+      "descripcion": "Visualizar prendas mediante realidad aumentada",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 18,
+      "nombre": "Obtener recomendaciones IA",
+      "descripcion": "Solicitar recomendaciones personalizadas",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 19,
+      "nombre": "Consultar dashboard",
+      "descripcion": "Visualizar indicadores de negocio",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 20,
+      "nombre": "Generar reportes",
+      "descripcion": "Generar reportes de ventas e inventario",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 21,
+      "nombre": "Gestionar empleados",
+      "descripcion": "Administrar registro, datos laborales y sucursales de empleados",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 22,
+      "nombre": "Gestionar sucursales",
+      "descripcion": "Administrar ciudades, sucursales físicas y estados operativos",
+      "id_modulo": 3
+    }
+  ],
+  "rol_funcion": [
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 1
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 2
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 3
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 4
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 5
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 6
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 7
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 8
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 9
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 10
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 11
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 12
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 13
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 14
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 15
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 16
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 17
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 18
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 19
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 20
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 21
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 22
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 7
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 12
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 15
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 17
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 18
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 7
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 8
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 9
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 13
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 19
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 4,
+      "id_funcion": 7
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 14
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 15
+    }
+  ]
+}

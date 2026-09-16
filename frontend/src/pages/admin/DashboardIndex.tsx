@@ -1,48 +1,77 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../modules/users-security/shared/components/AuthContext';
-import { 
-  Package, 
-  Users, 
-  ShieldCheck, 
-  ShoppingBag, 
-  ArrowRight, 
-  Lock, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Package,
+  Users,
+  ShieldCheck,
+  ShoppingBag,
+  ArrowRight,
+  Lock,
+  CheckCircle2,
+  Clock,
   Building2,
   Calendar,
   Sparkles,
   BarChart3,
-  KeyRound
+  KeyRound,
+  ChevronDown,
+  ChevronUp,
+  ArrowLeftRight
 } from 'lucide-react';
 
 export default function DashboardIndex() {
   const { user, rol, funciones } = useAuth();
   const navigate = useNavigate();
+  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
 
-  // Filtrar funciones activas (acceso distinto a Ninguno)
+  const toggleModule = (modulo: string) => {
+    setOpenModules(prev => ({ ...prev, [modulo]: !prev[modulo] }));
+  };
+
+  const normalize = (value: string) =>
+  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+  // Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 27
+  const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 27]);
+
+  // Filtrar funciones activas (acceso distinto a Ninguno) excluyendo el módulo 6 móvil
   const allowedFunciones = funciones.filter(f => {
-    const access = (f.nivel_acceso || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    return access !== 'ninguno' && access !== '';
+    const access = normalize(f.nivel_acceso || '');
+    const isMobileExclusive = normalize(f.modulo || '').includes('movil');
+    return (
+      webPanelUseCaseIds.has(f.id_funcion) &&
+      !isMobileExclusive &&
+      access !== 'ninguno' &&
+      access !== ''
+    );
   });
 
   const getUseCaseRoute = (nombre: string) => {
-    const norm = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-    if (norm === 'gestionar usuarios') return '/admin/users';
-    if (norm === 'gestionar roles') return '/admin/roles';
-    if (norm === 'gestionar empleados') return '/admin/empleados';
-    if (norm === 'consultar bitacora') return '/admin/bitacora';
-    const slug = norm.replace(/[^a-z0-9]+/g, '-');
-    return `/admin/${slug}`;
+    const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+    if (norm.includes('usuario')) return '/admin/users';
+    if (norm.includes('rol')) return '/admin/roles';
+    if (norm.includes('empleado')) return '/admin/empleados';
+    if (norm.includes('bitacora')) return '/admin/bitacora';
+    if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
+    if (norm.includes('proveedor')) return '/admin/proveedores';
+    if (norm.includes('recomendacion') || norm.includes('ia')) return '/recommendations';
+    if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
+    if (norm.includes('movimiento')) return '/admin/movimientos';
+    if (norm.includes('inventario')) return '/admin/inventario';
+    if (norm.includes('reserva')) return '/admin/reservas';
+    if (norm.includes('venta') || norm.includes('pos')) return '/pos';
+    if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
+    return '/admin';
   };
 
   const getFunctionIcon = (nombre: string) => {
-    const norm = nombre.toLowerCase();
+    const norm = normalize(nombre);
     if (norm.includes('usuario')) return <Users size={18} />;
     if (norm.includes('rol')) return <KeyRound size={18} />;
     if (norm.includes('empleado')) return <Building2 size={18} />;
     if (norm.includes('bitacora')) return <Clock size={18} />;
+    if (norm.includes('movimiento')) return <ArrowLeftRight size={18} />;
     if (norm.includes('producto') || norm.includes('catalogo')) return <Package size={18} />;
     if (norm.includes('reserva')) return <Calendar size={18} />;
     if (norm.includes('venta') || norm.includes('pago')) return <ShoppingBag size={18} />;
@@ -79,21 +108,22 @@ export default function DashboardIndex() {
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
             Sesión Activa: {rol?.nombre || 'Personal Interno'}
           </div>
-          <h1 style={{ fontSize: '2.3rem', fontFamily: 'var(--font-display, Georgia, serif)', margin: '0 0 0.5rem 0', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '2.3rem', fontFamily: 'var(--font-display, Georgia, serif)', margin: '0 0 0.5rem 0', letterSpacing: '-0.02em', color: '#FFFFFF', fontWeight: 700 }}>
             Bienvenido, {user?.empleado?.nombre ? `${user.empleado.nombre} ${user.empleado.apellido || ''}` : user?.email}
           </h1>
-          <p style={{ color: '#D6CBC2', maxWidth: '650px', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ color: '#F3EAE2', maxWidth: '680px', fontSize: '1.02rem', lineHeight: 1.6, margin: 0 }}>
             {isSuperAdmin
               ? 'Tienes privilegios completos de Administrador sobre todos los módulos y funciones del sistema.'
               : `Has iniciado sesión con el rol de ${rol?.nombre}. En este panel dispones de acceso exclusivo a los módulos y herramientas que tienes asignados.`}
           </p>
+
         </div>
       </div>
 
       {/* Métricas / Resumen del perfil del colaborador */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         gap: '1.25rem',
         marginBottom: '2.5rem'
       }}>
@@ -165,92 +195,120 @@ export default function DashboardIndex() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '1.5rem'
           }}>
-            {Array.from(modulesMap.entries()).map(([modulo, funcs]) => (
-              <div key={modulo} style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '14px',
-                border: '1px solid #EAE6DF',
-                padding: '1.5rem',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                    <div style={{
-                      backgroundColor: '#FAF8F5',
-                      border: '1px solid #EAE4DC',
-                      padding: '0.6rem',
-                      borderRadius: '10px',
-                      color: '#8C5E35'
-                    }}>
-                      <ShieldCheck size={20} />
+            {Array.from(modulesMap.entries()).map(([modulo, funcs]) => {
+              const isOpen = !!openModules[modulo];
+              return (
+                <div key={modulo} style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '14px',
+                  border: isOpen ? '1px solid #C4956A' : '1px solid #EAE6DF',
+                  padding: '1.25rem 1.5rem',
+                  boxShadow: isOpen ? '0 4px 14px rgba(196,149,106,0.12)' : '0 2px 10px rgba(0,0,0,0.03)',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div
+                    onClick={() => toggleModule(modulo)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{
+                        backgroundColor: isOpen ? '#8C5E35' : '#FAF8F5',
+                        border: '1px solid #EAE4DC',
+                        padding: '0.6rem',
+                        borderRadius: '10px',
+                        color: isOpen ? '#FFFFFF' : '#8C5E35',
+                        transition: 'all 0.2s ease'
+                      }}>
+                        <ShieldCheck size={20} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1A1A1A', margin: 0 }}>
+                          {modulo.replace('Gestión de ', '')}
+                        </h3>
+                        <span style={{ fontSize: '0.78rem', color: '#8C827A' }}>
+                          {funcs.length} {funcs.length === 1 ? 'función asignada' : 'funciones asignadas'}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1A1A1A', margin: 0 }}>
-                        {modulo.replace('Gestión de ', '')}
-                      </h3>
-                      <span style={{ fontSize: '0.78rem', color: '#8C827A' }}>
-                        {funcs.length} {funcs.length === 1 ? 'función asignada' : 'funciones asignadas'}
-                      </span>
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: isOpen ? '#8C5E35' : '#736B63',
+                      backgroundColor: isOpen ? '#F4ECE1' : '#F5F5F5',
+                      padding: '0.4rem 0.75rem',
+                      borderRadius: '8px'
+                    }}>
+                      <span>{isOpen ? 'Ocultar' : 'Abrir'}</span>
+                      {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                    {funcs.map(f => (
-                      <button
-                        key={f.nombre}
-                        onClick={() => navigate(getUseCaseRoute(f.nombre))}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '0.75rem 1rem',
-                          borderRadius: '8px',
-                          border: '1px solid #F0ECE6',
-                          backgroundColor: '#FAF8F5',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'all 0.2s ease',
-                          color: '#2E2722'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#F2EDE4';
-                          e.currentTarget.style.borderColor = '#C4956A';
-                          e.currentTarget.style.transform = 'translateX(4px)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#FAF8F5';
-                          e.currentTarget.style.borderColor = '#F0ECE6';
-                          e.currentTarget.style.transform = 'translateX(0)';
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                          <span style={{ color: '#8C5E35' }}>{getFunctionIcon(f.nombre)}</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{f.nombre}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.04em',
-                            padding: '0.2rem 0.5rem',
-                            borderRadius: '9999px',
-                            backgroundColor: f.nivel_acceso?.toLowerCase() === 'edicion' ? '#DCFCE7' : '#E0F2FE',
-                            color: f.nivel_acceso?.toLowerCase() === 'edicion' ? '#15803D' : '#0369A1'
-                          }}>
-                            {f.nivel_acceso || 'Lectura'}
-                          </span>
-                          <ArrowRight size={14} color="#8C827A" />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  {isOpen && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #F0ECE6' }}>
+                      {funcs.map(f => (
+                        <button
+                          key={f.nombre}
+                          onClick={() => navigate(getUseCaseRoute(f.nombre))}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '8px',
+                            border: '1px solid #F0ECE6',
+                            backgroundColor: '#FAF8F5',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease',
+                            color: '#2E2722'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#F2EDE4';
+                            e.currentTarget.style.borderColor = '#C4956A';
+                            e.currentTarget.style.transform = 'translateX(4px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#FAF8F5';
+                            e.currentTarget.style.borderColor = '#F0ECE6';
+                            e.currentTarget.style.transform = 'translateX(0)';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                            <span style={{ color: '#8C5E35' }}>{getFunctionIcon(f.nombre)}</span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{f.nombre.replace(/^CU\d+\s*[-—]\s*/i, '')}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '9999px',
+                              backgroundColor: f.nivel_acceso?.toLowerCase() === 'edicion' ? '#DCFCE7' : '#E0F2FE',
+                              color: f.nivel_acceso?.toLowerCase() === 'edicion' ? '#15803D' : '#0369A1'
+                            }}>
+                              {f.nivel_acceso || 'Lectura'}
+                            </span>
+                            <ArrowRight size={14} color="#8C827A" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

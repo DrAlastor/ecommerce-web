@@ -1,0 +1,1391 @@
+{
+  "generatedAt": "2026-09-15T21:15:21.758Z",
+  "modulo": [
+    {
+      "id_modulo": 1,
+      "nombre": "Usuarios y Seguridad",
+      "descripcion": "Gestionar identidades, accesos, perfiles, permisos y seguridad del sistema."
+    },
+    {
+      "id_modulo": 2,
+      "nombre": "Catálogo, Proveedores y Recomendaciones",
+      "descripcion": "Administrar prendas, productos, proveedores y recomendaciones inteligentes."
+    },
+    {
+      "id_modulo": 3,
+      "nombre": "Sucursales e Inventario",
+      "descripcion": "Administrar tiendas físicas y controlar existencias."
+    },
+    {
+      "id_modulo": 4,
+      "nombre": "Reservas de Prendas",
+      "descripcion": "Gestionar reservas de prendas para pruebas en sucursal."
+    },
+    {
+      "id_modulo": 5,
+      "nombre": "Ventas y Facturación",
+      "descripcion": "Gestionar compras digitales, ventas presenciales, pagos y devoluciones."
+    },
+    {
+      "id_modulo": 6,
+      "nombre": "Experiencia Móvil Interactiva",
+      "descripcion": "Incorporar cámara, IA y realidad aumentada."
+    },
+    {
+      "id_modulo": 7,
+      "nombre": "Reportes y Dashboard",
+      "descripcion": "Proporcionar información resumida para toma de decisiones."
+    }
+  ],
+  "funcion": [
+    {
+      "id_funcion": 1,
+      "nombre": "Registrarse como cliente",
+      "descripcion": "CU03 — Registrar perfil de cliente",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 2,
+      "nombre": "Iniciar sesión",
+      "descripcion": "CU01 — Gestionar Acceso al Sistema",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 3,
+      "nombre": "Cerrar sesión",
+      "descripcion": "CU01 — Gestionar Acceso al Sistema",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 4,
+      "nombre": "Consultar perfil personal",
+      "descripcion": "CU03 — Gestionar perfil",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 5,
+      "nombre": "Modificar datos personales",
+      "descripcion": "CU03 — Gestionar perfil",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 6,
+      "nombre": "Cambiar contraseña",
+      "descripcion": "CU04 — Gestionar contraseña",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 7,
+      "nombre": "Recuperar contraseña",
+      "descripcion": "CU04 — Gestionar contraseña",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 8,
+      "nombre": "Iniciar sesión administrativo",
+      "descripcion": "CU01 — Gestionar Acceso al Sistema",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 9,
+      "nombre": "Cerrar sesión administrativo",
+      "descripcion": "CU01 — Gestionar Acceso al Sistema",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 10,
+      "nombre": "Gestionar usuarios",
+      "descripcion": "CU05",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 11,
+      "nombre": "Consultar usuarios",
+      "descripcion": "CU05",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 12,
+      "nombre": "Activar usuarios",
+      "descripcion": "CU05",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 13,
+      "nombre": "Desactivar usuarios",
+      "descripcion": "CU05",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 14,
+      "nombre": "Gestionar roles",
+      "descripcion": "CU06",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 15,
+      "nombre": "Gestionar permisos",
+      "descripcion": "CU06",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 16,
+      "nombre": "Asignar funciones a roles",
+      "descripcion": "CU06",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 17,
+      "nombre": "Consultar bitácora",
+      "descripcion": "CU02 — Consultar Bitácora",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 18,
+      "nombre": "Gestionar empleados",
+      "descripcion": "CU07",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 19,
+      "nombre": "Asociar empleados a sucursales",
+      "descripcion": "CU07",
+      "id_modulo": 1
+    },
+    {
+      "id_funcion": 20,
+      "nombre": "Consultar catálogo",
+      "descripcion": "CU10",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 21,
+      "nombre": "Buscar productos",
+      "descripcion": "CU10",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 22,
+      "nombre": "Filtrar productos",
+      "descripcion": "CU10",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 23,
+      "nombre": "Consultar detalle del producto",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 24,
+      "nombre": "Consultar imágenes",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 25,
+      "nombre": "Consultar tallas disponibles",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 26,
+      "nombre": "Consultar colores disponibles",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 27,
+      "nombre": "Consultar guía de tallas",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 28,
+      "nombre": "Consultar disponibilidad del producto",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 29,
+      "nombre": "Consultar promociones aplicadas",
+      "descripcion": "CU11",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 30,
+      "nombre": "Obtener recomendaciones personalizadas",
+      "descripcion": "CU26",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 31,
+      "nombre": "Consultar productos recomendados por IA",
+      "descripcion": "CU26",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 32,
+      "nombre": "Crear producto",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 33,
+      "nombre": "Modificar producto",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 34,
+      "nombre": "Activar/desactivar producto",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 35,
+      "nombre": "Gestionar categorías",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 36,
+      "nombre": "Gestionar subcategorías",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 37,
+      "nombre": "Gestionar tallas",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 38,
+      "nombre": "Gestionar colores",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 39,
+      "nombre": "Gestionar variantes de producto",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 40,
+      "nombre": "Gestionar imágenes de productos",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 41,
+      "nombre": "Gestionar modelos 3D",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 42,
+      "nombre": "Gestionar temporadas",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 43,
+      "nombre": "Gestionar colecciones",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 44,
+      "nombre": "Gestionar promociones",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 45,
+      "nombre": "Gestionar guías de tallas",
+      "descripcion": "CU12",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 46,
+      "nombre": "Gestionar proveedores",
+      "descripcion": "CU13",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 47,
+      "nombre": "Asociar proveedores con productos",
+      "descripcion": "CU13",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 48,
+      "nombre": "Crear órdenes de compra",
+      "descripcion": "CU13",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 49,
+      "nombre": "Consultar órdenes de compra",
+      "descripcion": "CU13",
+      "id_modulo": 2
+    },
+    {
+      "id_funcion": 50,
+      "nombre": "Consultar sucursales",
+      "descripcion": "CU09",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 51,
+      "nombre": "Consultar ubicación de sucursal",
+      "descripcion": "CU09",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 52,
+      "nombre": "Consultar horarios de atención",
+      "descripcion": "CU09",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 53,
+      "nombre": "Consultar disponibilidad por sucursal",
+      "descripcion": "CU11",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 54,
+      "nombre": "Gestionar ciudades",
+      "descripcion": "CU08",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 55,
+      "nombre": "Gestionar sucursales",
+      "descripcion": "CU08",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 56,
+      "nombre": "Activar/desactivar sucursales",
+      "descripcion": "CU08",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 57,
+      "nombre": "Consultar inventario global",
+      "descripcion": "CU14",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 58,
+      "nombre": "Consultar inventario por sucursal",
+      "descripcion": "CU14",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 59,
+      "nombre": "Consultar stock por variante",
+      "descripcion": "CU14",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 60,
+      "nombre": "Consultar stock reservado",
+      "descripcion": "CU14",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 61,
+      "nombre": "Consultar productos agotados",
+      "descripcion": "CU14",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 62,
+      "nombre": "Registrar entrada de inventario",
+      "descripcion": "CU15",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 63,
+      "nombre": "Registrar salida de inventario",
+      "descripcion": "CU15",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 64,
+      "nombre": "Registrar ajustes de inventario",
+      "descripcion": "CU15",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 65,
+      "nombre": "Registrar devoluciones de inventario",
+      "descripcion": "CU15",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 66,
+      "nombre": "Consultar historial de movimientos",
+      "descripcion": "CU15",
+      "id_modulo": 3
+    },
+    {
+      "id_funcion": 67,
+      "nombre": "Crear reserva de prendas",
+      "descripcion": "CU16",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 68,
+      "nombre": "Seleccionar sucursal",
+      "descripcion": "CU16",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 69,
+      "nombre": "Seleccionar fecha/horario aproximado",
+      "descripcion": "CU16",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 70,
+      "nombre": "Consultar reservas realizadas",
+      "descripcion": "CU17",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 71,
+      "nombre": "Consultar estado de reserva",
+      "descripcion": "CU17",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 72,
+      "nombre": "Cancelar reserva",
+      "descripcion": "CU17",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 73,
+      "nombre": "Consultar reservas de sucursal",
+      "descripcion": "CU18",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 74,
+      "nombre": "Preparar prendas reservadas",
+      "descripcion": "CU18",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 75,
+      "nombre": "Cambiar estado de reserva",
+      "descripcion": "CU18",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 76,
+      "nombre": "Confirmar llegada del cliente",
+      "descripcion": "CU18",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 77,
+      "nombre": "Registrar prendas vendidas de una reserva",
+      "descripcion": "CU18",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 78,
+      "nombre": "Liberar prendas no adquiridas",
+      "descripcion": "CU18",
+      "id_modulo": 4
+    },
+    {
+      "id_funcion": 79,
+      "nombre": "Agregar productos al carrito",
+      "descripcion": "CU19",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 80,
+      "nombre": "Modificar carrito",
+      "descripcion": "CU19",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 81,
+      "nombre": "Eliminar productos del carrito",
+      "descripcion": "CU19",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 82,
+      "nombre": "Realizar compra digital",
+      "descripcion": "CU20",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 83,
+      "nombre": "Seleccionar dirección de entrega",
+      "descripcion": "CU20",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 84,
+      "nombre": "Procesar pago electrónico",
+      "descripcion": "CU22",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 85,
+      "nombre": "Consultar historial de compras",
+      "descripcion": "CU21",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 86,
+      "nombre": "Consultar estado de compra",
+      "descripcion": "CU21",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 87,
+      "nombre": "Consultar envío",
+      "descripcion": "CU21",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 88,
+      "nombre": "Registrar venta presencial",
+      "descripcion": "CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 89,
+      "nombre": "Buscar productos para venta",
+      "descripcion": "CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 90,
+      "nombre": "Procesar pago presencial",
+      "descripcion": "CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 91,
+      "nombre": "Aplicar promociones autorizadas",
+      "descripcion": "CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 92,
+      "nombre": "Generar comprobante",
+      "descripcion": "CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 93,
+      "nombre": "Gestionar devoluciones",
+      "descripcion": "CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 94,
+      "nombre": "Consultar ventas realizadas",
+      "descripcion": "CU21",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 95,
+      "nombre": "Consultar pagos",
+      "descripcion": "CU21 / CU23",
+      "id_modulo": 5
+    },
+    {
+      "id_funcion": 96,
+      "nombre": "Abrir vestidor virtual",
+      "descripcion": "CU24",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 97,
+      "nombre": "Probar prendas virtualmente",
+      "descripcion": "CU24",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 98,
+      "nombre": "Visualizar modelo 3D",
+      "descripcion": "CU24",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 99,
+      "nombre": "Escanear producto",
+      "descripcion": "CU25",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 100,
+      "nombre": "Identificar producto mediante cámara",
+      "descripcion": "CU25",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 101,
+      "nombre": "Consultar producto escaneado",
+      "descripcion": "CU25",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 102,
+      "nombre": "Gestionar modelos 3D asociados",
+      "descripcion": "CU12",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 103,
+      "nombre": "Configurar productos compatibles con RA",
+      "descripcion": "CU12",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 104,
+      "nombre": "Consultar estadísticas de uso IA/RA",
+      "descripcion": "CU27",
+      "id_modulo": 6
+    },
+    {
+      "id_funcion": 105,
+      "nombre": "Consultar dashboard general",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 106,
+      "nombre": "Consultar ventas",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 107,
+      "nombre": "Consultar productos más vendidos",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 108,
+      "nombre": "Consultar inventario crítico",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 109,
+      "nombre": "Consultar reservas",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 110,
+      "nombre": "Consultar movimientos de inventario",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 111,
+      "nombre": "Consultar indicadores por sucursal",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    },
+    {
+      "id_funcion": 112,
+      "nombre": "Consultar reportes operativos",
+      "descripcion": "CU27",
+      "id_modulo": 7
+    }
+  ],
+  "rol_funcion": [
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 8
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 9
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 10
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 11
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 12
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 13
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 14
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 15
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 16
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 17
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 18
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 19
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 32
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 33
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 34
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 35
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 36
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 37
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 38
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 39
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 40
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 41
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 42
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 43
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 44
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 45
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 46
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 47
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 48
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 49
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 54
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 55
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 56
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 57
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 58
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 59
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 60
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 61
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 62
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 63
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 64
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 65
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 66
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 77
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 93
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 94
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 95
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 102
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 1,
+      "id_funcion": 103
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 104
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 105
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 106
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 107
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 108
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 109
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 110
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 111
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 1,
+      "id_funcion": 112
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 1
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 2
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 3
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 4
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 5
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 6
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 7
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 20
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 21
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 22
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 23
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 24
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 25
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 26
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 27
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 28
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 29
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 30
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 31
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 50
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 51
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 52
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 53
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 67
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 68
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 69
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 70
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 71
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 72
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 79
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 80
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 81
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 82
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 83
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 84
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 85
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 86
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 87
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 96
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 2,
+      "id_funcion": 97
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 98
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 99
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 100
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 2,
+      "id_funcion": 101
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 8
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 9
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 20
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 23
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 53
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 57
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 58
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 59
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 60
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 61
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 62
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 63
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 64
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 65
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 66
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 73
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 74
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 75
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 76
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 77
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 3,
+      "id_funcion": 78
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 3,
+      "id_funcion": 109
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 4,
+      "id_funcion": 8
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 4,
+      "id_funcion": 9
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 4,
+      "id_funcion": 20
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 4,
+      "id_funcion": 23
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 77
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 88
+    },
+    {
+      "descripcion": "Lectura",
+      "id_rol": 4,
+      "id_funcion": 89
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 90
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 91
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 92
+    },
+    {
+      "descripcion": "Edicion",
+      "id_rol": 4,
+      "id_funcion": 93
+    }
+  ]
+}

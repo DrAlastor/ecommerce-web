@@ -2,23 +2,27 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './modules/users-security/shared/components/AuthContext';
 import { ProtectedRoute } from './modules/users-security/shared/components/ProtectedRoute';
 import { ShopProvider } from './context/ShopContext';
-import LoginPage from './modules/users-security/use-cases/CU01-iniciar-sesion/pages/LoginPage';
+import LoginPage from './modules/users-security/use-cases/CU01-gestionar-acceso/pages/LoginPage';
 import { HomePage } from './pages/HomePage';
-import { CatalogPage } from './modules/catalog/use-cases/CU10-consultar-catalogo-productos/pages/CatalogPage';
-import { ProductDetailPage } from './modules/catalog/use-cases/CU11-consultar-detalle-disponibilidad/pages/ProductDetailPage';
-import RegisterPage from './modules/users-security/use-cases/CU03-gestionar-perfil/pages/RegisterPage';
-import ProfilePage from './modules/users-security/use-cases/CU03-gestionar-perfil/pages/ProfilePage';
-import ForgotPasswordPage from './modules/users-security/use-cases/CU04-gestionar-contrasena/pages/ForgotPasswordPage';
-import ResetPasswordPage from './modules/users-security/use-cases/CU04-gestionar-contrasena/pages/ResetPasswordPage';
+import { CatalogPage } from './modules/catalog/use-cases/CU08-consultar-catalogo-productos/pages/CatalogPage';
+import { ProductDetailPage } from './modules/catalog/use-cases/CU09-consultar-detalle-disponibilidad/pages/ProductDetailPage';
+import RegisterPage from './modules/users-security/use-cases/CU02-gestionar-perfil/pages/RegisterPage';
+import ProfilePage from './modules/users-security/use-cases/CU02-gestionar-perfil/pages/ProfilePage';
+import ForgotPasswordPage from './modules/users-security/use-cases/CU03-gestionar-contrasena/pages/ForgotPasswordPage';
+import ResetPasswordPage from './modules/users-security/use-cases/CU03-gestionar-contrasena/pages/ResetPasswordPage';
 import { AdminLayout } from './shared/layouts/AdminLayout/AdminLayout';
 import DashboardIndex from './pages/admin/DashboardIndex';
-import { ManageUsersPage } from './modules/users-security/use-cases/CU05-gestionar-usuarios/pages/ManageUsersPage';
-import { BitacoraPage } from './modules/users-security/use-cases/CU08-consultar-bitacora/pages/BitacoraPage';
-import { ManageRolesPage } from './modules/users-security/use-cases/CU06-gestionar-roles-permisos/pages/ManageRolesPage';
-import { ManageEmployeesPage } from './modules/users-security/use-cases/CU07-gestionar-empleados/pages/ManageEmployeesPage';
-import { ManageCatalogPage } from './modules/catalog/use-cases/CU12-gestionar-catalogo-productos/pages/ManageCatalogPage';
-import { ManageSuppliersPage } from './modules/catalog/use-cases/CU13-gestionar-proveedores/pages/ManageSuppliersPage';
-import { RecommendationsPage } from './modules/catalog/use-cases/CU26-obtener-recomendaciones-ia/pages/RecommendationsPage';
+import { ManageUsersPage } from './modules/users-security/use-cases/CU04-gestionar-usuarios/pages/ManageUsersPage';
+import { BitacoraPage } from './modules/users-security/use-cases/CU07-consultar-bitacora/pages/BitacoraPage';
+import { ManageRolesPage } from './modules/users-security/use-cases/CU05-gestionar-roles-permisos/pages/ManageRolesPage';
+import { ManageEmployeesPage } from './modules/users-security/use-cases/CU06-gestionar-empleados/pages/ManageEmployeesPage';
+import { ManageCatalogPage } from './modules/catalog/use-cases/CU10-gestionar-catalogo-productos/pages/ManageCatalogPage';
+import { ManageSuppliersPage } from './modules/catalog/use-cases/CU11-gestionar-proveedores/pages/ManageSuppliersPage';
+import { RecommendationsPage } from './modules/catalog/use-cases/CU12-obtener-recomendaciones-ia/pages/RecommendationsPage';
+import { ManageBranchesPage } from './modules/branches-inventory/use-cases/CU13-gestionar-ciudades-sucursales/pages/ManageBranchesPage';
+import { BranchesPage } from './modules/branches-inventory/use-cases/CU14-consultar-sucursales/pages/BranchesPage';
+import { ManageInventoryPage } from './modules/branches-inventory/use-cases/CU15-consultar-inventario/pages/ManageInventoryPage';
+import { ManageMovementsPage } from './modules/branches-inventory/use-cases/CU16-gestionar-movimientos-inventario/pages/ManageMovementsPage';
 
 function POSDashboard() {
   return (
@@ -67,6 +71,8 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="/sucursales" element={<BranchesPage />} />
+            <Route path="/branches" element={<BranchesPage />} />
             <Route
               path="/recommendations"
               element={
@@ -106,6 +112,19 @@ function App() {
               {/* Modulo 2 - Proveedores y ordenes de compra (CU13) */}
               <Route path="proveedores" element={<ManageSuppliersPage />} />
               <Route path="gestionar-proveedores" element={<ManageSuppliersPage />} />
+              {/* Módulo 3 — Sucursales e Inventario (CU08) */}
+              <Route path="sucursales" element={<ManageBranchesPage />} />
+              <Route path="gestionar-sucursales" element={<ManageBranchesPage />} />
+              <Route path="ciudades" element={<ManageBranchesPage />} />
+              <Route path="branches" element={<ManageBranchesPage />} />
+              <Route path="inventario" element={<ManageInventoryPage />} />
+              <Route path="gestionar-inventario" element={<ManageInventoryPage />} />
+              <Route path="consultar-inventario" element={<ManageInventoryPage />} />
+              <Route path="inventory" element={<ManageInventoryPage />} />
+              {/* Módulo 3 — Movimientos de Inventario (CU16) */}
+              <Route path="movimientos" element={<ManageMovementsPage />} />
+              <Route path="gestionar-movimientos" element={<ManageMovementsPage />} />
+              <Route path="movements" element={<ManageMovementsPage />} />
               <Route path="*" element={<DashboardIndex />} />
             </Route>
 

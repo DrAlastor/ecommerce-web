@@ -138,6 +138,9 @@ export const Navbar: React.FC = () => {
             <button onClick={() => navigate('/recommendations')} className="nav-link">
               Recomendado para ti
             </button>
+            <button onClick={() => navigate('/sucursales')} className="nav-link">
+              Sucursales
+            </button>
             <button onClick={() => scrollToSection('products-section', 'sale')} className="nav-link nav-link-sale">
               Rebajas
             </button>
@@ -309,6 +312,15 @@ export const Navbar: React.FC = () => {
               className="mobile-nav-item"
             >
               Recomendado para ti
+            </button>
+            <button
+              onClick={() => {
+                setShowMobileNav(false);
+                navigate('/sucursales');
+              }}
+              className="mobile-nav-item"
+            >
+              Sucursales & Boutiques
             </button>
             <button onClick={() => scrollToSection('products-section', 'sale')} className="mobile-nav-item mobile-sale">
               Rebajas de Temporada

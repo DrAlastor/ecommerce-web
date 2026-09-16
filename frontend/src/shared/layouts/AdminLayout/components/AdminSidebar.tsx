@@ -1,26 +1,32 @@
 import React, { useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../../modules/users-security/shared/components/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingCart,
+  Settings,
   Store,
   Calendar,
   Box,
   FileText,
   ChevronDown,
   ChevronRight,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
+const normalize = (value: string) =>
+  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+// Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 27
+const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 27]);
+
 const getModuleIcon = (modulo: string) => {
-  const norm = modulo.toLowerCase();
+  const norm = normalize(modulo);
   if (norm.includes('usuario') || norm.includes('seguridad')) return <Users size={20} />;
-  if (norm.includes('catálogo') || norm.includes('catalogo')) return <Package size={20} />;
-  if (norm.includes('inventario') || norm.includes('sucursal') || norm.includes('proveedor')) return <Box size={20} />;
+  if (norm.includes('catalogo') || norm.includes('proveedor')) return <Package size={20} />;
+  if (norm.includes('inventario') || norm.includes('sucursal')) return <Box size={20} />;
   if (norm.includes('reserva')) return <Calendar size={20} />;
   if (norm.includes('venta') || norm.includes('pago') || norm.includes('factura')) return <ShoppingCart size={20} />;
   if (norm.includes('ia') || norm.includes('realidad')) return <Sparkles size={20} />;
@@ -29,144 +35,87 @@ const getModuleIcon = (modulo: string) => {
 };
 
 const getUseCaseRoute = (nombre: string) => {
-  const norm = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-  if (norm === 'gestionar usuarios') return '/admin/users';
-  if (norm === 'gestionar roles') return '/admin/roles';
-  if (norm === 'gestionar empleados') return '/admin/empleados';
-  if (norm === 'consultar bitacora') return '/admin/bitacora';
-  if (norm === 'gestionar productos') return '/admin/catalog?tab=products';
-  if (norm === 'gestionar categorias') return '/admin/catalog?tab=categories';
-  if (norm === 'gestionar variantes') return '/admin/catalog?tab=products';
-  if (norm === 'gestionar proveedores') return '/admin/proveedores';
-  if (norm === 'consultar catalogo') return '/catalog';
-  const slug = norm.replace(/[^a-z0-9]+/g, '-');
-  return `/admin/${slug}`;
+  const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+  if (norm.includes('usuario')) return '/admin/users';
+  if (norm.includes('rol')) return '/admin/roles';
+  if (norm.includes('empleado')) return '/admin/empleados';
+  if (norm.includes('bitacora')) return '/admin/bitacora';
+  if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
+  if (norm.includes('proveedor')) return '/admin/proveedores';
+  if (norm.includes('recomendacion') || norm.includes('ia')) return '/recommendations';
+  if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
+  if (norm.includes('movimiento')) return '/admin/movimientos';
+  if (norm.includes('inventario')) return '/admin/inventario';
+  if (norm.includes('reserva')) return '/admin/reservas';
+  if (norm.includes('venta') || norm.includes('pos')) return '/pos';
+  if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
+  return '/admin';
 };
 
 export const AdminSidebar: React.FC = () => {
-  const { funciones, rol } = useAuth();
+  const { funciones } = useAuth();
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
 
   const toggleModule = (modulo: string) => {
-    setOpenModules(prev => ({ ...prev, [modulo]: !prev[modulo] }));
+    setOpenModules((prev) => ({ ...prev, [modulo]: !prev[modulo] }));
   };
 
   const modulesWithFunctions = useMemo(() => {
-    const map = new Map<string, any[]>();
-    
-    // Filtrar funciones que el usuario tenga asignadas y cuyo nivel de acceso NO sea 'Ninguno'
-    const allowedFunciones = funciones.filter((f) => {
-      const access = (f.nivel_acceso || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-      return access !== 'ninguno' && access !== '';
+    const map = new Map<string, typeof funciones>();
+    const allowedFunciones = funciones.filter((funcion) => {
+      const access = normalize(funcion.nivel_acceso || '');
+      const isMobileExclusive = normalize(funcion.modulo || '').includes('movil');
+      return (
+        webPanelUseCaseIds.has(funcion.id_funcion) &&
+        !isMobileExclusive &&
+        access !== 'ninguno' &&
+        access !== ''
+      );
     });
 
-    allowedFunciones.forEach((f) => {
-      if (f.modulo && f.nombre) {
-        if (!map.has(f.modulo)) map.set(f.modulo, []);
-        if (!map.get(f.modulo)!.some(fn => fn.nombre === f.nombre)) {
-          map.get(f.modulo)!.push(f);
-        }
+    allowedFunciones.forEach((funcion) => {
+      if (!funcion.modulo || !funcion.nombre) return;
+      if (!map.has(funcion.modulo)) map.set(funcion.modulo, []);
+      const list = map.get(funcion.modulo)!;
+      if (!list.some((item) => normalize(item.nombre) === normalize(funcion.nombre))) {
+        list.push(funcion);
       }
     });
 
-    // Para Administrador, garantizar la presencia ordenada de las funciones de Usuarios y Seguridad y Catálogo
-    const isSuperAdmin = rol?.id_rol === 1 || rol?.nombre?.toLowerCase() === 'administrador';
-    if (isSuperAdmin) {
-      // 1. Usuarios y Seguridad
-      let targetModuleKey = Array.from(map.keys()).find(k =>
-        k.toLowerCase().includes('usuario') && k.toLowerCase().includes('seguridad')
-      );
-      if (!targetModuleKey) {
-        targetModuleKey = 'Usuarios y Seguridad';
-        map.set(targetModuleKey, []);
-      }
-      const list = map.get(targetModuleKey)!;
-      if (!list.some(fn => fn.nombre.toLowerCase() === 'gestionar empleados')) {
-        list.push({
-          id_funcion: 21,
-          nombre: 'Gestionar empleados',
-          modulo: targetModuleKey,
-          nivel_acceso: 'Edicion',
-        });
-      }
-
-      const order = ['gestionar usuarios', 'gestionar roles', 'gestionar empleados', 'consultar bitacora'];
-      list.sort((a, b) => {
-        const idxA = order.indexOf(a.nombre.toLowerCase());
-        const idxB = order.indexOf(b.nombre.toLowerCase());
-        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-        if (idxA !== -1) return -1;
-        if (idxB !== -1) return 1;
-        return a.nombre.localeCompare(b.nombre);
-      });
-
-      // 2. Catálogo
-      let catalogKey = Array.from(map.keys()).find(k =>
-        k.toLowerCase().includes('catalogo') || k.toLowerCase().includes('catálogo')
-      );
-      if (!catalogKey) {
-        catalogKey = 'Catálogo';
-        map.set(catalogKey, []);
-      }
-      const catList = map.get(catalogKey)!;
-      const requiredCatalogFuncs = [
-        { id_funcion: 4, nombre: 'Gestionar productos' },
-        { id_funcion: 5, nombre: 'Gestionar categorias' },
-        { id_funcion: 6, nombre: 'Gestionar variantes' },
-        { id_funcion: 7, nombre: 'Consultar catalogo' },
-        { id_funcion: 13, nombre: 'Gestionar proveedores' },
-      ];
-      requiredCatalogFuncs.forEach(cf => {
-        if (!catList.some(fn => fn.nombre.toLowerCase() === cf.nombre.toLowerCase())) {
-          catList.push({
-            id_funcion: cf.id_funcion,
-            nombre: cf.nombre,
-            modulo: catalogKey,
-            nivel_acceso: 'Edicion',
-          });
-        }
-      });
+    for (const list of map.values()) {
+      list.sort((a, b) => a.id_funcion - b.id_funcion);
     }
 
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [funciones, rol]);
-
-  // Expandir automáticamente todos los módulos disponibles para el usuario
-  React.useEffect(() => {
-    if (modulesWithFunctions.length > 0) {
-      setOpenModules(prev => {
-        const next = { ...prev };
-        modulesWithFunctions.forEach(([mod]) => {
-          if (next[mod] === undefined) {
-            next[mod] = true;
-          }
-        });
-        return next;
-      });
-    }
-  }, [modulesWithFunctions]);
+    return Array.from(map.entries()).sort(([, funcsA], [, funcsB]) => {
+      const firstA = Math.min(...funcsA.map((funcion) => funcion.id_funcion));
+      const firstB = Math.min(...funcsB.map((funcion) => funcion.id_funcion));
+      return firstA - firstB;
+    });
+  }, [funciones]);
 
   return (
     <aside className="admin-sidebar">
       <div className="admin-sidebar-header">
-        <h2 className="admin-logo">Dressly<span>Admin</span></h2>
+        <h2 className="admin-logo">
+          Dressly<span>Admin</span>
+        </h2>
       </div>
 
       <div className="admin-sidebar-menu">
         <span className="admin-sidebar-label">MENÚ PRINCIPAL</span>
         <nav>
-          <NavLink 
-            to="/admin" 
-            end 
+          <NavLink
+            to="/admin"
+            end
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </NavLink>
-          
+
           {modulesWithFunctions.map(([modulo, funcs]) => (
             <div key={modulo} className="admin-module-group">
-              <div 
+              <div
                 className="admin-nav-item admin-module-toggle"
                 onClick={() => toggleModule(modulo)}
               >
@@ -176,16 +125,16 @@ export const AdminSidebar: React.FC = () => {
                 </div>
                 {openModules[modulo] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </div>
-              
+
               {openModules[modulo] && (
                 <div className="admin-sub-menu">
-                  {funcs.map(f => (
-                    <NavLink 
-                      key={f.nombre}
-                      to={getUseCaseRoute(f.nombre)}
+                  {funcs.map((funcion) => (
+                    <NavLink
+                      key={funcion.id_funcion}
+                      to={getUseCaseRoute(funcion.nombre)}
                       className={({ isActive }) => `admin-nav-subitem ${isActive ? 'active' : ''}`}
                     >
-                      {f.nombre}
+                      {funcion.nombre.replace(/^CU\d+\s*[-—]\s*/i, '')}
                     </NavLink>
                   ))}
                 </div>
@@ -198,8 +147,8 @@ export const AdminSidebar: React.FC = () => {
       <div className="admin-sidebar-footer">
         <span className="admin-sidebar-label">SISTEMA</span>
         <nav>
-          <NavLink 
-            to="/admin/settings" 
+          <NavLink
+            to="/admin/settings"
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
             <Settings size={20} />

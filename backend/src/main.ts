@@ -41,4 +41,4 @@ async function bootstrap() {
 }
 
 await bootstrap();
-// Server updated
+// Server updated for CU08 branches-inventory
