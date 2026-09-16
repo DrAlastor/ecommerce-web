@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, ShieldAlert, RefreshCw } from 'lucide-react';
+import { ShieldAlert, RefreshCw } from 'lucide-react';
 import { useInventory } from '../hooks/useInventory';
 import { InventoryStats } from '../components/InventoryStats';
 import { InventoryFilters } from '../components/InventoryFilters';
@@ -39,10 +39,6 @@ export const ManageInventoryPage: React.FC = () => {
       {/* Cabecera del módulo */}
       <div className="manage-inv-header">
         <div className="inv-header-title-wrapper">
-          <div className="inv-header-badge">
-            <Package size={14} />
-            <span>Módulo 3 — Sucursales e Inventario</span>
-          </div>
           <h1 className="inv-header-title">Existencias e Inventario</h1>
           <p className="inv-header-subtitle">
             Monitoreo en tiempo real de unidades disponibles, prendas reservadas y umbrales de seguridad en las sucursales autorizadas.

@@ -24,12 +24,11 @@ export const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 9999,
-        backdropFilter: 'blur(4px)',
       }}
     >
       <div

@@ -43,10 +43,10 @@ const getUseCaseRoute = (nombre: string) => {
   if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
   if (norm.includes('proveedor')) return '/admin/proveedores';
   if (norm.includes('recomendacion') || norm.includes('ia')) return '/recommendations';
+  if (norm.includes('reserva')) return '/admin/reservas';
   if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
   if (norm.includes('movimiento')) return '/admin/movimientos';
   if (norm.includes('inventario')) return '/admin/inventario';
-  if (norm.includes('reserva')) return '/admin/reservas';
   if (norm.includes('venta') || norm.includes('pos')) return '/pos';
   if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
   return '/admin';

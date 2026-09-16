@@ -23,6 +23,8 @@ import { ManageBranchesPage } from './modules/branches-inventory/use-cases/CU13-
 import { BranchesPage } from './modules/branches-inventory/use-cases/CU14-consultar-sucursales/pages/BranchesPage';
 import { ManageInventoryPage } from './modules/branches-inventory/use-cases/CU15-consultar-inventario/pages/ManageInventoryPage';
 import { ManageMovementsPage } from './modules/branches-inventory/use-cases/CU16-gestionar-movimientos-inventario/pages/ManageMovementsPage';
+import { MyReservationsPage } from './modules/reservations/use-cases/CU18-consultar-cancelar-reserva';
+import { ManageBranchReservationsPage } from './modules/reservations/use-cases/CU19-gestionar-reserva-sucursal';
 
 function POSDashboard() {
   return (
@@ -81,6 +83,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/mis-reservas"
+              element={
+                <ProtectedRoute allowedRoles={['Cliente', 'Administrador']}>
+                  <MyReservationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reservations"
+              element={<Navigate to="/mis-reservas" replace />}
+            />
 
             {/* Ruta pública: Login */}
             <Route path="/login" element={<LoginPage />} />
@@ -125,6 +139,9 @@ function App() {
               <Route path="movimientos" element={<ManageMovementsPage />} />
               <Route path="gestionar-movimientos" element={<ManageMovementsPage />} />
               <Route path="movements" element={<ManageMovementsPage />} />
+              {/* Módulo 4 — Gestión de Reservas en Sucursal (CU19) */}
+              <Route path="reservas" element={<ManageBranchReservationsPage />} />
+              <Route path="gestionar-reservas" element={<ManageBranchReservationsPage />} />
               <Route path="*" element={<DashboardIndex />} />
             </Route>
 

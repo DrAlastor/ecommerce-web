@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProductDetail } from '../hooks/useProductDetail';
 import { ProductGallery } from '../components/ProductGallery/ProductGallery';
 import { ProductInfo } from '../components/ProductInfo/ProductInfo';
@@ -7,6 +7,11 @@ import { ProductActions } from '../components/ProductActions/ProductActions';
 import { BranchAvailability } from '../components/BranchAvailability/BranchAvailability';
 import { VirtualFittingBadge } from '../components/VirtualFittingBadge/VirtualFittingBadge';
 import { SizeGuideModal } from '../components/SizeGuideModal/SizeGuideModal';
+import {
+  ReservationModal,
+  ReservationReceiptModal,
+  type ReservationReceipt,
+} from '../../../../reservations/use-cases/CU17-realizar-reserva-prendas';
 import { Navbar } from '../../../../../components/layout/Navbar';
 import { CartDrawer } from '../../../../../components/shop/CartDrawer';
 import { WishlistDrawer } from '../../../../../components/shop/WishlistDrawer';
@@ -16,6 +21,8 @@ import './ProductDetailPage.css';
 
 export const ProductDetailPage: React.FC = () => {
   const { toastMessage, setIsCartOpen } = useShop();
+  const [isReservationOpen, setIsReservationOpen] = useState<boolean>(false);
+  const [currentReceipt, setCurrentReceipt] = useState<ReservationReceipt | null>(null);
 
   const {
     product,
@@ -151,7 +158,12 @@ export const ProductDetailPage: React.FC = () => {
               onQuantityChange={setQuantity}
               onAddToCart={handleAddToCart}
               onReserve={() => {
-                alert(`Reserva iniciada para "${product.nombre}" (${selectedVariant?.color.nombre} - ${selectedVariant?.talla.codigo}). Se vinculará con el Módulo de Reservas.`);
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                  navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
+                setIsReservationOpen(true);
               }}
             />
 
@@ -235,6 +247,33 @@ export const ProductDetailPage: React.FC = () => {
         guideItems={product.guia_tallas}
         onClose={() => setIsSizeGuideOpen(false)}
       />
+
+      {/* Modal de Reserva CU17 */}
+      {isReservationOpen && selectedVariant && (
+        <ReservationModal
+          isOpen={isReservationOpen}
+          onClose={() => setIsReservationOpen(false)}
+          product={product}
+          selectedVariant={selectedVariant}
+          initialQuantity={quantity}
+          onReservationSuccess={(receipt: ReservationReceipt) => {
+            setIsReservationOpen(false);
+            setCurrentReceipt(receipt);
+          }}
+          onRequireAuth={() => {
+            setIsReservationOpen(false);
+            navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+          }}
+        />
+      )}
+
+      {/* Comprobante de Reserva CU17 */}
+      {currentReceipt && (
+        <ReservationReceiptModal
+          receipt={currentReceipt}
+          onClose={() => setCurrentReceipt(null)}
+        />
+      )}
     </div>
   );
 };

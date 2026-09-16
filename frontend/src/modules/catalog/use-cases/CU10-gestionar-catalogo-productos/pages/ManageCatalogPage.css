@@ -502,8 +502,7 @@
 .admin-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(3px);
+  background-color: rgba(15, 23, 42, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;

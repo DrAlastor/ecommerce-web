@@ -255,6 +255,15 @@ export const Navbar: React.FC = () => {
                         Mi Perfil
                       </Link>
                     )}
+                    {roleName === 'Cliente' && (
+                      <Link
+                        to="/mis-reservas"
+                        className="user-dropdown-item"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Mis Reservas
+                      </Link>
+                    )}
                     {isStaff && (
                       <Link
                         to={roleName === 'Cajero' ? '/pos' : '/admin'}

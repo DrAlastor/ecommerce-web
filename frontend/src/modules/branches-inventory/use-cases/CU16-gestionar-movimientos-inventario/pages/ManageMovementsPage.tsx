@@ -64,10 +64,6 @@ export const ManageMovementsPage: React.FC = () => {
       {/* Header Principal */}
       <header className="movements-page-header">
         <div className="header-titles">
-          <div className="header-badge">
-            <Boxes size={14} />
-            <span>MÓDULO 3 — SUCURSALES E INVENTARIO</span>
-          </div>
           <h1 className="header-title">Gestión de Movimientos de Inventario</h1>
           <p className="header-description">
             Supervisa la trazabilidad completa de existencias: entradas, salidas, devoluciones y

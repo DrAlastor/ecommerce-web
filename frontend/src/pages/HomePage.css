@@ -685,8 +685,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.95);
   border: none;
   width: 34px;
   height: 34px;
@@ -695,8 +694,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  will-change: transform;
 }
 
 .product-wishlist-toggle:hover {
@@ -709,8 +709,7 @@
   bottom: -45px;
   left: 0;
   right: 0;
-  background-color: rgba(26, 26, 26, 0.92);
-  backdrop-filter: blur(4px);
+  background-color: rgba(26, 26, 26, 0.96);
   color: #FFFFFF;
   border: none;
   padding: 0.75rem;
@@ -722,6 +721,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: bottom 0.25s ease;
+  will-change: bottom;
 }
 
 .product-card:hover .quick-add-btn {
@@ -1061,8 +1061,7 @@
 .lookbook-modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.78);
   z-index: 1200;
   display: flex;
   align-items: center;
