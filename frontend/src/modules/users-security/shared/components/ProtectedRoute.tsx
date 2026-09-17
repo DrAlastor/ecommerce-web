@@ -44,20 +44,28 @@ export function ProtectedRoute({ children, allowedRoles, requireStaff }: Protect
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Resolver nombre de rol de forma robusta
+  const roleName = (
+    (typeof rol === 'string' ? rol : rol?.nombre) ||
+    (user as any)?.rol?.nombre ||
+    (typeof (user as any)?.rol === 'string' ? (user as any).rol : '') ||
+    ''
+  ).toLowerCase().trim();
+
+  const userRoleId = rol?.id_rol ?? (user as any)?.id_rol;
+  const isClient = roleName === 'cliente' || userRoleId === 2;
+  const isAdmin = roleName === 'administrador' || userRoleId === 1;
+  const isEmployee = Boolean(user?.empleado) || (!isClient && roleName !== '') || isAdmin || userRoleId === 3 || userRoleId === 4;
+
   // Si se requiere ser personal interno (empleado / no cliente puro)
-  if (requireStaff) {
-    const isClient = (rol?.nombre || '').toLowerCase().trim() === 'cliente';
-    const isEmployee = Boolean(user?.empleado) || (!isClient && !!rol);
-    if (!isEmployee) {
-      return <Navigate to="/" replace />;
-    }
+  if (requireStaff && !isEmployee) {
+    return <Navigate to="/" replace />;
   }
 
-  // Verificar rol si se especificaron roles permitidos (insensible a mayúsculas/minúsculas)
-  if (allowedRoles && rol) {
-    const userRoleNorm = (rol.nombre || '').toLowerCase().trim();
-    const hasRole = allowedRoles.some(r => r.toLowerCase().trim() === userRoleNorm);
-    if (!hasRole) {
+  // Verificar rol si se especificaron roles permitidos (administradores siempre tienen acceso)
+  if (allowedRoles && allowedRoles.length > 0) {
+    const hasRole = allowedRoles.some((r) => r.toLowerCase().trim() === roleName);
+    if (!hasRole && !isAdmin) {
       return <Navigate to="/" replace />;
     }
   }

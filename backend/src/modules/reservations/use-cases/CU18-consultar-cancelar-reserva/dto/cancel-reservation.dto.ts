@@ -9,8 +9,12 @@ export class CancelReservationDto {
 
 export class QueryMyReservationsDto {
   @IsOptional()
-  @IsIn(['activas', 'historicas', 'todas'])
-  tipo?: 'activas' | 'historicas' | 'todas';
+  @IsIn(['activas', 'historicas', 'historico', 'todas'])
+  tipo?: 'activas' | 'historicas' | 'historico' | 'todas';
+
+  @IsOptional()
+  @IsString()
+  filtro?: string;
 
   @IsOptional()
   @IsString()

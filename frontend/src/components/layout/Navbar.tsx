@@ -264,14 +264,30 @@ export const Navbar: React.FC = () => {
                         Mis Reservas
                       </Link>
                     )}
+                    <Link
+                      to="/mis-compras"
+                      className="user-dropdown-item"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Mis Compras
+                    </Link>
                     {isStaff && (
-                      <Link
-                        to={roleName === 'Cajero' ? '/pos' : '/admin'}
-                        className="user-dropdown-item"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        Panel de Control
-                      </Link>
+                      <>
+                        <Link
+                          to="/admin"
+                          className="user-dropdown-item"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          Panel de Control
+                        </Link>
+                        <Link
+                          to="/pos"
+                          className="user-dropdown-item"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          Punto de Venta (Caja)
+                        </Link>
+                      </>
                     )}
                     <button
                       className="user-dropdown-item user-dropdown-logout"

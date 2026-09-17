@@ -45,6 +45,24 @@ export const VariantSelector: React.FC<VariantSelectorProps> = ({
     );
   };
 
+  if (colores.length === 0 && tallas.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '1rem',
+          backgroundColor: '#F9FAFB',
+          border: '1px solid #E5E7EB',
+          borderRadius: '12px',
+          color: '#6B7280',
+          fontSize: '0.88rem',
+          margin: '1rem 0',
+        }}
+      >
+        ℹ️ Este producto no cuenta con variantes activas de color o talla en inventario.
+      </div>
+    );
+  }
+
   return (
     <div className="variant-selector-wrapper">
       {/* Selector de Color */}

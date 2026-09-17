@@ -43,6 +43,14 @@ interface ReservationModalProps {
   onRequireAuth?: () => void;
 }
 
+const formatHour = (timeVal?: string | null): string => {
+  if (!timeVal) return '';
+  if (timeVal.includes('T')) {
+    return timeVal.split('T')[1].substring(0, 5);
+  }
+  return timeVal.substring(0, 5);
+};
+
 export const ReservationModal: React.FC<ReservationModalProps> = ({
   isOpen,
   onClose,
@@ -295,7 +303,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                       </div>
                       <div className="branch-option-hours">
                         <Clock size={13} />
-                        <span>Horario: {suc.hora_apertura} - {suc.hora_cierre}</span>
+                        <span>Horario: {formatHour(suc.hora_apertura)} - {formatHour(suc.hora_cierre)}</span>
                       </div>
                     </div>
                   );

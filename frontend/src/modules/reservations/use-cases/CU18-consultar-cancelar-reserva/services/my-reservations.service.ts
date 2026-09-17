@@ -11,8 +11,9 @@ export const myReservationsService = {
    * Obtiene la lista de reservas del cliente autenticado.
    */
   getMyReservations: async (filtro?: 'activas' | 'historico' | string): Promise<MyReservationListItem[]> => {
+    const tipo = filtro === 'historico' ? 'historicas' : (filtro || 'activas');
     const response = await api.get<MyReservationListItem[]>('/reservations/my-reservations', {
-      params: { filtro },
+      params: { tipo, filtro },
     });
     return response.data;
   },

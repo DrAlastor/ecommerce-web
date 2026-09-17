@@ -34,7 +34,8 @@ const getModuleIcon = (modulo: string) => {
   return <LayoutDashboard size={20} />;
 };
 
-const getUseCaseRoute = (nombre: string) => {
+const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
+  if (idFuncion === 24) return '/pos';
   const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
   if (norm.includes('usuario')) return '/admin/users';
   if (norm.includes('rol')) return '/admin/roles';
@@ -47,7 +48,7 @@ const getUseCaseRoute = (nombre: string) => {
   if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
   if (norm.includes('movimiento')) return '/admin/movimientos';
   if (norm.includes('inventario')) return '/admin/inventario';
-  if (norm.includes('venta') || norm.includes('pos')) return '/pos';
+  if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
   if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
   return '/admin';
 };
@@ -131,7 +132,7 @@ export const AdminSidebar: React.FC = () => {
                   {funcs.map((funcion) => (
                     <NavLink
                       key={funcion.id_funcion}
-                      to={getUseCaseRoute(funcion.nombre)}
+                      to={getUseCaseRoute(funcion.nombre, funcion.id_funcion)}
                       className={({ isActive }) => `admin-nav-subitem ${isActive ? 'active' : ''}`}
                     >
                       {funcion.nombre.replace(/^CU\d+\s*[-—]\s*/i, '')}

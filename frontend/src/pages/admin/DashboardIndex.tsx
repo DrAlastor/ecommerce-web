@@ -47,7 +47,8 @@ export default function DashboardIndex() {
     );
   });
 
-  const getUseCaseRoute = (nombre: string) => {
+  const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
+    if (idFuncion === 24) return '/pos';
     const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
     if (norm.includes('usuario')) return '/admin/users';
     if (norm.includes('rol')) return '/admin/roles';
@@ -60,7 +61,7 @@ export default function DashboardIndex() {
     if (norm.includes('movimiento')) return '/admin/movimientos';
     if (norm.includes('inventario')) return '/admin/inventario';
     if (norm.includes('reserva')) return '/admin/reservas';
-    if (norm.includes('venta') || norm.includes('pos')) return '/pos';
+    if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
     if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
     return '/admin';
   };
@@ -258,7 +259,7 @@ export default function DashboardIndex() {
                       {funcs.map(f => (
                         <button
                           key={f.nombre}
-                          onClick={() => navigate(getUseCaseRoute(f.nombre))}
+                          onClick={() => navigate(getUseCaseRoute(f.nombre, f.id_funcion))}
                           style={{
                             display: 'flex',
                             alignItems: 'center',

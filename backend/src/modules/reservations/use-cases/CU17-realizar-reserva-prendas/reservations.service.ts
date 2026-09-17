@@ -71,6 +71,25 @@ export class ReservationsService {
   }
 
   /**
+   * Formatea un valor de hora/Time a formato HH:mm legible
+   */
+  private formatTimeString(timeVal: any): string {
+    if (!timeVal) return '';
+    if (typeof timeVal === 'string') {
+      if (timeVal.includes('T')) {
+        return timeVal.split('T')[1].substring(0, 5);
+      }
+      return timeVal.substring(0, 5);
+    }
+    if (timeVal instanceof Date) {
+      const hours = timeVal.getUTCHours().toString().padStart(2, '0');
+      const mins = timeVal.getUTCMinutes().toString().padStart(2, '0');
+      return `${hours}:${mins}`;
+    }
+    return String(timeVal).substring(0, 5);
+  }
+
+  /**
    * Consulta disponibilidad de una variante en todas las sucursales activas
    */
   async getBranchAvailability(variantId: number) {
@@ -119,8 +138,8 @@ export class ReservationsService {
         nombre: suc.nombre,
         direccion: suc.direccion,
         telefono: suc.telefono,
-        hora_apertura: suc.hora_apertura,
-        hora_cierre: suc.hora_cierre,
+        hora_apertura: this.formatTimeString(suc.hora_apertura),
+        hora_cierre: this.formatTimeString(suc.hora_cierre),
         ciudad: suc.ciudad?.nombre || 'General',
         pais: suc.ciudad?.pais || 'Bolivia',
         stock_disponible: stockDisponible,
@@ -480,7 +499,7 @@ export class ReservationsService {
         nombre: sucursal.nombre,
         direccion: sucursal.direccion,
         telefono: sucursal.telefono,
-        horario: `${sucursal.hora_apertura} - ${sucursal.hora_cierre}`,
+        horario: `${this.formatTimeString(sucursal.hora_apertura)} - ${this.formatTimeString(sucursal.hora_cierre)}`,
         ciudad: sucursal.ciudad?.nombre || 'General',
       },
       resumen: {
@@ -507,9 +526,11 @@ export class ReservationsService {
       id_cliente: idCliente,
     };
 
+    const filterVal = (query.tipo || query.filtro || 'activas').toLowerCase().trim();
+
     if (query.estado && query.estado.trim()) {
       where.estado = { equals: query.estado.trim(), mode: 'insensitive' };
-    } else if (query.tipo === 'activas') {
+    } else if (filterVal === 'activas') {
       where.estado = {
         in: [
           'pendiente', 'Pendiente',
@@ -517,7 +538,7 @@ export class ReservationsService {
           'preparada', 'Preparada',
         ],
       };
-    } else if (query.tipo === 'historicas') {
+    } else if (filterVal === 'historicas' || filterVal === 'historico') {
       where.estado = {
         in: [
           'atendida', 'Atendida',

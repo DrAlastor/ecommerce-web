@@ -28,4 +28,9 @@ export interface CartItem {
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
+  variantId?: number;
+  id_item_carrito?: number;
+  sku?: string;
+  stock_disponible?: number;
 }
+

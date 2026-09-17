@@ -126,7 +126,13 @@ export function useProductDetail() {
   const handleAddToCart = () => {
     const shopProd = toShopProduct();
     if (!shopProd || !selectedVariant) return;
-    addToCart(shopProd, quantity, selectedVariant.talla.codigo, selectedVariant.color.nombre);
+    addToCart(
+      shopProd,
+      quantity,
+      selectedVariant.talla.codigo,
+      selectedVariant.color.nombre,
+      selectedVariant.id_producto_variante,
+    );
   };
 
   const isFavorited = product ? isInWishlist(product.id_producto) : false;

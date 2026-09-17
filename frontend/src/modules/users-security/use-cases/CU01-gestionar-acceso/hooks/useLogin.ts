@@ -25,7 +25,7 @@ function canUseRequestedRedirect(path: string | undefined, roleName?: string, is
   }
 
   if (path.startsWith('/pos')) {
-    return normalizedRole === 'cajero';
+    return normalizedRole === 'cajero' || normalizedRole === 'administrador' || normalizedRole.includes('encargado') || Boolean(isEmpleado);
   }
 
   if (path.startsWith('/recommendations')) {
@@ -92,7 +92,12 @@ export function useLogin() {
     try {
       await login({ email: email.trim().toLowerCase(), password });
 
-      const from = (location.state as { from?: { pathname: string } })?.from?.pathname;
+      const searchParams = new URLSearchParams(location.search);
+      const redirectQuery = searchParams.get('redirect');
+      const from =
+        (location.state as { from?: { pathname: string } })?.from?.pathname ||
+        redirectQuery ||
+        undefined;
       const stored = localStorage.getItem('authUser');
       if (stored) {
         const parsed = JSON.parse(stored);

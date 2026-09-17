@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CalendarClock, ArrowRight } from 'lucide-react';
 import type { ReservationTab } from '../types/my-reservations.types';
 
@@ -7,10 +8,12 @@ interface ReservationEmptyStateProps {
 }
 
 export const ReservationEmptyState: React.FC<ReservationEmptyStateProps> = ({ activeTab }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="reservations-empty-state">
       <div className="empty-icon-wrap">
-        <CalendarClock size={40} />
+        <CalendarClock size={44} />
       </div>
       <h3>
         {activeTab === 'activas'
@@ -23,9 +26,14 @@ export const ReservationEmptyState: React.FC<ReservationEmptyStateProps> = ({ ac
           : 'Aquí aparecerán tus reservas una vez que las hayas retirado, completado o cancelado.'}
       </p>
       {activeTab === 'activas' && (
-        <a href="/catalogo" className="btn-go-catalog">
-          Explorar Catálogo de Moda <ArrowRight size={16} />
-        </a>
+        <button
+          type="button"
+          onClick={() => navigate('/catalog')}
+          className="btn-go-catalog"
+        >
+          <span>Explorar Catálogo de Moda</span>
+          <ArrowRight size={16} />
+        </button>
       )}
     </div>
   );

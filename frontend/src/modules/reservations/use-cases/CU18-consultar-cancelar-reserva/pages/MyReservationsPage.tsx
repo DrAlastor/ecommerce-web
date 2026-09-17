@@ -1,5 +1,6 @@
 import React from 'react';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Loader2, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useMyReservations } from '../hooks/useMyReservations';
 import { ReservationFilterTabs } from '../components/ReservationFilterTabs';
 import { ReservationCard } from '../components/ReservationCard';
@@ -9,6 +10,7 @@ import { ReservationReceiptModal } from '../../CU17-realizar-reserva-prendas/com
 import './MyReservationsPage.css';
 
 export const MyReservationsPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     activeTab,
     handleTabChange,
@@ -32,26 +34,37 @@ export const MyReservationsPage: React.FC = () => {
   return (
     <div className="my-reservations-page">
       <div className="my-reservations-container">
-        {/* Header */}
+        {/* Header con botón para volver a catálogo */}
         <header className="my-reservations-header">
+          <div className="header-top-bar">
+            <button
+              type="button"
+              className="btn-back-catalog"
+              onClick={() => navigate('/catalog')}
+              title="Volver al Catálogo de Productos"
+            >
+              <ArrowLeft size={16} />
+              <span>Volver al Catálogo</span>
+            </button>
+            <button
+              type="button"
+              className="btn-refresh"
+              onClick={refresh}
+              disabled={isLoading}
+              title="Actualizar listado de reservas"
+            >
+              <RefreshCw size={15} className={isLoading ? 'spin' : ''} />
+              <span>Actualizar</span>
+            </button>
+          </div>
+
           <div className="header-title-wrap">
-            <span className="section-badge">Módulo 4 — Reservas de Prendas</span>
             <h1 className="page-title">Mis Reservas en Tienda</h1>
             <p className="page-description">
               Gestiona tus prendas apartadas en sucursales físicas, consulta el código de
               comprobante y cancela reservas activas si ya no puedes asistir.
             </p>
           </div>
-          <button
-            type="button"
-            className="btn-refresh"
-            onClick={refresh}
-            disabled={isLoading}
-            title="Actualizar listado"
-          >
-            <RefreshCw size={16} className={isLoading ? 'spin' : ''} />
-            Actualizar
-          </button>
         </header>
 
         {/* Feedback Alert */}

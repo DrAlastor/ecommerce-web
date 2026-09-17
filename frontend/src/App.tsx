@@ -25,43 +25,10 @@ import { ManageInventoryPage } from './modules/branches-inventory/use-cases/CU15
 import { ManageMovementsPage } from './modules/branches-inventory/use-cases/CU16-gestionar-movimientos-inventario/pages/ManageMovementsPage';
 import { MyReservationsPage } from './modules/reservations/use-cases/CU18-consultar-cancelar-reserva';
 import { ManageBranchReservationsPage } from './modules/reservations/use-cases/CU19-gestionar-reserva-sucursal';
-
-function POSDashboard() {
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      fontFamily: 'var(--font-sans)',
-      background: 'var(--bg-secondary)',
-      gap: '1.25rem',
-      padding: '2rem',
-    }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', color: 'var(--text-primary)' }}>
-        Punto de Venta (POS)
-      </h1>
-      <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', textAlign: 'center' }}>
-        Módulo de Caja y Ventas Presenciales para sucursales físicas.
-      </p>
-      <a
-        href="/"
-        style={{
-          backgroundColor: '#1A1A1A',
-          color: '#FFFFFF',
-          padding: '0.75rem 1.5rem',
-          borderRadius: '9999px',
-          textDecoration: 'none',
-          fontSize: '0.9rem',
-          fontWeight: 600,
-        }}
-      >
-        ← Volver a la Tienda Pública
-      </a>
-    </div>
-  );
-}
+import { CartPage } from './modules/sales-billing/use-cases/CU20-gestionar-carrito-compras/pages/CartPage';
+import { CheckoutPage } from './modules/sales-billing/use-cases/CU21-realizar-compra-digital/pages/CheckoutPage';
+import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU22-consultar-historial-compras/pages/MyPurchasesPage';
+import POSPage from './modules/sales-billing/use-cases/CU23-procesar-pagos-facturacion/pages/POSPage';
 
 function App() {
   return (
@@ -73,6 +40,35 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            {/* Carrito de Compras (CU20) */}
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/bolsa" element={<CartPage />} />
+
+            {/* Proceso de Compra Digital (CU21) */}
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Historial de Compras (CU22) */}
+            <Route
+              path="/mis-compras"
+              element={
+                <ProtectedRoute>
+                  <MyPurchasesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/purchases"
+              element={<Navigate to="/mis-compras" replace />}
+            />
+
+
             <Route path="/sucursales" element={<BranchesPage />} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route
@@ -145,12 +141,20 @@ function App() {
               <Route path="*" element={<DashboardIndex />} />
             </Route>
 
-            {/* Rutas protegidas: Cajero */}
+            {/* Rutas protegidas: Punto de Venta / Caja (CU23 & CU24) */}
             <Route
               path="/pos"
               element={
-                <ProtectedRoute allowedRoles={['Cajero']}>
-                  <POSDashboard />
+                <ProtectedRoute requireStaff>
+                  <POSPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ventas"
+              element={
+                <ProtectedRoute requireStaff>
+                  <POSPage />
                 </ProtectedRoute>
               }
             />

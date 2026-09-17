@@ -52,13 +52,11 @@ export const CartDrawer: React.FC = () => {
   };
 
   const handleCheckout = () => {
+    setIsCartOpen(false);
     if (!isAuthenticated) {
-      if (confirm('Para procesar tu pedido te recomendamos iniciar sesión. ¿Deseas ir al login ahora?')) {
-        setIsCartOpen(false);
-        navigate('/login');
-      }
+      navigate('/login?redirect=/checkout', { state: { from: { pathname: '/checkout' } } });
     } else {
-      alert('¡Redirigiendo a la pasarela de pago seguro...');
+      navigate('/checkout');
     }
   };
 
@@ -119,52 +117,75 @@ export const CartDrawer: React.FC = () => {
             </div>
           ) : (
             <div className="cart-items-list">
-              {cart.map((item) => (
-                <div key={item.product.id} className="cart-item-row">
-                  <img
-                    src={item.product.image}
-                    alt={item.product.name}
-                    className="cart-item-thumb"
-                  />
-                  <div className="cart-item-details">
-                    <div className="cart-item-top">
-                      <h4 className="cart-item-name">{item.product.name}</h4>
-                      <button
-                        className="cart-item-remove-btn"
-                        onClick={() => removeFromCart(item.product.id)}
-                        title="Eliminar producto"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                    <p className="cart-item-variant">
-                      {item.selectedSize ? `Talla: ${item.selectedSize}` : ''}
-                      {item.selectedSize && item.selectedColor ? ' | ' : ''}
-                      {item.selectedColor ? `Color: ${item.selectedColor}` : ''}
-                    </p>
-                    <div className="cart-item-bottom">
-                      <div className="quantity-counter">
+              {cart.map((item) => {
+                const itemKey = item.variantId ? `var-${item.variantId}` : `${item.product.id}-${item.selectedSize}-${item.selectedColor}`;
+                return (
+                  <div key={itemKey} className="cart-item-row">
+                    <img
+                      src={item.product.image}
+                      alt={item.product.name}
+                      className="cart-item-thumb"
+                    />
+                    <div className="cart-item-details">
+                      <div className="cart-item-top">
+                        <h4 className="cart-item-name">{item.product.name}</h4>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="qty-btn"
+                          className="cart-item-remove-btn"
+                          onClick={() => removeFromCart(item.product.id, item.variantId)}
+                          title="Eliminar producto de la bolsa"
                         >
-                          -
-                        </button>
-                        <span className="qty-value">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="qty-btn"
-                        >
-                          +
+                          🗑️
                         </button>
                       </div>
-                      <span className="cart-item-price">
-                        {(item.product.price * item.quantity).toFixed(2)} Bs
-                      </span>
+
+                      <p className="cart-item-variant">
+                        {item.selectedSize ? `Talla: ${item.selectedSize}` : ''}
+                        {item.selectedSize && item.selectedColor ? ' | ' : ''}
+                        {item.selectedColor ? `Color: ${item.selectedColor}` : ''}
+                        {item.sku ? ` • SKU: ${item.sku}` : ''}
+                      </p>
+
+                      {item.stock_disponible !== undefined && (
+                        <span className="cart-item-stock-tag">
+                          {item.stock_disponible > 0
+                            ? `Stock disponible: ${item.stock_disponible}`
+                            : 'Sin stock disponible'}
+                        </span>
+                      )}
+
+                      <div className="cart-item-bottom">
+                        <div className="quantity-counter">
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variantId)}
+                            className="qty-btn"
+                            disabled={item.quantity <= 1}
+                          >
+                            -
+                          </button>
+                          <span className="qty-value">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variantId)}
+                            className="qty-btn"
+                            disabled={item.stock_disponible !== undefined && item.quantity >= item.stock_disponible}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="cart-item-pricing">
+                          {item.product.originalPrice && item.product.originalPrice > item.product.price && (
+                            <span className="cart-item-orig-price">
+                              {(item.product.originalPrice * item.quantity).toFixed(2)} Bs
+                            </span>
+                          )}
+                          <span className="cart-item-price">
+                            {(item.product.price * item.quantity).toFixed(2)} Bs
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -213,9 +234,21 @@ export const CartDrawer: React.FC = () => {
               <span className="total-amount">{finalTotal.toFixed(2)} Bs</span>
             </div>
 
-            <button className="checkout-btn" onClick={handleCheckout}>
-              Proceder al Pago Seguro • {finalTotal.toFixed(2)} Bs
-            </button>
+            <div className="cart-drawer-action-buttons">
+              <button
+                type="button"
+                className="view-cart-page-btn"
+                onClick={() => {
+                  setIsCartOpen(false);
+                  navigate('/cart');
+                }}
+              >
+                Ver Carrito Completo
+              </button>
+              <button type="button" className="checkout-btn" onClick={handleCheckout}>
+                Proceder al Pago • {finalTotal.toFixed(2)} Bs
+              </button>
+            </div>
 
             <p className="cart-security-note">
               🔒 Pagos seguros con QR Simple, Tarjeta y Transferencia Bancaria

@@ -43,7 +43,8 @@
     "pug": "^3.0.4",
     "reflect-metadata": "^0.2.2",
     "resend": "^6.28.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "stripe": "^22.6.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",

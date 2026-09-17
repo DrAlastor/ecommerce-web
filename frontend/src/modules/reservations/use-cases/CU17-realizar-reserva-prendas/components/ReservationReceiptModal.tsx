@@ -9,6 +9,7 @@ import {
   X,
   Info,
   Store,
+  ArrowLeft,
 } from 'lucide-react';
 import type { ReservationReceipt } from '../types/reservation.types';
 import './ReservationModal.css';
@@ -218,14 +219,21 @@ export const ReservationReceiptModal: React.FC<ReservationReceiptModalProps> = (
 
         {/* Acciones Inferiores */}
         <div className="reservation-modal-footer no-print">
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="button" className="btn-receipt-secondary" onClick={onClose}>
-              Cerrar
+          <div className="receipt-footer-left">
+            <button
+              type="button"
+              className="btn-receipt-catalog"
+              onClick={() => {
+                onClose();
+                navigate('/catalog');
+              }}
+            >
+              <ArrowLeft size={16} />
+              <span>Volver al Catálogo</span>
             </button>
             <button
               type="button"
               className="btn-receipt-secondary"
-              style={{ background: '#f5f5f4', color: '#1c1917', fontWeight: 700 }}
               onClick={() => {
                 onClose();
                 navigate('/mis-reservas');
@@ -234,10 +242,15 @@ export const ReservationReceiptModal: React.FC<ReservationReceiptModalProps> = (
               Ver Mis Reservas
             </button>
           </div>
-          <button type="button" className="btn-receipt-print" onClick={handlePrint}>
-            <Printer size={16} />
-            <span>Imprimir Comprobante</span>
-          </button>
+          <div className="receipt-footer-right">
+            <button type="button" className="btn-receipt-print" onClick={handlePrint}>
+              <Printer size={16} />
+              <span>Imprimir</span>
+            </button>
+            <button type="button" className="btn-receipt-close-action" onClick={onClose}>
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
