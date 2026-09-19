@@ -62,7 +62,7 @@ export default function DashboardIndex() {
     if (norm.includes('inventario')) return '/admin/inventario';
     if (norm.includes('reserva')) return '/admin/reservas';
     if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
-    if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
+    if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin/reports';
     return '/admin';
   };
 

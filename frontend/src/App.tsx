@@ -29,6 +29,7 @@ import { CartPage } from './modules/sales-billing/use-cases/CU20-gestionar-carri
 import { CheckoutPage } from './modules/sales-billing/use-cases/CU21-realizar-compra-digital/pages/CheckoutPage';
 import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU22-consultar-historial-compras/pages/MyPurchasesPage';
 import POSPage from './modules/sales-billing/use-cases/CU23-procesar-pagos-facturacion/pages/POSPage';
+import { ReportsDashboardPage } from './modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/pages/ReportsDashboardPage';
 
 function App() {
   return (
@@ -138,6 +139,10 @@ function App() {
               {/* Módulo 4 — Gestión de Reservas en Sucursal (CU19) */}
               <Route path="reservas" element={<ManageBranchReservationsPage />} />
               <Route path="gestionar-reservas" element={<ManageBranchReservationsPage />} />
+              {/* Módulo 7 — Reportes y Dashboard (CU27) */}
+              <Route path="reports" element={<ReportsDashboardPage />} />
+              <Route path="reportes" element={<ReportsDashboardPage />} />
+              <Route path="dashboard" element={<ReportsDashboardPage />} />
               <Route path="*" element={<DashboardIndex />} />
             </Route>
 

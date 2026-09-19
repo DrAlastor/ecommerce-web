@@ -49,7 +49,7 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (norm.includes('movimiento')) return '/admin/movimientos';
   if (norm.includes('inventario')) return '/admin/inventario';
   if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
-  if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin';
+  if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin/reports';
   return '/admin';
 };
 
