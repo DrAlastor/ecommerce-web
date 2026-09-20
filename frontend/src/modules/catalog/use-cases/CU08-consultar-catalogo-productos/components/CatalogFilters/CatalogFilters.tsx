@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CatalogFilterMetadata } from '../../../../types/catalog.types';
 import { CategoryFilter } from './CategoryFilter';
-import { GenderFilter } from './GenderFilter';
+
 import { SaleFilter } from './SaleFilter';
 import { ColorFilter } from './ColorFilter';
 import { SizeFilter } from './SizeFilter';
@@ -10,7 +10,7 @@ import { PriceRangeFilter } from './PriceRangeFilter';
 interface CatalogFiltersProps {
   filterMeta: CatalogFilterMetadata | null;
   selectedCategory: string;
-  selectedGender: string;
+
   selectedColors: string[];
   selectedSizes: string[];
   onlySale: boolean;
@@ -20,7 +20,7 @@ interface CatalogFiltersProps {
   showMobileFilters: boolean;
   onCloseMobile: () => void;
   onSelectCategory: (category: string) => void;
-  onSelectGender: (gender: string) => void;
+
   onToggleSale: (sale: boolean) => void;
   onToggle3D: (only3d: boolean) => void;
   onToggleColor: (colorName: string) => void;
@@ -34,7 +34,7 @@ interface CatalogFiltersProps {
 export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
   filterMeta,
   selectedCategory,
-  selectedGender,
+
   selectedColors,
   selectedSizes,
   onlySale,
@@ -44,7 +44,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
   showMobileFilters,
   onCloseMobile,
   onSelectCategory,
-  onSelectGender,
+
   onToggleSale,
   onToggle3D,
   onToggleColor,

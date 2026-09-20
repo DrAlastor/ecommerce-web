@@ -96,7 +96,6 @@ export const CatalogPage: React.FC = () => {
           <CatalogFilters
             filterMeta={filterMeta}
             selectedCategory={selectedCategory}
-            selectedGender={selectedGender}
             selectedColors={selectedColors}
             selectedSizes={selectedSizes}
             onlySale={onlySale}
@@ -107,10 +106,6 @@ export const CatalogPage: React.FC = () => {
             onCloseMobile={() => setShowMobileFilters(false)}
             onSelectCategory={(cat: string) => {
               setSelectedCategory(cat);
-              setCurrentPage(1);
-            }}
-            onSelectGender={(gen: string) => {
-              setSelectedGender(gen);
               setCurrentPage(1);
             }}
             onToggleSale={(sale: boolean) => {
