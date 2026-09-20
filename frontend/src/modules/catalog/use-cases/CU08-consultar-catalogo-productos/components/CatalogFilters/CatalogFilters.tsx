@@ -14,6 +14,7 @@ interface CatalogFiltersProps {
   selectedColors: string[];
   selectedSizes: string[];
   onlySale: boolean;
+  only3D: boolean;
   minPrice: string;
   maxPrice: string;
   showMobileFilters: boolean;
@@ -21,6 +22,7 @@ interface CatalogFiltersProps {
   onSelectCategory: (category: string) => void;
   onSelectGender: (gender: string) => void;
   onToggleSale: (sale: boolean) => void;
+  onToggle3D: (only3d: boolean) => void;
   onToggleColor: (colorName: string) => void;
   onToggleSize: (sizeCode: string) => void;
   onChangeMinPrice: (val: string) => void;
@@ -36,6 +38,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
   selectedColors,
   selectedSizes,
   onlySale,
+  only3D,
   minPrice,
   maxPrice,
   showMobileFilters,
@@ -43,6 +46,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
   onSelectCategory,
   onSelectGender,
   onToggleSale,
+  onToggle3D,
   onToggleColor,
   onToggleSize,
   onChangeMinPrice,
@@ -60,6 +64,26 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
       </div>
 
       <div className="sidebar-scrollable">
+        {/* 1. Filtro Destacado: Visualización 3D en Tiempo Real */}
+        <div className="filter-group filter-group-3d-highlight">
+          <h4 className="filter-title">Experiencia Virtual</h4>
+          <label className="checkbox-label filter-3d-toggle-label">
+            <input
+              type="checkbox"
+              checked={only3D}
+              onChange={(e) => onToggle3D(e.target.checked)}
+            />
+            <span className="checkbox-custom checkbox-custom-3d" />
+            <span className="checkbox-text filter-3d-text">
+              <span className="badge-3d-gradient">3D</span>
+              <span className="filter-3d-name">Visualización 3D</span>
+              {filterMeta?.total_3d !== undefined && (
+                <span className="filter-count-badge">({filterMeta.total_3d})</span>
+              )}
+            </span>
+          </label>
+        </div>
+
         {/* Categorías */}
         {filterMeta && (
           <CategoryFilter
@@ -68,12 +92,6 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({
             onSelectCategory={onSelectCategory}
           />
         )}
-
-        {/* Género */}
-        <GenderFilter
-          selectedGender={selectedGender}
-          onSelectGender={onSelectGender}
-        />
 
         {/* Ofertas */}
         <SaleFilter

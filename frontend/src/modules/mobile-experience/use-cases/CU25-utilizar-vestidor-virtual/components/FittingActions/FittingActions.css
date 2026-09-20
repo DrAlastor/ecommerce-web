@@ -1,0 +1,131 @@
+.fitting-actions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fitting-primary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .fitting-primary-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-action-cart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #C4956A 0%, #A87B52 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(196, 149, 106, 0.35);
+}
+
+.btn-action-cart:hover:not(:disabled) {
+  background: linear-gradient(135deg, #D4A574 0%, #A87B52 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(196, 149, 106, 0.45);
+}
+
+.btn-action-cart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-action-reserve {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-action-reserve:hover:not(:disabled) {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-action-reserve:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fitting-secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-control-secondary {
+  flex: 1;
+  min-width: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-control-secondary:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+.btn-control-secondary.active {
+  background: #065f46;
+  color: #34d399;
+  border-color: #059669;
+}
+
+.btn-control-exit {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-control-exit:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}

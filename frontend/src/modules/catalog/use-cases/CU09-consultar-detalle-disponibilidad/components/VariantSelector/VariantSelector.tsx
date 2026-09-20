@@ -75,6 +75,32 @@ export const VariantSelector: React.FC<VariantSelectorProps> = ({
         <div className="color-options-row">
           {colores.map((color) => {
             const isSelected = color.id_color === selectedColorId;
+            const variantWithImg = variantes.find(
+              (v) => v.color.id_color === color.id_color && v.imagen_url,
+            );
+
+            if (variantWithImg?.imagen_url) {
+              return (
+                <button
+                  key={color.id_color}
+                  type="button"
+                  className={`color-thumbnail-card ${isSelected ? 'selected' : ''}`}
+                  onClick={() => onSelectColor(color.id_color)}
+                  title={color.nombre}
+                >
+                  <img
+                    src={variantWithImg.imagen_url}
+                    alt={color.nombre}
+                    className="color-thumbnail-img"
+                  />
+                  <span
+                    className="color-mini-dot"
+                    style={{ backgroundColor: color.codigo_hex || '#1A1A1A' }}
+                  />
+                </button>
+              );
+            }
+
             return (
               <button
                 key={color.id_color}

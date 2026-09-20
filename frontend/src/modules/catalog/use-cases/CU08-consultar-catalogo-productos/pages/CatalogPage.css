@@ -557,3 +557,80 @@
 .filter-chip-remove:hover {
   color: #DC2626;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Filtro Visualización 3D (AR)
+   ═══════════════════════════════════════════════════════════════ */
+.filter-group-3d-highlight {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(37, 99, 235, 0.03) 100%);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: 10px;
+  padding: 0.75rem 0.65rem !important;
+  margin-bottom: 0.9rem !important;
+}
+
+.filter-3d-toggle-label {
+  display: flex !important;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-3d-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.badge-3d-gradient {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.filter-3d-name {
+  font-size: 0.85rem;
+}
+
+.filter-count-badge {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Badge en la ProductCard */
+.badge-3d-live {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 0.72rem !important;
+  padding: 0.25rem 0.6rem !important;
+  border-radius: 4px !important;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+  animation: badge3dPulse 3s infinite ease-in-out;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.badge-3d-live:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.55);
+}
+
+@keyframes badge3dPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
+  }
+}
+

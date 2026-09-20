@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════
+   Calibration Screen — CU25 Vestidor Virtual
+   ═══════════════════════════════════════════════════════════ */
+
+.calibration-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #F8F5F1 0%, #EDE8E1 50%, #E8DDD3 100%);
+  padding: 2rem 1rem;
+}
+
+.calibration-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.10), 0 4px 12px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.calibration-header {
+  margin-bottom: 1.5rem;
+}
+
+.calibration-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1A1A1A, #333);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: #FFFFFF;
+}
+
+.calibration-header h2 {
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 0 0 0.5rem;
+}
+
+.calibration-subtitle {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.9rem;
+  color: #6B6B6B;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Silueta ── */
+.calibration-silhouette {
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.silhouette-frame {
+  width: 160px;
+  height: 220px;
+  margin: 0 auto;
+  border: 2px dashed #D4D4D4;
+  border-radius: 16px;
+  padding: 10px;
+  background: #FAFAFA;
+}
+
+.silhouette-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.silhouette-path {
+  stroke: #9B9B9B;
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+}
+
+circle.silhouette-path {
+  fill: none;
+}
+
+.silhouette-point {
+  fill: #C4956A;
+  stroke: #C4956A;
+  stroke-width: 1;
+  animation: pointPulse 2s ease-in-out infinite;
+}
+
+.silhouette-label {
+  font-size: 8px;
+  fill: #C4956A;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-weight: 600;
+}
+
+@keyframes pointPulse {
+  0%, 100% { opacity: 1; r: 6; }
+  50% { opacity: 0.5; r: 8; }
+}
+
+.calibration-detected {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: #ECFDF5;
+  color: #059669;
+  font-size: 0.85rem;
+  font-weight: 600;
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Checklist ── */
+.calibration-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1.5rem 0;
+  text-align: left;
+  padding: 0 0.5rem;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.88rem;
+  color: #4B5563;
+}
+
+.checklist-item svg {
+  color: #C4956A;
+  flex-shrink: 0;
+}
+
+/* ── Loading ── */
+.calibration-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  background: #F0F9FF;
+  border-radius: 10px;
+  color: #0369A1;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.calibration-loading .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.calibration-error-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  background: #FEF2F2;
+  border-radius: 10px;
+  color: #DC2626;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* ── Disclaimer ── */
+.calibration-disclaimer {
+  font-size: 0.78rem;
+  color: #9B9B9B;
+  margin: 1rem 0;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ── Actions ── */
+.calibration-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 1.5rem;
+}
+
+.btn-calibration-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(135deg, #1A1A1A, #333);
+  color: #FFFFFF;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.btn-calibration-start:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-calibration-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-calibration-back {
+  padding: 0.6rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #E8E8E8;
+  background: transparent;
+  color: #6B6B6B;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-calibration-back:hover {
+  background: #F8F5F1;
+  border-color: #D4D4D4;
+}

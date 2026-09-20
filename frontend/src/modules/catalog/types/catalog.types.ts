@@ -42,6 +42,7 @@ export interface CatalogProduct {
   imagen_principal: string | null;
   imagenes: CatalogImage[];
   disponible: boolean;
+  tiene_3d?: boolean;
   total_variantes: number;
   colores_disponibles: CatalogColor[];
   tallas_disponibles: CatalogSize[];
@@ -65,6 +66,7 @@ export interface CatalogFilterMetadata {
   tallas: CatalogSize[];
   colores: CatalogColor[];
   generos: string[];
+  total_3d?: number;
   precio_rango: {
     min: number;
     max: number;
@@ -95,6 +97,7 @@ export interface CatalogQueryParams {
   min_price?: number;
   max_price?: number;
   en_oferta?: boolean;
+  solo_3d?: boolean;
   sort_by?: string;
   page?: number;
   limit?: number;

@@ -426,6 +426,52 @@
   outline-offset: 2px;
 }
 
+.color-thumbnail-card {
+  width: 48px;
+  height: 60px;
+  border-radius: 6px;
+  border: 1.5px solid #E5E7EB;
+  background: #FFFFFF;
+  padding: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.color-thumbnail-card:hover {
+  border-color: #9CA3AF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.color-thumbnail-card.selected {
+  border-color: #1A1A1A;
+  box-shadow: 0 0 0 1.5px #1A1A1A;
+}
+
+.color-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.color-mini-dot {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
 .size-options-row {
   display: flex;
   gap: 0.55rem;

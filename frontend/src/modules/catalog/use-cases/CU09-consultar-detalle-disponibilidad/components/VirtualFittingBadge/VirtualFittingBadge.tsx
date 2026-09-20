@@ -3,14 +3,17 @@ import { Box, Sparkles, ArrowRight } from 'lucide-react';
 
 interface VirtualFittingBadgeProps {
   model3dUrl?: string | null;
+  isVisible?: boolean;
   onOpenFitting?: () => void;
 }
 
 export const VirtualFittingBadge: React.FC<VirtualFittingBadgeProps> = ({
   model3dUrl,
+  isVisible,
   onOpenFitting,
 }) => {
-  if (!model3dUrl) return null;
+  const shouldShow = isVisible !== undefined ? isVisible : Boolean(model3dUrl);
+  if (!shouldShow) return null;
 
   return (
     <div className="virtual-fitting-card">
@@ -29,7 +32,7 @@ export const VirtualFittingBadge: React.FC<VirtualFittingBadgeProps> = ({
       <button
         type="button"
         className="btn-launch-fitting"
-        onClick={onOpenFitting || (() => alert('El vestidor virtual 3D se activará en el Caso de Uso CU24.'))}
+        onClick={onOpenFitting}
       >
         <span>Probar en 3D</span>
         <ArrowRight size={15} />

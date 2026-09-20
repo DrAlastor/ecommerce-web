@@ -33,15 +33,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, toShopProduct
         <img
           src={
             product.imagen_principal ||
-            'https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg'
+            'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png'
           }
           alt={product.nombre}
           loading="lazy"
           className="product-card-img"
         />
 
-        {/* Badges de Estado / Descuento */}
+        {/* Badges de Estado / Descuento / 3D */}
         <div className="product-badges-corner">
+          {product.tiene_3d && (
+            <span
+              className="badge-pill badge-3d-live"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/virtual-fitting/${product.id_producto}`);
+              }}
+              title="Probar con webcam en 3D"
+            >
+              ✨ PROBAR 3D
+            </span>
+          )}
           {product.tiene_descuento && (
             <span className="badge-pill badge-discount-percent">
               -{product.descuento_porcentaje}%

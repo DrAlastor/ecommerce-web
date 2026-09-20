@@ -34,6 +34,8 @@ export const CatalogPage: React.FC = () => {
     selectedSizes,
     onlySale,
     setOnlySale,
+    only3D,
+    setOnly3D,
     minPrice,
     setMinPrice,
     maxPrice,
@@ -98,6 +100,7 @@ export const CatalogPage: React.FC = () => {
             selectedColors={selectedColors}
             selectedSizes={selectedSizes}
             onlySale={onlySale}
+            only3D={only3D}
             minPrice={minPrice}
             maxPrice={maxPrice}
             showMobileFilters={showMobileFilters}
@@ -112,6 +115,10 @@ export const CatalogPage: React.FC = () => {
             }}
             onToggleSale={(sale: boolean) => {
               setOnlySale(sale);
+              setCurrentPage(1);
+            }}
+            onToggle3D={(val: boolean) => {
+              setOnly3D(val);
               setCurrentPage(1);
             }}
             onToggleColor={handleToggleColor}
@@ -139,6 +146,7 @@ export const CatalogPage: React.FC = () => {
               selectedColors={selectedColors}
               selectedSizes={selectedSizes}
               onlySale={onlySale}
+              only3D={only3D}
               searchQuery={searchQuery}
               minPrice={minPrice}
               maxPrice={maxPrice}
@@ -154,6 +162,10 @@ export const CatalogPage: React.FC = () => {
               onRemoveSize={handleToggleSize}
               onRemoveSale={() => {
                 setOnlySale(false);
+                setCurrentPage(1);
+              }}
+              onRemove3D={() => {
+                setOnly3D(false);
                 setCurrentPage(1);
               }}
               onRemoveSearch={() => {

@@ -6,6 +6,7 @@ interface ActiveFilterChipsProps {
   selectedColors: string[];
   selectedSizes: string[];
   onlySale: boolean;
+  only3D?: boolean;
   searchQuery: string;
   minPrice: string;
   maxPrice: string;
@@ -14,6 +15,7 @@ interface ActiveFilterChipsProps {
   onRemoveColor: (color: string) => void;
   onRemoveSize: (size: string) => void;
   onRemoveSale: () => void;
+  onRemove3D?: () => void;
   onRemoveSearch: () => void;
   onRemovePrice: () => void;
   onResetAll: () => void;
@@ -25,6 +27,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
   selectedColors,
   selectedSizes,
   onlySale,
+  only3D = false,
   searchQuery,
   minPrice,
   maxPrice,
@@ -33,6 +36,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
   onRemoveColor,
   onRemoveSize,
   onRemoveSale,
+  onRemove3D,
   onRemoveSearch,
   onRemovePrice,
   onResetAll,
@@ -43,6 +47,7 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
     selectedColors.length > 0 ||
     selectedSizes.length > 0 ||
     onlySale ||
+    only3D ||
     searchQuery ||
     minPrice ||
     maxPrice;
@@ -88,6 +93,17 @@ export const ActiveFilterChips: React.FC<ActiveFilterChipsProps> = ({
           <button className="filter-chip-remove" onClick={onRemoveSale}>
             ✕
           </button>
+        </span>
+      )}
+
+      {only3D && (
+        <span className="filter-chip" style={{ background: '#E0F2FE', color: '#0284C7', borderColor: '#BAE6FD' }}>
+          ✨ Visualización 3D
+          {onRemove3D && (
+            <button className="filter-chip-remove" onClick={onRemove3D}>
+              ✕
+            </button>
+          )}
         </span>
       )}
 

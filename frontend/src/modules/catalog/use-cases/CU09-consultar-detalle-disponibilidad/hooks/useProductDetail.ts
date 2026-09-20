@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { productDetailService } from '../services/product-detail.service';
 import { useShop } from '../../../../../context/ShopContext';
@@ -64,24 +64,62 @@ export function useProductDetail() {
 
   // Variante seleccionada
   const selectedVariant: ProductVariant | null = useMemo(() => {
-    if (!product || selectedColorId === null || selectedTallaId === null) return null;
-    return (
-      product.variantes.find(
-        (v) =>
-          v.color.id_color === selectedColorId && v.talla.id_talla === selectedTallaId,
-      ) || null
-    );
+    if (!product || selectedColorId === null) return null;
+    if (selectedTallaId !== null) {
+      const exactMatch = product.variantes.find(
+        (v) => v.color.id_color === selectedColorId && v.talla.id_talla === selectedTallaId,
+      );
+      if (exactMatch) return exactMatch;
+    }
+    return product.variantes.find((v) => v.color.id_color === selectedColorId) || null;
   }, [product, selectedColorId, selectedTallaId]);
 
-  // Si la variante tiene una imagen específica, sincronizar imagen activa
+  const isInitialLoadRef = useRef(true);
+
+  // Al cambiar de producto en la ruta, reiniciar la bandera de carga inicial
   useEffect(() => {
-    if (selectedVariant?.imagen_url && product?.imagenes) {
-      const idx = product.imagenes.findIndex((img) => img.url === selectedVariant.imagen_url);
-      if (idx !== -1) {
-        setActiveImageIndex(idx);
+    isInitialLoadRef.current = true;
+  }, [id]);
+
+  // Lista dinámica de imágenes:
+  // - Posición 0 (arriba): Variante dinámica según el color seleccionado
+  // - Posición 1 (abajo): Portada original de la modelo
+  const galleryImages = useMemo(() => {
+    if (!product) return [];
+    const list = [...product.imagenes];
+    if (selectedVariant?.imagen_url) {
+      const existingIdx = list.findIndex((img) => img.url === selectedVariant.imagen_url);
+      if (existingIdx !== -1) {
+        const [found] = list.splice(existingIdx, 1);
+        list.unshift(found);
+      } else {
+        list.unshift({
+          id_imagen_producto: -selectedVariant.id_producto_variante,
+          url: selectedVariant.imagen_url,
+          texto_alternativo: `${product.nombre} - ${selectedVariant.color.nombre}`,
+          es_principal: true,
+          orden: 0,
+        });
       }
     }
-  }, [selectedVariant, product]);
+    return list;
+  }, [product, selectedVariant]);
+
+  // Al cargar el producto inicialmente: "primero la portada" (abajo, índice 1)
+  useEffect(() => {
+    if (!product || galleryImages.length === 0) return;
+    if (isInitialLoadRef.current) {
+      const portadaIdx = galleryImages.length > 1 && selectedVariant?.imagen_url ? 1 : 0;
+      setActiveImageIndex(portadaIdx);
+    }
+  }, [product?.id_producto, galleryImages.length, selectedVariant?.imagen_url]);
+
+  // Al seleccionar activamente un color de variante: mostrar la variante en la imagen grande (arriba, índice 0)
+  const handleSelectColor = useCallback((colorId: number) => {
+    isInitialLoadRef.current = false;
+    setSelectedColorId(colorId);
+    setActiveImageIndex(0);
+  }, []);
 
   // Precios dinámicos
   const currentPrice = selectedVariant
@@ -114,7 +152,7 @@ export function useProductDetail() {
       originalPrice: hasDiscount ? originalPrice : undefined,
       rating: 4.8,
       reviewsCount: 12,
-      image: product.imagenes[activeImageIndex]?.url || product.imagenes[0]?.url || '',
+      image: galleryImages[activeImageIndex]?.url || product.imagenes[0]?.url || '',
       isNew: Boolean(product.coleccion),
       isSale: hasDiscount,
       description: product.descripcion || undefined,
@@ -145,10 +183,11 @@ export function useProductDetail() {
   return {
     id,
     product,
+    galleryImages,
     isLoading,
     errorMessage,
     selectedColorId,
-    setSelectedColorId,
+    setSelectedColorId: handleSelectColor,
     selectedTallaId,
     setSelectedTallaId,
     selectedVariant,

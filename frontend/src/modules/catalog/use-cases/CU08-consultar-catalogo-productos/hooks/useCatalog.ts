@@ -36,6 +36,7 @@ export function useCatalog() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [onlySale, setOnlySale] = useState<boolean>(false);
+  const [only3D, setOnly3D] = useState<boolean>(false);
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('recientes');
@@ -106,6 +107,10 @@ export function useCatalog() {
         params.en_oferta = true;
       }
 
+      if (only3D) {
+        params.solo_3d = true;
+      }
+
       if (minPrice && !isNaN(Number(minPrice))) {
         params.min_price = Number(minPrice);
       }
@@ -136,6 +141,7 @@ export function useCatalog() {
     selectedSizes,
     selectedColors,
     onlySale,
+    only3D,
     minPrice,
     maxPrice,
   ]);
@@ -165,6 +171,7 @@ export function useCatalog() {
     setSelectedSizes([]);
     setSelectedColors([]);
     setOnlySale(false);
+    setOnly3D(false);
     setMinPrice('');
     setMaxPrice('');
     setSearchQuery('');
@@ -184,7 +191,7 @@ export function useCatalog() {
     reviewsCount: 15,
     image:
       cp.imagen_principal ||
-      'https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg',
+      'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png',
     isNew: cp.id_producto > 15,
     isSale: cp.tiene_descuento,
     description: cp.descripcion || '',
@@ -210,6 +217,8 @@ export function useCatalog() {
     selectedSizes,
     onlySale,
     setOnlySale,
+    only3D,
+    setOnly3D,
     minPrice,
     setMinPrice,
     maxPrice,

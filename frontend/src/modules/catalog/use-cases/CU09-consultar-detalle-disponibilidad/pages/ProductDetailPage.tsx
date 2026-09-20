@@ -26,6 +26,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const {
     product,
+    galleryImages,
     isLoading,
     errorMessage,
     selectedColorId,
@@ -86,6 +87,18 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
+  // Identificar si el producto cuenta con modelo 3D disponible (a nivel de prenda o cualquiera de sus variantes)
+  const has3DModel = Boolean(
+    product.tiene_modelo_3d ||
+    selectedVariant?.modelo_3d_url ||
+    product.variantes.some((v) => Boolean(v.modelo_3d_url))
+  );
+
+  const active3DModelUrl =
+    selectedVariant?.modelo_3d_url ||
+    product.variantes.find((v) => Boolean(v.modelo_3d_url))?.modelo_3d_url ||
+    null;
+
   return (
     <div className="product-detail-page">
       {/* Toast Notification */}
@@ -108,13 +121,13 @@ export const ProductDetailPage: React.FC = () => {
         <div className="product-detail-grid">
           {/* Columna Izquierda: Galería */}
           <ProductGallery
-            images={product.imagenes}
+            images={galleryImages}
             activeImageIndex={activeImageIndex}
             onSelectImage={setActiveImageIndex}
             hasDiscount={hasDiscount}
             discountPercent={discountPercent}
             collectionName={product.coleccion?.nombre}
-            has3DModel={Boolean(selectedVariant?.modelo_3d_url || product.tiene_modelo_3d)}
+            has3DModel={has3DModel}
             isFavorited={isFavorited}
             onToggleFavorite={handleToggleWishlist}
           />
@@ -145,9 +158,17 @@ export const ProductDetailPage: React.FC = () => {
               onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
             />
 
-            {/* Acceso directo a Vestidor Virtual 3D */}
+            {/* Acceso directo a Vestidor Virtual 3D / RA (CU25) - Se conserva visible sin importar el color elegido */}
             <VirtualFittingBadge
-              model3dUrl={selectedVariant?.modelo_3d_url}
+              model3dUrl={active3DModelUrl}
+              isVisible={has3DModel}
+              onOpenFitting={() => {
+                const params = new URLSearchParams();
+                if (selectedTallaId) params.set('talla', String(selectedTallaId));
+                if (selectedColorId) params.set('color', String(selectedColorId));
+                const qs = params.toString() ? `?${params.toString()}` : '';
+                navigate(`/virtual-fitting/${product.id_producto}${qs}`);
+              }}
             />
 
             {/* Acciones de Compra y Reserva */}

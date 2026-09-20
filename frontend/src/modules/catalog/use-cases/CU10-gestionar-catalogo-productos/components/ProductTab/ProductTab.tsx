@@ -142,7 +142,7 @@ export const ProductTab: React.FC<ProductTabProps> = ({ metadata, onFeedback }) 
                         <img
                           src={
                             prod.imagen_principal ||
-                            'https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg'
+                            'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png'
                           }
                           alt={prod.nombre}
                           className="product-thumbnail"

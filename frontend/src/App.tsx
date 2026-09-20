@@ -30,6 +30,7 @@ import { CheckoutPage } from './modules/sales-billing/use-cases/CU21-realizar-co
 import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU22-consultar-historial-compras/pages/MyPurchasesPage';
 import POSPage from './modules/sales-billing/use-cases/CU23-procesar-pagos-facturacion/pages/POSPage';
 import { ReportsDashboardPage } from './modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/pages/ReportsDashboardPage';
+import { VirtualFittingPage } from './modules/mobile-experience/use-cases/CU25-utilizar-vestidor-virtual';
 
 function App() {
   return (
@@ -41,6 +42,9 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            {/* Vestidor Virtual 3D / RA (CU25) */}
+            <Route path="/virtual-fitting/:productId" element={<VirtualFittingPage />} />
+            <Route path="/vestidor/:productId" element={<VirtualFittingPage />} />
             {/* Carrito de Compras (CU20) */}
             <Route path="/cart" element={<CartPage />} />
             <Route path="/bolsa" element={<CartPage />} />

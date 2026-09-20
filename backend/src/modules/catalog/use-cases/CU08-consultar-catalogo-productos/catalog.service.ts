@@ -2,6 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { QueryCatalogDto } from './dto/catalog.dto.js';
 
+function removeAccents(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 @Injectable()
 export class CatalogService {
   private readonly logger = new Logger(CatalogService.name);
@@ -26,6 +30,7 @@ export class CatalogService {
       min_price,
       max_price,
       en_oferta,
+      solo_3d,
       sort_by = 'recientes',
       page = 1,
       limit = 12,
@@ -39,26 +44,57 @@ export class CatalogService {
       estado: 'activo',
     };
 
-    // 1. Búsqueda por texto (nombre, descripción o categoría)
+    // 1. Búsqueda inteligente por texto: insensible a mayúsculas y acentos, multitérmino
     if (search && search.trim() !== '') {
-      const term = search.trim();
-      where.OR = [
-        { nombre: { contains: term, mode: 'insensitive' } },
-        { descripcion: { contains: term, mode: 'insensitive' } },
-        { categoria: { nombre: { contains: term, mode: 'insensitive' } } },
-      ];
+      const clean = search.trim();
+      const rawWords = clean.split(/\s+/).filter(Boolean);
+
+      const wordConditions = rawWords.map((w) => {
+        const unacc = removeAccents(w);
+        return {
+          OR: [
+            { nombre: { contains: w, mode: 'insensitive' } },
+            { nombre: { contains: unacc, mode: 'insensitive' } },
+            { descripcion: { contains: w, mode: 'insensitive' } },
+            { descripcion: { contains: unacc, mode: 'insensitive' } },
+            { categoria: { nombre: { contains: w, mode: 'insensitive' } } },
+            { categoria: { nombre: { contains: unacc, mode: 'insensitive' } } },
+            {
+              producto_variante: {
+                some: {
+                  estado: 'activo',
+                  OR: [
+                    { sku: { contains: w, mode: 'insensitive' } },
+                    { color: { nombre: { contains: w, mode: 'insensitive' } } },
+                    { color: { nombre: { contains: unacc, mode: 'insensitive' } } },
+                  ],
+                },
+              },
+            },
+          ],
+        };
+      });
+
+      if (wordConditions.length > 0) {
+        where.AND = (where.AND || []).concat(wordConditions);
+      }
     }
 
-    // 2. Filtro por Categoría
+    // 2. Filtro por Categoría (permite nombre exacto o aproximado sin acentos)
     if (id_categoria) {
       where.id_categoria = id_categoria;
     } else if (categoria && categoria.trim() !== '' && categoria !== 'all') {
+      const catName = categoria.trim();
+      const catUnacc = removeAccents(catName);
       where.categoria = {
-        nombre: { equals: categoria.trim(), mode: 'insensitive' },
+        OR: [
+          { nombre: { contains: catName, mode: 'insensitive' } },
+          { nombre: { contains: catUnacc, mode: 'insensitive' } },
+        ],
       };
     }
 
-    // 3. Filtro por Género
+    // 3. Filtro por Género (Mujer)
     if (genero && genero.trim() !== '' && genero !== 'all') {
       where.genero = { equals: genero.trim(), mode: 'insensitive' };
     }
@@ -80,7 +116,7 @@ export class CatalogService {
       if (max_price !== undefined) where.precio_base.lte = max_price;
     }
 
-    // 6. Filtros por Talla y Color a través de Variantes
+    // 6. Filtros por Talla, Color y Modelo 3D a través de Variantes
     const variantFilters: any = { estado: 'activo' };
     let hasVariantFilter = false;
 
@@ -96,12 +132,20 @@ export class CatalogService {
       variantFilters.id_color = id_color;
       hasVariantFilter = true;
     } else if (color && color.trim() !== '') {
+      const colUnacc = removeAccents(color.trim());
       variantFilters.color = {
         OR: [
           { nombre: { contains: color.trim(), mode: 'insensitive' } },
+          { nombre: { contains: colUnacc, mode: 'insensitive' } },
           { codigo_hex: { equals: color.trim(), mode: 'insensitive' } },
         ],
       };
+      hasVariantFilter = true;
+    }
+
+    // Filtro para solo productos con Visualización 3D
+    if (solo_3d) {
+      variantFilters.modelo_3d_url = { not: null };
       hasVariantFilter = true;
     }
 
@@ -275,6 +319,7 @@ export class CatalogService {
           es_principal: img.es_principal,
         })),
         disponible: p.producto_variante.length > 0,
+        tiene_3d: p.producto_variante.some((v) => Boolean(v.modelo_3d_url)),
         total_variantes: p.producto_variante.length,
         colores_disponibles: Array.from(colorMap.values()),
         tallas_disponibles: Array.from(tallaMap.values()),
@@ -296,7 +341,7 @@ export class CatalogService {
    * Obtiene metadatos para poblar dinámicamente los filtros de la interfaz
    */
   async getFilterMetadata() {
-    const [categorias, colecciones, tallas, colores, precios] = await Promise.all([
+    const [categorias, colecciones, tallas, colores, precios, count3D] = await Promise.all([
       this.prisma.categoria.findMany({
         select: {
           id_categoria: true,
@@ -330,14 +375,27 @@ export class CatalogService {
         _min: { precio_base: true },
         _max: { precio_base: true },
       }),
+      this.prisma.producto.count({
+        where: {
+          estado: 'activo',
+          producto_variante: {
+            some: {
+              estado: 'activo',
+              modelo_3d_url: { not: null },
+            },
+          },
+        },
+      }),
     ]);
 
     return {
-      categorias: categorias.map((c) => ({
-        id_categoria: c.id_categoria,
-        nombre: c.nombre,
-        total_productos: c._count.producto,
-      })),
+      categorias: categorias
+        .filter((c) => c._count.producto > 0)
+        .map((c) => ({
+          id_categoria: c.id_categoria,
+          nombre: c.nombre,
+          total_productos: c._count.producto,
+        })),
       colecciones: colecciones.map((col) => ({
         id_coleccion: col.id_coleccion,
         nombre: col.nombre,
@@ -352,7 +410,8 @@ export class CatalogService {
         nombre: c.nombre,
         codigo_hex: c.codigo_hex,
       })),
-      generos: ['Mujer', 'Hombre', 'Unisex', 'Niños'],
+      generos: ['Mujer'],
+      total_3d: count3D,
       precio_rango: {
         min: Number(precios._min.precio_base || 0),
         max: Number(precios._max.precio_base || 1000),
