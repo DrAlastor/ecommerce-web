@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Lock, ArrowLeft, AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 
 interface ResetPasswordFormProps {
   token: string;
@@ -29,30 +30,38 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   onSubmit,
 }) => {
   return (
-    <div className="login-box" style={{ maxWidth: '450px' }}>
-      <h2 className="login-title">Restablecer Contraseña</h2>
-      <p className="login-subtitle">Ingresa el código que recibiste por correo y tu nueva contraseña.</p>
+    <div className="password-card">
+      <div className="password-card-header">
+        <span className="brand-badge">D R E S S L Y &nbsp;•&nbsp; SEGURIDAD</span>
+        <h2 className="password-card-title">Restablecer Contraseña</h2>
+        <p className="password-card-subtitle">
+          Ingresa el código numérico de 6 dígitos que enviamos a tu buzón y define tu nueva contraseña.
+        </p>
+      </div>
 
       {emailParam && (
-        <div style={{ background: '#f5f5f4', border: '1px solid #e7e5e4', padding: '0.55rem 0.85rem', borderRadius: '8px', fontSize: '0.84rem', marginBottom: '1rem', color: '#57534e', textAlign: 'center' }}>
-          Restableciendo acceso para: <strong style={{ color: '#1c1917' }}>{emailParam}</strong>
+        <div className="target-account-pill">
+          Restableciendo acceso para: <strong>{emailParam}</strong>
         </div>
       )}
 
       {error && (
-        <div className="error-message" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="success-message" style={{ color: 'green', marginBottom: '1rem', textAlign: 'center' }}>
-          {success}
+        <div className="password-alert-error" role="alert">
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
+          <span>{error}</span>
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="login-form">
-        <div className="form-group">
-          <label htmlFor="token">Código de 6 dígitos</label>
+      {success && (
+        <div className="password-alert-success" role="status">
+          <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+          <span>{success}</span>
+        </div>
+      )}
+
+      <form onSubmit={onSubmit} className="password-form">
+        <div className="password-field-group">
+          <label htmlFor="token" className="password-field-label">Código de Verificación (6 dígitos)</label>
           <input
             id="token"
             type="text"
@@ -60,50 +69,71 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             value={token}
             onChange={(e) => onTokenChange(e.target.value)}
             disabled={loading}
-            className="login-input"
-            style={{ letterSpacing: '2px', textAlign: 'center', fontSize: '1.2rem' }}
+            className="password-input password-code-input"
             maxLength={6}
+            required
+            autoFocus
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="newPassword">Nueva Contraseña</label>
-          <input
-            id="newPassword"
-            type="password"
-            placeholder="********"
-            value={newPassword}
-            onChange={(e) => onNewPasswordChange(e.target.value)}
-            disabled={loading}
-            className="login-input"
-          />
+        <div className="password-field-group">
+          <label htmlFor="newPassword" className="password-field-label">Nueva Contraseña</label>
+          <div className="password-input-wrapper">
+            <Lock size={18} className="password-input-icon" />
+            <input
+              id="newPassword"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              value={newPassword}
+              onChange={(e) => onNewPasswordChange(e.target.value)}
+              disabled={loading}
+              className="password-input"
+              required
+            />
+          </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
-          <input
-            id="confirmPassword"
-            type="password"
-            placeholder="********"
-            value={confirmPassword}
-            onChange={(e) => onConfirmPasswordChange(e.target.value)}
-            disabled={loading}
-            className="login-input"
-          />
+        <div className="password-field-group">
+          <label htmlFor="confirmPassword" className="password-field-label">Confirmar Nueva Contraseña</label>
+          <div className="password-input-wrapper">
+            <Lock size={18} className="password-input-icon" />
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="Repite tu contraseña"
+              value={confirmPassword}
+              onChange={(e) => onConfirmPasswordChange(e.target.value)}
+              disabled={loading}
+              className="password-input"
+              required
+            />
+          </div>
         </div>
 
         <button
           type="submit"
-          className="login-button"
+          className="btn-password-submit"
           disabled={loading}
-          style={{ backgroundColor: '#1A1A1A' }}
         >
-          {loading ? 'Restableciendo...' : 'Restablecer Contraseña'}
+          {loading ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              <span>Actualizando contraseña...</span>
+            </>
+          ) : (
+            <>
+              <ShieldCheck size={18} />
+              <span>Restablecer Contraseña</span>
+            </>
+          )}
         </button>
       </form>
 
-      <div className="login-footer">
-        <Link to="/login" className="login-link">Volver al inicio de sesión</Link>
+      <div className="password-card-footer">
+        <Link to="/login" className="password-return-link">
+          <ArrowLeft size={16} />
+          <span>Volver al inicio de sesión</span>
+        </Link>
       </div>
     </div>
   );

@@ -226,3 +226,98 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-secondary);
   color: var(--text-inverse);
 }
+
+/* ================================================
+   ESTILOS DE IMPRESIÓN OFICIAL — COMPROBANTES / FACTURAS
+   ================================================ */
+@media print {
+  /* 1. Ocultar todos los elementos de navegación y decorativos no imprimibles */
+  .site-header,
+  .site-footer,
+  .announcement-bar,
+  .staff-admin-bar,
+  .btn-print-receipt,
+  .btn-print-invoice,
+  .btn-print,
+  .btn-close-receipt,
+  .btn-return-store,
+  .btn-receipt-print,
+  .btn-receipt-close-action,
+  .btn-receipt-catalog,
+  .btn-receipt-secondary,
+  .modal-actions-footer,
+  .reservation-modal-footer,
+  .purchases-page-header,
+  .purchases-kpi-grid,
+  .purchases-controls-bar,
+  .purchases-orders-list,
+  .checkout-header-bar,
+  .checkout-content-grid,
+  .modal-header .close-btn,
+  .btn-modal-close,
+  .no-print {
+    display: none !important;
+  }
+
+  /* 2. Resetear contenedor del documento */
+  html, body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    width: 100% !important;
+  }
+
+  /* 3. Desbloquear modales para que fluyan en la página sin recorte */
+  .modal-backdrop,
+  .reservation-modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+  }
+
+  /* 4. Estilos de la tarjeta de Comprobante / Recibo / Factura */
+  .receipt-modal-card,
+  .order-confirmation-card,
+  .print-receipt-card,
+  .pos-invoice-card {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 1.5cm !important;
+    border: 1px solid #D1D5DB !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    background: #FFFFFF !important;
+    color: #1A1A1A !important;
+    page-break-inside: avoid;
+  }
+
+  /* Asegurar texto negro nítido y tablas legibles */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border-bottom: 1px solid #D1D5DB !important;
+    padding: 6pt !important;
+    color: #000000 !important;
+  }
+
+  .barcode-display,
+  .barcode-card,
+  .voucher-code-display,
+  .meta-code {
+    border: 1px dashed #9CA3AF !important;
+    color: #000000 !important;
+    background: #F9FAFB !important;
+  }
+}

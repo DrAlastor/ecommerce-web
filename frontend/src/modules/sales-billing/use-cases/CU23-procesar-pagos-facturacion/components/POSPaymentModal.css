@@ -381,8 +381,8 @@
 }
 
 .form-input:focus {
-  border-color: #9333EA;
-  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+  border-color: #8C5E35;
+  box-shadow: 0 0 0 3px rgba(140, 94, 53, 0.12);
 }
 
 .font-mono {

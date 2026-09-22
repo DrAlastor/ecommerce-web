@@ -1,7 +1,7 @@
 import React from 'react';
 import { useResetPassword } from '../hooks/useResetPassword';
 import { ResetPasswordForm } from '../components/ResetPasswordForm';
-import '../../CU01-gestionar-acceso/pages/LoginPage.css';
+import './PasswordManagement.css';
 
 export const ResetPasswordPage: React.FC = () => {
   const {
@@ -19,7 +19,7 @@ export const ResetPasswordPage: React.FC = () => {
   } = useResetPassword();
 
   return (
-    <div className="login-container">
+    <div className="password-page-wrapper">
       <ResetPasswordForm
         token={token}
         emailParam={emailParam}

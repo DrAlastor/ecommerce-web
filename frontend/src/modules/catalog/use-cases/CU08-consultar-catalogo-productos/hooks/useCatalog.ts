@@ -15,7 +15,9 @@ export function useCatalog() {
 
   // URL query params iniciales
   const queryParams = new URLSearchParams(location.search);
-  const initialCategory = queryParams.get('category') || 'all';
+  const rawCat = queryParams.get('category');
+  const isInitialSale = queryParams.get('sale') === 'true' || rawCat === 'sale';
+  const initialCategory = isInitialSale ? 'all' : (rawCat || 'all');
   const initialSearch = queryParams.get('search') || globalSearchQuery || '';
 
   // Estados de datos
@@ -35,7 +37,7 @@ export function useCatalog() {
   const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [onlySale, setOnlySale] = useState<boolean>(false);
+  const [onlySale, setOnlySale] = useState<boolean>(isInitialSale);
   const [only3D, setOnly3D] = useState<boolean>(false);
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
@@ -70,6 +72,28 @@ export function useCatalog() {
       setCurrentPage(1);
     }
   }, [globalSearchQuery]);
+
+  // Sincronizar parámetros de URL (categoría, rebajas, búsqueda)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cat = params.get('category');
+    const isSale = params.get('sale') === 'true' || cat === 'sale';
+
+    if (isSale) {
+      setOnlySale(true);
+      setSelectedCategory('all');
+    } else if (cat) {
+      setSelectedCategory(cat);
+      setOnlySale(false);
+    }
+
+    const searchParam = params.get('search');
+    if (searchParam !== null && searchParam !== searchQuery) {
+      setSearchQuery(searchParam);
+    }
+
+    setCurrentPage(1);
+  }, [location.search]);
 
   // Cargar productos del catálogo con los filtros actuales
   const fetchProducts = useCallback(async () => {

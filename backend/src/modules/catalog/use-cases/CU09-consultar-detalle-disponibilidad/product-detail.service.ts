@@ -130,7 +130,9 @@ export class ProductDetailService {
       );
       totalStockGlobal += totalStockVariante;
 
-      if (v.modelo_3d_url) {
+      const esPrendaVestir = product.id_categoria !== 2 && !product.categoria.nombre.toLowerCase().includes('accesorio');
+
+      if (esPrendaVestir && v.modelo_3d_url) {
         tieneModelo3D = true;
       }
 
@@ -142,7 +144,7 @@ export class ProductDetailService {
         precio_final: precioFinal,
         tiene_descuento: tieneDescuento,
         descuento_porcentaje: descuentoPorcentaje,
-        modelo_3d_url: v.modelo_3d_url,
+        modelo_3d_url: esPrendaVestir ? v.modelo_3d_url : null,
         imagen_url: v.imagen_url,
         estado: v.estado,
         talla: {

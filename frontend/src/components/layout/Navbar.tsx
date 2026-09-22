@@ -55,7 +55,7 @@ export const Navbar: React.FC = () => {
     }
 
     if (id === 'products-section') {
-      const url = category ? `/catalog?category=${category}` : '/catalog';
+      const url = category === 'sale' ? '/catalog?sale=true' : (category ? `/catalog?category=${category}` : '/catalog');
       navigate(url);
     } else {
       if (category) {

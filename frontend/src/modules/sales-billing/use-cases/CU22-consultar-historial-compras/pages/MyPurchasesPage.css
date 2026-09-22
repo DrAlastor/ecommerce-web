@@ -37,7 +37,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 700;
-  color: #9333EA;
+  color: #8C5E35;
   margin-bottom: 0.35rem;
 }
 
@@ -166,8 +166,8 @@
 }
 
 .search-input:focus {
-  border-color: #9333EA;
-  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+  border-color: #8C5E35;
+  box-shadow: 0 0 0 3px rgba(140, 94, 53, 0.12);
 }
 
 .btn-clear-search {
@@ -224,7 +224,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid #E5E7EB;
-  border-top-color: #9333EA;
+  border-top-color: #8C5E35;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -275,8 +275,8 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: #FAF5FF;
-  color: #9333EA;
+  background: #FAF6F0;
+  color: #8C5E35;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -391,7 +391,7 @@
 }
 
 .invoice-code-badge svg {
-  color: #9333EA;
+  color: #8C5E35;
 }
 
 .purchase-date {
@@ -485,7 +485,7 @@
 }
 
 .additional-items-tag {
-  color: #9333EA;
+  color: #8C5E35;
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -560,7 +560,7 @@
 }
 
 .btn-view-purchase-detail:hover {
-  background: #9333EA;
+  background: #8C5E35;
 }
 
 /* Modal Backdrop */
@@ -611,7 +611,7 @@
   gap: 0.4rem;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #9333EA;
+  color: #8C5E35;
   text-transform: uppercase;
 }
 
@@ -679,7 +679,7 @@
 .invoice-box-label {
   display: block;
   font-size: 0.72rem;
-  color: #9333EA;
+  color: #8C5E35;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -928,7 +928,7 @@
 }
 
 .btn-print-receipt:hover {
-  background: #9333EA;
+  background: #8C5E35;
 }
 
 .btn-close-receipt {
@@ -946,35 +946,18 @@
   background: #E5E7EB;
 }
 
-/* Print Styles */
+/* Print Styles delegados limpiamente a index.css */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .modal-backdrop,
-  .receipt-modal-card,
-  .receipt-modal-card * {
-    visibility: visible;
-  }
-  .modal-backdrop {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: auto;
-    background: white !important;
-    padding: 0 !important;
-  }
-  .receipt-modal-card {
-    box-shadow: none !important;
-    border: none !important;
-    max-width: 100% !important;
-  }
-  .modal-header,
-  .modal-actions-footer {
+  .purchases-page-header,
+  .purchases-kpi-grid,
+  .purchases-controls-bar,
+  .purchases-orders-list,
+  .modal-actions-footer,
+  .modal-header .close-btn {
     display: none !important;
   }
 }
+
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -95,7 +95,7 @@
 }
 
 .card-box-title svg {
-  color: #9333EA;
+  color: #8C5E35;
 }
 
 /* Delivery options */
@@ -123,13 +123,13 @@
 }
 
 .delivery-option-card.selected {
-  border-color: #9333EA;
-  background-color: #FAF5FF;
-  box-shadow: 0 0 0 1px #9333EA;
+  border-color: #8C5E35;
+  background-color: #FAF6F0;
+  box-shadow: 0 0 0 1px #8C5E35;
 }
 
 .delivery-option-card svg {
-  color: #9333EA;
+  color: #8C5E35;
   flex-shrink: 0;
 }
 
@@ -179,8 +179,8 @@
 }
 
 .form-input:focus, .form-select:focus {
-  border-color: #9333EA;
-  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.12);
+  border-color: #8C5E35;
+  box-shadow: 0 0 0 3px rgba(140, 94, 53, 0.15);
 }
 
 .font-mono {
@@ -231,11 +231,11 @@
 }
 
 .tab-pay-btn.active {
-  background: #9333EA;
-  border-color: #9333EA;
+  background: #1C1510;
+  border-color: #1C1510;
   color: #FFFFFF;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.25);
+  box-shadow: 0 2px 8px rgba(28, 21, 16, 0.25);
 }
 
 .payment-tab-panel {
@@ -422,7 +422,7 @@
 }
 
 .btn-simulate-qr:hover {
-  background: #9333EA;
+  background: #8C5E35;
 }
 
 .btn-simulate-qr.confirmed {
@@ -566,7 +566,7 @@
 .cost-row.grand-total .total-amount {
   font-family: 'Playfair Display', serif;
   font-size: 1.45rem;
-  color: #9333EA;
+  color: #1C1510;
 }
 
 .btn-finish-checkout {
@@ -589,9 +589,9 @@
 }
 
 .btn-finish-checkout:hover:not(:disabled) {
-  background: linear-gradient(135deg, #9333EA 0%, #7928CA 100%);
+  background: linear-gradient(135deg, #8C5E35 0%, #6E4F42 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 8px 22px rgba(140, 94, 53, 0.3);
 }
 
 .btn-finish-checkout:disabled {
@@ -719,7 +719,7 @@
   font-family: monospace;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #9333EA;
+  color: #8C5E35;
 }
 
 .meta-date {
@@ -893,7 +893,7 @@
 }
 
 .btn-return-store:hover {
-  background: #9333EA;
+  background: #8C5E35;
 }
 
 /* Utilities */

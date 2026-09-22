@@ -2,8 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #080c14;
-  color: #f1f5f9;
+  background-color: #F8F5F1;
+  color: #1A1A1A;
 }
 
 .virtual-fitting-main {
@@ -16,6 +16,10 @@
   flex-direction: column;
 }
 
+.virtual-fitting-page-layout.is-embedded .virtual-fitting-main {
+  padding: 4px;
+}
+
 .fitting-state-center {
   margin: auto;
   display: flex;
@@ -25,20 +29,25 @@
   max-width: 480px;
   gap: 16px;
   padding: 48px 24px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E8E2DA;
+  box-shadow: 0 10px 30px rgba(28, 21, 16, 0.05);
 }
 
 .fitting-state-center h2 {
-  font-size: 1.5rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.55rem;
   font-weight: 700;
   margin: 0;
-  color: #f8fafc;
+  color: #1A1A1A;
 }
 
 .fitting-state-center p {
   margin: 0;
-  color: #94a3b8;
+  color: #6B7280;
   font-size: 0.95rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .btn-fitting-back {
@@ -46,19 +55,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #1e293b;
-  color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 10px 20px;
-  border-radius: 8px;
+  background: #1A1A1A;
+  color: #FFFFFF;
+  border: 1px solid #1A1A1A;
+  padding: 10px 22px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-fitting-back:hover {
-  background: #334155;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #2D241E;
+  border-color: #2D241E;
 }
 
 .fitting-workspace-container {

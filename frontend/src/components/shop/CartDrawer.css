@@ -350,8 +350,8 @@
 
 .view-cart-page-btn:hover {
   background-color: #F7F5F0;
-  border-color: #9333EA;
-  color: #9333EA;
+  border-color: #8C5E35;
+  color: #8C5E35;
 }
 
 .checkout-btn {
@@ -369,7 +369,7 @@
 }
 
 .checkout-btn:hover {
-  background: linear-gradient(135deg, #9333EA 0%, #7928CA 100%);
+  background: linear-gradient(135deg, #8C5E35 0%, #6E4F42 100%);
   transform: translateY(-1px);
 }
 

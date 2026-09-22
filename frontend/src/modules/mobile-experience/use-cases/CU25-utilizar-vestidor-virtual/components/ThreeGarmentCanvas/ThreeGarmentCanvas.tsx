@@ -276,16 +276,16 @@ export const ThreeGarmentCanvas: React.FC<ThreeGarmentCanvasProps> = ({
   const activeModelSceneRef = useRef<THREE.Group | null>(null);
   const [isLoadingModel, setIsLoadingModel] = useState(false);
 
-  // Obtener el color satinado óptimo según la variante
+  // Obtener el color óptimo según la variante (restringido a paleta de lujo: Blanco, Beige, Marrón, Negro)
   const resolveGarmentColor = (v: ArVariant | null): string => {
-    if (!v) return '#18181b';
+    if (!v) return '#D6C6A5';
     const colorName = v.color.nombre.toLowerCase();
-    if (colorName.includes('marfil') || colorName.includes('blanco')) return '#F6F3EB';
+    if (colorName.includes('marfil') || colorName.includes('blanco') || colorName.includes('crema')) return '#F6F3EB';
     if (colorName.includes('mocha') || colorName.includes('moca') || colorName.includes('marron') || colorName.includes('marrón')) return '#6E4F42';
     if (colorName.includes('beige')) return '#D6C6A5';
-    if (colorName.includes('rosa') || colorName.includes('rosad')) return '#E8A0BF';
-    if (colorName.includes('negro')) return '#1A1A1C';
-    return v.color.codigo_hex || '#18181b';
+    if (colorName.includes('negro')) return '#1E1E22';
+    // Fallback: color neutro beige
+    return '#D6C6A5';
   };
 
   const currentColorHex = resolveGarmentColor(variant);

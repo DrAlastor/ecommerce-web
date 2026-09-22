@@ -19,7 +19,7 @@ export class ReservationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bitacoraService: BitacoraService,
-  ) {}
+  ) { }
 
   /**
    * Resuelve el ID del cliente para el usuario autenticado
@@ -517,9 +517,91 @@ export class ReservationsService {
   }
 
   /**
+   * Expira automáticamente reservas pendientes/confirmadas que hayan superado las 48 horas
+   * de vigencia y restituye el stock reservado a disponible en las sucursales.
+   */
+  public async autoExpireOldReservations(): Promise<number> {
+    const ahora = new Date();
+    const limiteTiempo = new Date(ahora.getTime() - 48 * 60 * 60 * 1000);
+
+    try {
+      const reservasVencidas = await this.prisma.reserva.findMany({
+        where: {
+          estado: {
+            in: [
+              'pendiente', 'Pendiente',
+              'confirmada', 'Confirmada',
+              'preparada', 'Preparada',
+            ],
+          },
+          fecha_reserva: { lt: limiteTiempo },
+        },
+        include: {
+          detalle_reserva: true,
+        },
+      });
+
+      if (!reservasVencidas || reservasVencidas.length === 0) return 0;
+
+      for (const res of reservasVencidas) {
+        await this.prisma.$transaction(async (tx) => {
+          // 1. Marcar reserva como Cancelada
+          await tx.reserva.update({
+            where: { id_reserva: res.id_reserva },
+            data: {
+              estado: 'Cancelada',
+              observaciones: res.observaciones
+                ? `${res.observaciones} | Expirada automáticamente: Plazo de 48 hrs superado`
+                : 'Expirada automáticamente: Plazo de 48 hrs superado',
+            },
+          });
+
+          // 2. Marcar detalle como Cancelado
+          await tx.detalle_reserva.updateMany({
+            where: { id_reserva: res.id_reserva, estado: 'Pendiente' },
+            data: { estado: 'Cancelado' },
+          });
+
+          // 3. Restituir inventario
+          for (const d of res.detalle_reserva) {
+            const invActual = await tx.inventario_sucursal.findUnique({
+              where: {
+                id_sucursal_id_producto_variante: {
+                  id_sucursal: res.id_sucursal,
+                  id_producto_variante: d.id_producto_variante,
+                },
+              },
+            });
+
+            if (invActual) {
+              const nuevoReservado = Math.max(0, invActual.stock_reservado - d.cantidad);
+              const nuevoDisponible = invActual.stock_disponible + d.cantidad;
+              await tx.inventario_sucursal.update({
+                where: { id_inventario_sucursal: invActual.id_inventario_sucursal },
+                data: {
+                  stock_disponible: nuevoDisponible,
+                  stock_reservado: nuevoReservado,
+                  ultima_actualizacion: new Date(),
+                },
+              });
+            }
+          }
+        });
+      }
+      return reservasVencidas.length;
+    } catch (err) {
+      console.warn('Error en auto-expiración de reservas:', err);
+      return 0;
+    }
+  }
+
+  /**
    * CU18: Consulta las reservas del cliente autenticado con filtros (activas / historicas)
    */
   async getMyReservations(user: any, query: QueryMyReservationsDto) {
+    // 1. Ejecutar auto-expiración previa para limpiar reservas con plazo vencido
+    await this.autoExpireOldReservations();
+
     const idCliente = await this.resolveClientId(user);
 
     const where: any = {
@@ -690,8 +772,8 @@ export class ReservationsService {
       // 1. Actualizar estado de la reserva cabecera
       const obsTexto = motivo?.trim()
         ? [reserva.observaciones, `Cancelada por el cliente: ${motivo.trim()}`]
-            .filter(Boolean)
-            .join(' | ')
+          .filter(Boolean)
+          .join(' | ')
         : reserva.observaciones;
 
       const reservaActualizada = await tx.reserva.update({

@@ -17,33 +17,43 @@ export class RecommendationsService {
     private readonly configService: ConfigService,
   ) {}
 
-  async getRecommendations(userId: number, dto: GetRecommendationsDto) {
+  async getRecommendations(userId?: number, dto: GetRecommendationsDto = {}) {
     const limit = dto.limit || 6;
-    const cliente = await this.prisma.cliente.findUnique({
-      where: { id_cliente: userId },
-      select: {
-        id_cliente: true,
-        sexo: true,
-        preferencias_estilo: true,
-        cliente_interaccion_ia: {
-          take: 12,
-          orderBy: { fecha: 'desc' },
-          include: {
-            producto: {
-              select: {
-                id_producto: true,
-                nombre: true,
-                id_categoria: true,
-                genero: true,
+    let cliente: any = null;
+
+    if (userId) {
+      cliente = await this.prisma.cliente.findUnique({
+        where: { id_cliente: userId },
+        select: {
+          id_cliente: true,
+          sexo: true,
+          preferencias_estilo: true,
+          cliente_interaccion_ia: {
+            take: 12,
+            orderBy: { fecha: 'desc' },
+            include: {
+              producto: {
+                select: {
+                  id_producto: true,
+                  nombre: true,
+                  id_categoria: true,
+                  genero: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
+    }
 
+    // Si es un invitado anónimo o usuario no cliente, usar perfil base neutro
     if (!cliente) {
-      throw new BadRequestException('La cuenta autenticada no corresponde a un cliente.');
+      cliente = {
+        id_cliente: 0,
+        sexo: null,
+        preferencias_estilo: null,
+        cliente_interaccion_ia: [],
+      };
     }
 
     const candidates = await this.getCandidateProducts();
@@ -63,7 +73,9 @@ export class RecommendationsService {
       throw new BadRequestException('No existen productos compatibles para recomendar.');
     }
 
-    await this.registerInteractions(cliente.id_cliente, officialProducts.map((product: any) => product.id_producto));
+    if (cliente.id_cliente > 0) {
+      await this.registerInteractions(cliente.id_cliente, officialProducts.map((product: any) => product.id_producto));
+    }
 
     const reasonMap = new Map(ranked.map((item) => [item.id_producto, item.reason]));
     const ordered = selectedIds
@@ -78,7 +90,7 @@ export class RecommendationsService {
       data: ordered,
       meta: {
         total: ordered.length,
-        personalized: true,
+        personalized: cliente.id_cliente > 0,
         source: aiRecommendations.length > 0 ? 'ai' : 'local',
       },
     };

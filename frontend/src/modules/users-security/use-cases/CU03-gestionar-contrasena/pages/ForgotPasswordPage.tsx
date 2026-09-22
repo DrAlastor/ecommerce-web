@@ -1,13 +1,13 @@
 import React from 'react';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 import { ForgotPasswordForm } from '../components/ForgotPasswordForm';
-import '../../CU01-gestionar-acceso/pages/LoginPage.css';
+import './PasswordManagement.css';
 
 export const ForgotPasswordPage: React.FC = () => {
   const { email, setEmail, loading, error, success, handleSubmit } = useForgotPassword();
 
   return (
-    <div className="login-container">
+    <div className="password-page-wrapper">
       <ForgotPasswordForm
         email={email}
         loading={loading}

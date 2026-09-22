@@ -31,6 +31,24 @@ export const VariantPanel: React.FC<VariantPanelProps> = ({
   const stock = selectedVariant?.total_stock ?? 0;
   const inStock = stock > 0;
 
+  const isAllowedFittingColor = (nombre: string) => {
+    const n = nombre.toLowerCase();
+    return (
+      n.includes('blanco') ||
+      n.includes('marfil') ||
+      n.includes('crema') ||
+      n.includes('beige') ||
+      n.includes('marron') ||
+      n.includes('marrón') ||
+      n.includes('moca') ||
+      n.includes('mocha') ||
+      n.includes('negro')
+    ) && !n.includes('rosa') && !n.includes('azul') && !n.includes('verde') && !n.includes('rojo');
+  };
+
+  const visibleColores = colores.filter((c) => isAllowedFittingColor(c.nombre));
+  const finalColores = visibleColores.length > 0 ? visibleColores : colores;
+
   return (
     <div className="fitting-variant-panel">
       {/* Encabezado del producto */}
@@ -95,7 +113,7 @@ export const VariantPanel: React.FC<VariantPanelProps> = ({
         </div>
       </div>
 
-      {/* Selector de Colores */}
+      {/* Selector de Colores (Restringido a Beige, Blanco, Marrón, Negro) */}
       <div className="panel-selector-group">
         <div className="selector-label-row">
           <label className="selector-label">Color</label>
@@ -104,9 +122,9 @@ export const VariantPanel: React.FC<VariantPanelProps> = ({
           )}
         </div>
         <div className="color-swatches-row">
-          {colores.map((c) => {
+          {finalColores.map((c) => {
             const isSelected = c.id_color === selectedColorId;
-            const bg = c.codigo_hex || '#4a5568';
+            const bg = c.codigo_hex || '#D6C6A5';
             return (
               <button
                 key={c.id_color}
@@ -126,11 +144,11 @@ export const VariantPanel: React.FC<VariantPanelProps> = ({
       {/* Indicador de compatibilidad RA y Stock */}
       <div className="panel-status-box">
         <div className="status-row-item">
-          <Sparkles size={16} className="text-emerald-400" />
+          <Sparkles size={16} className="status-icon-brand" />
           <span>Modelo 3D y RA activados en esta variante</span>
         </div>
         <div className="status-row-item">
-          <Package size={16} className={inStock ? 'text-blue-400' : 'text-amber-400'} />
+          <Package size={16} className={inStock ? 'status-icon-stock' : 'status-icon-nostock'} />
           <span>
             {inStock ? `${stock} unidades disponibles` : 'Sin unidades para entrega inmediata'}
           </span>

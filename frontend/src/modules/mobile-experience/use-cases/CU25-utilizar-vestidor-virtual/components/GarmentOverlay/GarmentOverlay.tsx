@@ -20,15 +20,13 @@ interface GarmentOverlayProps {
 type StyleMode = DynamicGarmentStyle | 'foto';
 
 function resolveColor(variant: ArVariant | null): string {
-  if (!variant) return '#F6F3EB';
+  if (!variant) return '#D6C6A5';
   const name = variant.color.nombre.toLowerCase();
-  if (name.includes('marfil') || name.includes('blanco') || name.includes('crema')) return '#F2EEE3';
+  if (name.includes('marfil') || name.includes('blanco') || name.includes('crema')) return '#F6F3EB';
   if (name.includes('mocha') || name.includes('moca') || name.includes('marron') || name.includes('marrón')) return '#6E4F42';
   if (name.includes('beige')) return '#D6C6A5';
-  if (name.includes('burdeos') || name.includes('borgo')) return '#641D32';
-  if (name.includes('negro')) return '#19191D';
-  if (name.includes('rosa')) return '#E8A0BF';
-  return variant.color.codigo_hex || '#F6F3EB';
+  if (name.includes('negro')) return '#1E1E22';
+  return '#D6C6A5';
 }
 
 export const GarmentOverlay: React.FC<GarmentOverlayProps> = ({

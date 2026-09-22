@@ -112,9 +112,9 @@
 }
 
 .btn-go-shopping:hover {
-  background: #9333EA;
+  background: #8C5E35;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.25);
+  box-shadow: 0 8px 20px rgba(140, 94, 53, 0.25);
 }
 
 /* Grid Layout */
@@ -246,7 +246,7 @@
 }
 
 .cart-row-title:hover {
-  color: #9333EA;
+  color: #8C5E35;
 }
 
 .cart-row-variant-tags {
@@ -398,7 +398,7 @@
 }
 
 .guarantee-icon {
-  color: #9333EA;
+  color: #8C5E35;
   flex-shrink: 0;
   margin-top: 0.1rem;
 }
@@ -472,7 +472,7 @@
 .total-digits {
   font-family: 'Playfair Display', serif;
   font-size: 1.45rem;
-  color: #9333EA;
+  color: #8C5E35;
 }
 
 .btn-proceed-checkout {
@@ -495,9 +495,9 @@
 }
 
 .btn-proceed-checkout:hover:not(:disabled) {
-  background: linear-gradient(135deg, #9333EA 0%, #7928CA 100%);
+  background: linear-gradient(135deg, #8C5E35 0%, #6E4F42 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 8px 22px rgba(140, 94, 53, 0.3);
 }
 
 .btn-proceed-checkout:disabled {

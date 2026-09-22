@@ -98,14 +98,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(28, 21, 16, 0.90);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(196, 149, 106, 0.35);
   padding: 4px;
   border-radius: 30px;
   pointer-events: auto;
   z-index: 25;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .btn-style-pill {
@@ -114,7 +114,7 @@
   gap: 5px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #D6C6A5;
   font-size: 0.73rem;
   font-weight: 600;
   padding: 6px 12px;
@@ -125,13 +125,13 @@
 }
 
 .btn-style-pill:hover {
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.08);
+  color: #F8F5F1;
+  background: rgba(196, 149, 106, 0.15);
 }
 
 .btn-style-pill.active {
-  background: linear-gradient(135deg, #C4956A 0%, #A87B52 100%);
+  background: linear-gradient(135deg, #8C5E35 0%, #6E4F42 100%);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(196, 149, 106, 0.45);
+  box-shadow: 0 2px 8px rgba(140, 94, 53, 0.45);
 }
 

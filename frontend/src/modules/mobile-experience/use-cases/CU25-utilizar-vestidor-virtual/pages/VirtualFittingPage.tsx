@@ -56,9 +56,43 @@ export const VirtualFittingPage: React.FC = () => {
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState<ReservationReceipt | null>(null);
 
+  const isEmbedded = new URLSearchParams(window.location.search).get('embedded') === 'true';
+
+  const handleExit = () => {
+    if (isEmbedded && (window as any).ReactNativeWebView) {
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ type: 'GO_BACK' }));
+    } else {
+      exitFitting();
+    }
+  };
+
+  const handleCalibrationBack = () => {
+    if (isEmbedded && (window as any).ReactNativeWebView) {
+      (window as any).ReactNativeWebView.postMessage(JSON.stringify({ type: 'GO_BACK' }));
+    } else {
+      navigate(productId ? `/product/${productId}` : '/catalog');
+    }
+  };
+
   /** Agregar variante al carrito de compras (CU20, RN-M6-15) */
   const handleAddToCart = async () => {
     if (!arData || !currentVariant) return;
+
+    if (isEmbedded && (window as any).ReactNativeWebView) {
+      (window as any).ReactNativeWebView.postMessage(
+        JSON.stringify({
+          type: 'ADD_TO_CART',
+          productId: arData.producto.id_producto,
+          productName: arData.producto.nombre,
+          variantId: currentVariant.id_producto_variante,
+          size: currentVariant.talla.codigo,
+          color: currentVariant.color.nombre,
+          price: currentVariant.precio_final,
+        }),
+      );
+      showToast?.(`¡"${arData.producto.nombre}" agregado a la bolsa desde el vestidor!`);
+      return;
+    }
 
     setIsAddingToCart(true);
     try {
@@ -97,8 +131,8 @@ export const VirtualFittingPage: React.FC = () => {
   };
 
   return (
-    <div className="virtual-fitting-page-layout">
-      <Navbar />
+    <div className={`virtual-fitting-page-layout ${isEmbedded ? 'is-embedded' : ''}`}>
+      {!isEmbedded && <Navbar />}
 
       <main className="virtual-fitting-main">
         {/* 1. Estado de carga */}
@@ -119,7 +153,7 @@ export const VirtualFittingPage: React.FC = () => {
             <button
               type="button"
               className="btn-fitting-back"
-              onClick={() => navigate(productId ? `/product/${productId}` : '/catalog')}
+              onClick={handleCalibrationBack}
             >
               <ArrowLeft size={16} />
               <span>Volver a la tienda</span>
@@ -134,7 +168,7 @@ export const VirtualFittingPage: React.FC = () => {
             poseReady={poseReady}
             poseDetected={Boolean(poseResult?.isDetected)}
             onStart={startFitting}
-            onBack={() => navigate(`/product/${productId}`)}
+            onBack={handleCalibrationBack}
           />
         )}
 
@@ -177,7 +211,7 @@ export const VirtualFittingPage: React.FC = () => {
                 onAddToCart={handleAddToCart}
                 onReserve={handleOpenReservation}
                 onRecalibrate={recalibrate}
-                onExit={exitFitting}
+                onExit={handleExit}
                 showDebug={showDebugLandmarks}
                 onToggleDebug={() => setShowDebugLandmarks((prev) => !prev)}
                 isAddingToCart={isAddingToCart}

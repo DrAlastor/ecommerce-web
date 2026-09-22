@@ -986,24 +986,10 @@
   color: #27272a;
 }
 
-/* Print CSS */
+/* Print CSS delegados a index.css */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .print-receipt-card,
-  .print-receipt-card * {
-    visibility: visible;
-  }
-  .print-receipt-card {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    max-width: 100%;
-    box-shadow: none;
-    border: none;
-  }
+  .reservation-modal-footer,
+  .reservation-modal-header .btn-modal-close,
   .no-print {
     display: none !important;
   }

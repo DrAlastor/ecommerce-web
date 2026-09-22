@@ -6,9 +6,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  background-color: #0b0f19;
+  background-color: #EDE8E1;
+  border: 1px solid #E0D9CE;
+  box-shadow: 0 10px 30px rgba(28, 21, 16, 0.06);
 }
 
 .fitting-viewport-media {
@@ -28,42 +30,42 @@
   text-align: center;
   padding: 40px 24px;
   max-width: 440px;
-  background: #1e293b;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: #FFFFFF;
+  border-radius: 18px;
+  border: 1px solid #E8E2DA;
+  color: #1A1A1A;
   gap: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 32px rgba(28, 21, 16, 0.08);
 }
 
 .fitting-permission-denied-card h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1A1A1A;
 }
 
 .fitting-permission-denied-card p {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #94a3b8;
+  color: #6B7280;
 }
 
 .btn-retry-permission {
   margin-top: 8px;
-  background: #C4956A;
+  background: #8C5E35;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .btn-retry-permission:hover {
-  background: #A87B52;
+  background: #734A26;
 }
 
 .fitting-ar-active-badge {
@@ -73,16 +75,17 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(196, 149, 106, 0.18);
-  border: 1px solid rgba(196, 149, 106, 0.45);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #E8E2DA;
   backdrop-filter: blur(8px);
-  color: #D4A574;
+  color: #8C5E35;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 5px 12px;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
   border-radius: 20px;
   z-index: 15;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .fitting-ar-disclaimer-overlay {
@@ -90,24 +93,26 @@
   bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid #E8E2DA;
+  color: #6B7280;
   font-size: 0.72rem;
-  padding: 4px 14px;
+  font-weight: 500;
+  padding: 5px 16px;
   border-radius: 20px;
   white-space: nowrap;
   pointer-events: none;
   z-index: 15;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .text-rose-500 {
-  color: #f43f5e;
+  color: #DC2626;
 }
 
 .text-amber-500 {
-  color: #f59e0b;
+  color: #D97706;
 }
 
 /* Selector de Modo 3D vs 2D en vivo */
@@ -117,14 +122,14 @@
   left: 14px;
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.82);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid #E8E2DA;
   border-radius: 30px;
-  padding: 3px;
-  gap: 3px;
+  padding: 4px;
+  gap: 4px;
   z-index: 25;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .btn-mode-toggle {
@@ -133,7 +138,7 @@
   gap: 6px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #6B7280;
   font-size: 0.78rem;
   font-weight: 600;
   padding: 6px 14px;
@@ -143,12 +148,11 @@
 }
 
 .btn-mode-toggle:hover {
-  color: #f1f5f9;
+  color: #1A1A1A;
 }
 
 .btn-mode-toggle.active {
-  background: linear-gradient(135deg, #C4956A 0%, #A87B52 100%);
-  color: #ffffff;
-  box-shadow: 0 2px 10px rgba(196, 149, 106, 0.45);
+  background: #1A1A1A;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
-

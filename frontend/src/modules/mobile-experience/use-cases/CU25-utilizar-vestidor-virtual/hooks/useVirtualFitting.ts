@@ -101,14 +101,20 @@ export function useVirtualFitting() {
   useEffect(() => {
     if (!arData || selectedTallaId === null || selectedColorId === null) return;
 
-    const match = arData.variantes.find(
+    const exactMatch = arData.variantes.find(
       (v) =>
         v.talla.id_talla === selectedTallaId &&
         v.color.id_color === selectedColorId,
     );
 
-    if (match) {
-      setSelectedVariant(match);
+    if (exactMatch) {
+      setSelectedVariant(exactMatch);
+    } else {
+      const colorMatch = arData.variantes.find((v) => v.color.id_color === selectedColorId);
+      if (colorMatch) {
+        setSelectedVariant(colorMatch);
+        setSelectedTallaId(colorMatch.talla.id_talla);
+      }
     }
   }, [arData, selectedTallaId, selectedColorId]);
 

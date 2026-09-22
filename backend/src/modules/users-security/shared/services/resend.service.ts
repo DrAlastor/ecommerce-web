@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 @Injectable()
 export class ResendService {
   private readonly logger = new Logger(ResendService.name);
   private readonly resend: Resend | null = null;
   private readonly fromAddress: string;
+  private readonly smtpTransporter: any = null;
+  private readonly smtpFrom: string;
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
@@ -17,7 +20,22 @@ export class ResendService {
       this.resend = new Resend(apiKey);
       this.logger.log('Servicio Resend inicializado correctamente con API Key.');
     } else {
-      this.logger.warn('RESEND_API_KEY no configurada. Los correos se registrarán únicamente en los logs.');
+      this.logger.warn('RESEND_API_KEY no configurada. Los correos se enviarán vía SMTP.');
+    }
+
+    const smtpUser = this.configService.get<string>('SMTP_USER');
+    const smtpPass = this.configService.get<string>('SMTP_PASS');
+    this.smtpFrom = this.configService.get<string>('SMTP_FROM') || '"Dressly Fashion Store" <yevaraponcealessandro@gmail.com>';
+
+    if (smtpUser && smtpPass) {
+      this.smtpTransporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+      this.logger.log('Servicio Gmail SMTP inicializado para envíos directos a cualquier correo.');
     }
   }
 
@@ -178,50 +196,50 @@ export class ResendService {
 </html>
 `;
 
-    this.logger.log(`[RESEND] Preparando envío para: ${to} con código: ${resetCode}`);
+    this.logger.log(`[EMAIL] Preparando envío de recuperación para: ${to} con código: ${resetCode}`);
 
-    if (!this.resend) {
-      this.logger.warn(`[MODO DESARROLLO SIN RESEND] Código para ${to}: ${resetCode} | Enlace: ${resetLink}`);
-      return true;
-    }
-
-    try {
-      // Intentar envío inicial al destinatario original
-      let response = await this.resend.emails.send({
-        from: this.fromAddress,
-        to,
-        subject,
-        text,
-        html,
-      });
-
-      // Si Resend está en modo sandbox (onboarding@resend.dev) y restringe destinatarios externos:
-      if (response.error && response.error.name === 'validation_error' && response.error.message?.includes('testing emails')) {
-        this.logger.warn(
-          `[RESEND SANDBOX] Resend restringe el envío al buzón del propietario. Redirigiendo a yevaraponcealessandro@gmail.com con asunto detallado...`,
-        );
-
-        response = await this.resend.emails.send({
+    // 1. Intentar envío con Resend si está configurado
+    if (this.resend) {
+      try {
+        const response = await this.resend.emails.send({
           from: this.fromAddress,
-          to: 'yevaraponcealessandro@gmail.com',
-          subject: `[Para: ${to}] ${subject}`,
+          to,
+          subject,
           text,
           html,
         });
-      }
 
-      if (response.error) {
-        this.logger.error(`Error reportado por Resend API: ${JSON.stringify(response.error)}`);
-        this.logger.warn(`[DEV FALLBACK] Código generado para ${to}: ${resetCode} | Enlace: ${resetLink}`);
-        return false;
-      }
+        if (response.data?.id && !response.error) {
+          this.logger.log(`✓ Correo enviado exitosamente mediante Resend a ${to} (ID: ${response.data.id})`);
+          return true;
+        }
 
-      this.logger.log(`✓ Correo enviado exitosamente mediante Resend (ID: ${response.data?.id})`);
-      return true;
-    } catch (error: any) {
-      this.logger.error(`Error al conectar con la API de Resend: ${error?.message || error}`);
-      this.logger.warn(`[DEV FALLBACK] Código generado para ${to}: ${resetCode} | Enlace: ${resetLink}`);
-      return false;
+        if (response.error) {
+          this.logger.warn(`Resend reportó restricción para ${to} (${response.error.message}). Procediendo con envío directo vía Gmail SMTP...`);
+        }
+      } catch (err: any) {
+        this.logger.warn(`Error al conectar con Resend para ${to}: ${err?.message || err}. Procediendo con envío directo vía Gmail SMTP...`);
+      }
     }
+
+    // 2. Envío directo al correo del usuario vía Gmail SMTP (para llegar a cualquier @gmail.com real)
+    if (this.smtpTransporter) {
+      try {
+        const info = await this.smtpTransporter.sendMail({
+          from: this.smtpFrom,
+          to,
+          subject,
+          text,
+          html,
+        });
+        this.logger.log(`✓ Correo enviado exitosamente mediante Gmail SMTP directamente a ${to} (MessageId: ${info.messageId})`);
+        return true;
+      } catch (smtpErr: any) {
+        this.logger.error(`Error al enviar correo vía Gmail SMTP a ${to}: ${smtpErr?.message || smtpErr}`);
+      }
+    }
+
+    this.logger.warn(`[DEV FALLBACK] Código generado para ${to}: ${resetCode} | Enlace: ${resetLink}`);
+    return false;
   }
 }

@@ -114,9 +114,10 @@ export class VirtualFittingService {
       );
     }
 
-    if (product.producto_variante.length === 0) {
+    const esAccesorio = product.categoria.id_categoria === 2 || product.categoria.nombre.toLowerCase().includes('accesorio');
+    if (esAccesorio || product.producto_variante.length === 0) {
       throw new BadRequestException(
-        'Este producto no dispone de variantes compatibles con el vestidor virtual.',
+        'Este producto (o accesorio) no dispone de prendas compatibles con el vestidor virtual tridimensional.',
       );
     }
 
