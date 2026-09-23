@@ -3,6 +3,7 @@ import { catalogAdminService } from '../../services/catalog-admin.service';
 import { SizeModal } from './SizeModal';
 import { ColorModal } from './ColorModal';
 import type { AdminSize, AdminColor } from '../../types/catalog-admin.types';
+import { useConfirm } from '../../../../../../shared/components/ConfirmModal';
 
 interface SizeColorTabProps {
   onFeedback: (type: 'success' | 'error', message: string) => void;
@@ -10,6 +11,7 @@ interface SizeColorTabProps {
 }
 
 export const SizeColorTab: React.FC<SizeColorTabProps> = ({ onFeedback, onRefreshMetadata }) => {
+  const { confirm } = useConfirm();
   const [sizes, setSizes] = useState<AdminSize[]>([]);
   const [colors, setColors] = useState<AdminColor[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +49,14 @@ export const SizeColorTab: React.FC<SizeColorTabProps> = ({ onFeedback, onRefres
   };
 
   const handleDeleteSize = async (s: AdminSize) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la talla "${s.codigo}"?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Talla',
+      message: `¿Estás seguro de eliminar la talla "${s.codigo}"?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
     try {
       await catalogAdminService.deleteSize(s.id_talla);
       onFeedback('success', 'Talla eliminada exitosamente.');
@@ -72,7 +81,14 @@ export const SizeColorTab: React.FC<SizeColorTabProps> = ({ onFeedback, onRefres
   };
 
   const handleDeleteColor = async (c: AdminColor) => {
-    if (!window.confirm(`¿Estás seguro de eliminar el color "${c.nombre}"?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Color',
+      message: `¿Estás seguro de eliminar el color "${c.nombre}"?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
     try {
       await catalogAdminService.deleteColor(c.id_color);
       onFeedback('success', 'Color eliminado exitosamente.');

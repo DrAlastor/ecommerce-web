@@ -44,10 +44,12 @@ import {
   Eye,
   Check,
 } from 'lucide-react';
+import { useConfirm } from '../../../../../shared/components/ConfirmModal';
 import './POSPage.css';
 
 export const POSPage: React.FC = () => {
   const { user, rol } = useAuth();
+  const { confirm } = useConfirm();
   const navigate = useNavigate();
 
   // Modo de operación: 'mostrador' (CU24), 'pendientes' (CU23) o 'historial'
@@ -311,9 +313,16 @@ export const POSPage: React.FC = () => {
   };
 
   // Vaciar carrito
-  const clearCounterCart = () => {
+  const clearCounterCart = async () => {
     if (counterCart.length === 0) return;
-    if (window.confirm('¿Deseas vaciar la orden actual de mostrador?')) {
+    const ok = await confirm({
+      title: 'Vaciar Orden de Mostrador',
+      message: '¿Estás seguro de que deseas vaciar todos los artículos cargados en la orden actual?',
+      confirmText: 'Sí, vaciar',
+      cancelText: 'Cancelar',
+      type: 'warning',
+    });
+    if (ok) {
       setCounterCart([]);
     }
   };

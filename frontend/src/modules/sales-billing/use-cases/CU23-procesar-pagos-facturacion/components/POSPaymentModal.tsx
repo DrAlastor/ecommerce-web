@@ -18,6 +18,7 @@ import {
   DollarSign,
   ArrowRight,
 } from 'lucide-react';
+import { printReceipt } from '../../../../../shared/utils/printReceipt';
 import './POSPaymentModal.css';
 
 export interface PresentialSaleOrderInput {
@@ -288,7 +289,30 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
               <button
                 type="button"
                 className="btn-print-ticket"
-                onClick={() => window.print()}
+                onClick={() => {
+                  printReceipt({
+                    codigo_factura: receipt.codigo_factura || receipt.factura?.numero_factura || 'FAC-POS',
+                    fecha_venta: receipt.fecha || new Date().toISOString(),
+                    cliente: {
+                      nombre_completo: receipt.cliente.nombre_completo,
+                      ci: receipt.cliente.nit_ci,
+                    },
+                    tipo_venta: 'presencial',
+                    subtotal: receipt.liquidacion.subtotal,
+                    descuento: receipt.liquidacion.descuento,
+                    total: receipt.liquidacion.total,
+                    pago: {
+                      metodo_pago: receipt.pago.metodo_pago,
+                    },
+                    items: receipt.items.map((it) => ({
+                      nombre_producto: it.nombre_producto,
+                      talla: it.talla,
+                      cantidad: it.cantidad,
+                      precio_unitario: it.precio_unitario,
+                      subtotal: it.subtotal,
+                    })),
+                  });
+                }}
               >
                 <Printer size={18} />
                 <span>Imprimir Factura / Ticket</span>

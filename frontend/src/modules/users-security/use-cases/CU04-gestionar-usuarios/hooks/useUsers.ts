@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { usersService, type UserListParams } from '../services/users.service';
+import { useConfirm } from '../../../../../shared/components/ConfirmModal';
 
 export function useUsers() {
+  const { confirm } = useConfirm();
   const [users, setUsers] = useState<any[]>([]);
   const [meta, setMeta] = useState({ total: 0, page: 1, limit: 10, totalPages: 1 });
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,14 @@ export function useUsers() {
   };
 
   const handleUpdateStatus = async (id: number, status: string) => {
-    if (!confirm(`¿Estás seguro de ${status === 'activo' ? 'activar' : 'desactivar'} esta cuenta?`)) return;
+    const ok = await confirm({
+      title: `${status === 'activo' ? 'Activar' : 'Desactivar'} Usuario`,
+      message: `¿Estás seguro de ${status === 'activo' ? 'activar' : 'desactivar'} esta cuenta de usuario?`,
+      confirmText: status === 'activo' ? 'Sí, activar' : 'Sí, desactivar',
+      cancelText: 'Cancelar',
+      type: status === 'activo' ? 'warning' : 'danger',
+    });
+    if (!ok) return;
     try {
       await usersService.updateStatus(id, status);
       alert(`La cuenta ha sido cambiada a estado ${status}`);

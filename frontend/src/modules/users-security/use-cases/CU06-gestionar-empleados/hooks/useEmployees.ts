@@ -6,8 +6,10 @@ import {
   type EmployeeRoleItem,
   type QueryEmployeesParams,
 } from '../services/empleados.service';
+import { useConfirm } from '../../../../../shared/components/ConfirmModal';
 
 export function useEmployees() {
+  const { confirm } = useConfirm();
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
   const [branches, setBranches] = useState<BranchItem[]>([]);
   const [roles, setRoles] = useState<EmployeeRoleItem[]>([]);
@@ -89,7 +91,15 @@ export function useEmployees() {
     const newStatus = employee.estado === 'activo' ? 'inactivo' : 'activo';
     const actionText = newStatus === 'activo' ? 'activar' : 'desactivar';
 
-    if (!window.confirm(`¿Estás seguro de ${actionText} al empleado ${employee.nombre_completo}?`)) {
+    const ok = await confirm({
+      title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Empleado`,
+      message: `¿Estás seguro de que deseas ${actionText} la cuenta del empleado "${employee.nombre_completo}"?`,
+      confirmText: `Sí, ${actionText}`,
+      cancelText: 'Cancelar',
+      type: newStatus === 'inactivo' ? 'danger' : 'warning',
+    });
+
+    if (!ok) {
       return;
     }
 

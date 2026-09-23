@@ -12,6 +12,8 @@ import { PaymentBillingController } from './use-cases/CU23-procesar-pagos-factur
 import { PaymentBillingService } from './use-cases/CU23-procesar-pagos-facturacion/payment-billing.service.js';
 import { PresentialSaleController } from './use-cases/CU24-registrar-venta-presencial/presential-sale.controller.js';
 import { PresentialSaleService } from './use-cases/CU24-registrar-venta-presencial/presential-sale.service.js';
+import { ReturnsController } from './use-cases/CU26-gestionar-devoluciones/returns.controller.js';
+import { ReturnsService } from './use-cases/CU26-gestionar-devoluciones/returns.service.js';
 
 @Module({
   imports: [PrismaModule, AuthModule, UsersSecurityModule],
@@ -21,6 +23,7 @@ import { PresentialSaleService } from './use-cases/CU24-registrar-venta-presenci
     PurchasesHistoryController,
     PaymentBillingController,
     PresentialSaleController,
+    ReturnsController,
   ],
   providers: [
     CartService,
@@ -28,6 +31,7 @@ import { PresentialSaleService } from './use-cases/CU24-registrar-venta-presenci
     PurchasesHistoryService,
     PaymentBillingService,
     PresentialSaleService,
+    ReturnsService,
   ],
   exports: [
     CartService,
@@ -35,6 +39,7 @@ import { PresentialSaleService } from './use-cases/CU24-registrar-venta-presenci
     PurchasesHistoryService,
     PaymentBillingService,
     PresentialSaleService,
+    ReturnsService,
   ],
 })
 export class SalesBillingModule {}

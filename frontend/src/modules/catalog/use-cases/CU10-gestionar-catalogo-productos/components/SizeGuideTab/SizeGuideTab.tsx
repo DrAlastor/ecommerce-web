@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { catalogAdminService } from '../../services/catalog-admin.service';
 import { SizeGuideModal } from './SizeGuideModal';
 import type { AdminSizeGuide, CatalogMetadata } from '../../types/catalog-admin.types';
+import { useConfirm } from '../../../../../../shared/components/ConfirmModal';
 
 interface SizeGuideTabProps {
   metadata: CatalogMetadata | null;
@@ -9,6 +10,7 @@ interface SizeGuideTabProps {
 }
 
 export const SizeGuideTab: React.FC<SizeGuideTabProps> = ({ metadata, onFeedback }) => {
+  const { confirm } = useConfirm();
   const [guides, setGuides] = useState<AdminSizeGuide[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
@@ -43,12 +45,14 @@ export const SizeGuideTab: React.FC<SizeGuideTabProps> = ({ metadata, onFeedback
   };
 
   const handleDelete = async (guide: AdminSizeGuide) => {
-    if (
-      !window.confirm(
-        `¿Eliminar medida para "${guide.categoria?.nombre || 'Categoría'}" - ${guide.parte_cuerpo} (${guide.talla_etiqueta})?`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: 'Eliminar Guía de Talla',
+      message: `¿Estás seguro de eliminar la medida para "${guide.categoria?.nombre || 'Categoría'}" - ${guide.parte_cuerpo} (${guide.talla_etiqueta})?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
     try {
       await catalogAdminService.deleteSizeGuide(guide.id_guia_talla);
       onFeedback('success', 'Guía de talla eliminada exitosamente.');

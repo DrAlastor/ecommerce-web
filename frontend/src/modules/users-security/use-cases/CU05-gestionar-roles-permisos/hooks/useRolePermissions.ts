@@ -5,6 +5,7 @@ import {
   type ModuleTreeItem,
   type RoleDetail,
 } from '../services/roles.service';
+import { useConfirm } from '../../../../../shared/components/ConfirmModal';
 
 export interface LocalPermission {
   id_funcion: number;
@@ -13,6 +14,7 @@ export interface LocalPermission {
 }
 
 export function useRolePermissions() {
+  const { confirm } = useConfirm();
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [modulesTree, setModulesTree] = useState<ModuleTreeItem[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
@@ -118,11 +120,15 @@ export function useRolePermissions() {
   }, [permissionsState, initialPermissionsState]);
 
   // Manejar cambio de selección de rol
-  const handleSelectRole = (roleId: number) => {
+  const handleSelectRole = async (roleId: number) => {
     if (hasChanges) {
-      const confirmLeave = window.confirm(
-        'Tienes cambios sin guardar en este rol. ¿Deseas descartarlos y cambiar de rol?',
-      );
+      const confirmLeave = await confirm({
+        title: 'Descartar Cambios',
+        message: 'Tienes cambios sin guardar en los permisos de este rol. ¿Deseas descartarlos y cambiar de rol?',
+        confirmText: 'Sí, descartar',
+        cancelText: 'Continuar editando',
+        type: 'warning',
+      });
       if (!confirmLeave) return;
     }
     setSelectedRoleId(roleId);

@@ -17,6 +17,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import './CartPage.css';
+import { useConfirm } from '../../../../../shared/components/ConfirmModal';
 
 export const CartPage: React.FC = () => {
   const {
@@ -31,6 +32,7 @@ export const CartPage: React.FC = () => {
   } = useShop();
 
   const { isAuthenticated } = useAuth();
+  const { confirm } = useConfirm();
   const navigate = useNavigate();
 
   const freeShippingThreshold = 350.0;
@@ -39,19 +41,35 @@ export const CartPage: React.FC = () => {
   const shippingCost = cartTotal >= freeShippingThreshold || cartTotal === 0 ? 0 : 25.0;
   const totalConEnvio = cartTotal + shippingCost;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!isAuthenticated) {
-      if (
-        confirm(
-          'Para procesar tu compra y comprobante digital, te sugerimos iniciar sesión. ¿Deseas ingresar ahora?',
-        )
-      ) {
+      const ok = await confirm({
+        title: 'Iniciar Sesión',
+        message: 'Para procesar tu compra y comprobante digital, te sugerimos iniciar sesión. ¿Deseas ingresar ahora?',
+        confirmText: 'Iniciar Sesión',
+        cancelText: 'Continuar como invitado',
+        type: 'info',
+      });
+      if (ok) {
         navigate('/login');
         return;
       }
     }
     // Navegación hacia CU21 - Checkout Digital
     navigate('/checkout');
+  };
+
+  const handleClearCart = async () => {
+    const ok = await confirm({
+      title: 'Vaciar Bolsa de Compras',
+      message: '¿Estás seguro de que deseas vaciar toda tu bolsa de compras? Esta acción eliminará todas las prendas seleccionadas.',
+      confirmText: 'Sí, vaciar bolsa',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (ok) {
+      clearCart();
+    }
   };
 
   return (
@@ -74,11 +92,7 @@ export const CartPage: React.FC = () => {
               <button
                 type="button"
                 className="btn-clear-cart"
-                onClick={() => {
-                  if (confirm('¿Estás seguro de que deseas vaciar toda tu bolsa de compras?')) {
-                    clearCart();
-                  }
-                }}
+                onClick={handleClearCart}
                 disabled={isCartLoading}
               >
                 <Trash2 size={16} />

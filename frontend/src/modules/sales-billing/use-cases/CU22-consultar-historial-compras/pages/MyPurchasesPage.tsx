@@ -23,7 +23,12 @@ import {
   ArrowRight,
   RefreshCw,
   Store,
+  RotateCcw,
 } from 'lucide-react';
+import { returnsApi } from '../../CU26-gestionar-devoluciones/services/returns.api';
+import { RequestReturnModal } from '../../CU26-gestionar-devoluciones/components/RequestReturnModal';
+import type { ReturnRecord } from '../../CU26-gestionar-devoluciones/types/returns.types';
+import { printReceipt } from '../../../../../shared/utils/printReceipt';
 import './MyPurchasesPage.css';
 
 export const MyPurchasesPage: React.FC = () => {
@@ -44,13 +49,25 @@ export const MyPurchasesPage: React.FC = () => {
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(false);
   const [detailError, setDetailError] = useState<string | null>(null);
 
+  // Devoluciones
+  const [myReturns, setMyReturns] = useState<ReturnRecord[]>([]);
+  const [returnTargetPurchase, setReturnTargetPurchase] = useState<{
+    idVenta: number;
+    codigoFactura: string;
+    items: any[];
+  } | null>(null);
+
   // Cargar compras
   const fetchPurchases = async () => {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      const res = await purchasesService.getPurchases();
+      const [res, returnsList] = await Promise.all([
+        purchasesService.getPurchases(),
+        returnsApi.getMyReturns().catch(() => []),
+      ]);
       setPurchases(res.data || []);
+      setMyReturns(returnsList || []);
     } catch (err: any) {
       console.error('Error fetching customer purchases:', err);
       setErrorMessage(
@@ -331,10 +348,23 @@ export const MyPurchasesPage: React.FC = () => {
                       </div>
 
                       <div className="header-status">
-                        <span className={`status-badge ${isPaid ? 'paid' : 'pending'}`}>
-                          {isPaid ? <CheckCircle2 size={13} /> : <Clock size={13} />}
-                          <span>{purchase.estado}</span>
-                        </span>
+                        {(() => {
+                          const ret = myReturns.find((r) => r.id_venta === purchase.id_venta);
+                          if (ret) {
+                            return (
+                              <span className={`return-status-badge ${ret.estado.toLowerCase()}`}>
+                                <RotateCcw size={12} />
+                                <span>Devolución {ret.estado}</span>
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className={`status-badge ${isPaid ? 'paid' : 'pending'}`}>
+                              {isPaid ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                              <span>{purchase.estado}</span>
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -403,16 +433,44 @@ export const MyPurchasesPage: React.FC = () => {
                         <strong className="total-value">{purchase.total.toFixed(2)} Bs</strong>
                       </div>
 
-                      <button
-                        type="button"
-                        className="btn-view-purchase-detail"
-                        onClick={() => handleOpenDetail(purchase.id_venta)}
-                      >
-                        <span>Ver Detalle y Comprobante</span>
-                        <ChevronRight size={17} />
-                      </button>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {purchase.estado.toLowerCase() === 'completada' &&
+                            !myReturns.some((r) => r.id_venta === purchase.id_venta) && (
+                              <button
+                                type="button"
+                                className="btn-card-return"
+                                onClick={() =>
+                                  setReturnTargetPurchase({
+                                    idVenta: purchase.id_venta,
+                                    codigoFactura: purchase.codigo_factura,
+                                    items: purchase.items.map((it: any) => ({
+                                      id_detalle_venta: it.id_detalle_venta,
+                                      cantidad: it.cantidad,
+                                      precio_unitario: 0,
+                                      subtotal: 0,
+                                      nombre_producto: it.nombre_producto,
+                                      sku: it.sku,
+                                      imagen_url: it.imagen,
+                                    })),
+                                  })
+                                }
+                              >
+                                <RotateCcw size={14} />
+                                <span>Devolver</span>
+                              </button>
+                            )}
+
+                          <button
+                            type="button"
+                            className="btn-view-purchase-detail"
+                            onClick={() => handleOpenDetail(purchase.id_venta)}
+                          >
+                            <span>Ver Detalle y Comprobante</span>
+                            <ChevronRight size={17} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
                 );
               })}
             </div>
@@ -636,10 +694,60 @@ export const MyPurchasesPage: React.FC = () => {
 
                 {/* Botones del Modal */}
                 <div className="modal-actions-footer">
+                  {purchaseDetail.estado.toLowerCase() === 'completada' && (
+                    <button
+                      type="button"
+                      className="btn-request-return"
+                      onClick={() => {
+                        setReturnTargetPurchase({
+                          idVenta: purchaseDetail.id_venta,
+                          codigoFactura: purchaseDetail.codigo_factura,
+                          items: purchaseDetail.items.map((it: any) => ({
+                            id_detalle_venta: it.id_detalle_venta,
+                            cantidad: it.cantidad,
+                            precio_unitario: it.precio_unitario,
+                            subtotal: it.subtotal,
+                            nombre_producto: it.nombre_producto,
+                            sku: it.sku,
+                            color: it.color,
+                            talla: it.talla,
+                            imagen_url: it.imagen,
+                          })),
+                        });
+                      }}
+                    >
+                      <RotateCcw size={16} />
+                      <span>Solicitar Devolución</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     className="btn-print-receipt"
-                    onClick={() => window.print()}
+                    onClick={() => {
+                      printReceipt({
+                        codigo_factura: purchaseDetail.codigo_factura,
+                        fecha_venta: purchaseDetail.fecha_venta,
+                        cliente: {
+                          nombre_completo: purchaseDetail.cliente.nombre_completo,
+                          ci: purchaseDetail.cliente.ci,
+                        },
+                        tipo_venta: purchaseDetail.tipo_venta,
+                        subtotal: purchaseDetail.subtotal,
+                        descuento: purchaseDetail.descuento,
+                        total: purchaseDetail.total,
+                        pago: purchaseDetail.pago,
+                        items: purchaseDetail.items.map((it: any) => ({
+                          nombre_producto: it.nombre_producto,
+                          sku: it.sku,
+                          color: it.color,
+                          talla: it.talla,
+                          cantidad: it.cantidad,
+                          precio_unitario: it.precio_unitario,
+                          subtotal: it.subtotal,
+                        })),
+                      });
+                    }}
                   >
                     <Printer size={17} />
                     <span>Imprimir Comprobante Fiscal</span>
@@ -656,6 +764,19 @@ export const MyPurchasesPage: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+      {/* Modal de Solicitud de Devolución */}
+      {returnTargetPurchase && (
+        <RequestReturnModal
+          idVenta={returnTargetPurchase.idVenta}
+          codigoFactura={returnTargetPurchase.codigoFactura}
+          items={returnTargetPurchase.items}
+          onClose={() => setReturnTargetPurchase(null)}
+          onSuccess={() => {
+            fetchPurchases();
+            handleCloseDetail();
+          }}
+        />
       )}
     </div>
   );

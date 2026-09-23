@@ -31,13 +31,16 @@ import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU22-consulta
 import POSPage from './modules/sales-billing/use-cases/CU23-procesar-pagos-facturacion/pages/POSPage';
 import { ReportsDashboardPage } from './modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/pages/ReportsDashboardPage';
 import { VirtualFittingPage } from './modules/mobile-experience/use-cases/CU25-utilizar-vestidor-virtual';
+import { ManageReturnsPage } from './modules/sales-billing/use-cases/CU26-gestionar-devoluciones';
+import { ConfirmProvider } from './shared/components/ConfirmModal';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ShopProvider>
-          <Routes>
+          <ConfirmProvider>
+            <Routes>
             {/* Página Principal / Tienda Pública (Accesible para todos) */}
             <Route path="/" element={<HomePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
@@ -146,7 +149,10 @@ function App() {
               {/* Módulo 7 — Reportes y Dashboard (CU27) */}
               <Route path="reports" element={<ReportsDashboardPage />} />
               <Route path="reportes" element={<ReportsDashboardPage />} />
-              <Route path="dashboard" element={<ReportsDashboardPage />} />
+              {/* Módulo 5 — Ventas y Devoluciones (CU26) */}
+              <Route path="devoluciones" element={<ManageReturnsPage />} />
+              <Route path="gestionar-devoluciones" element={<ManageReturnsPage />} />
+              <Route path="returns" element={<ManageReturnsPage />} />
               <Route path="*" element={<DashboardIndex />} />
             </Route>
 
@@ -184,6 +190,7 @@ function App() {
             {/* Catch-all redirige a la tienda */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </ConfirmProvider>
         </ShopProvider>
       </AuthProvider>
     </BrowserRouter>

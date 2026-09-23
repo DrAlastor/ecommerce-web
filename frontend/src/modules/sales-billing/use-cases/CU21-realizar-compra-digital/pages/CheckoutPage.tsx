@@ -22,6 +22,7 @@ import {
   Store,
   Sparkles,
 } from 'lucide-react';
+import { printReceipt } from '../../../../../shared/utils/printReceipt';
 import './CheckoutPage.css';
 
 export const CheckoutPage: React.FC = () => {
@@ -380,7 +381,30 @@ export const CheckoutPage: React.FC = () => {
                 <button
                   type="button"
                   className="btn-print-invoice"
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    printReceipt({
+                      codigo_factura: receipt.codigo_factura,
+                      fecha_venta: receipt.fecha_venta,
+                      cliente: {
+                        nombre_completo: receipt.cliente.nombre_completo,
+                        ci: receipt.cliente.ci,
+                      },
+                      tipo_venta: 'digital',
+                      subtotal: receipt.subtotal,
+                      descuento: receipt.descuento,
+                      total: receipt.total,
+                      pago: receipt.pago,
+                      items: receipt.articulos.map((art) => ({
+                        nombre_producto: art.nombre_producto,
+                        sku: art.sku,
+                        color: art.color,
+                        talla: art.talla,
+                        cantidad: art.cantidad,
+                        precio_unitario: art.precio_unitario,
+                        subtotal: art.subtotal,
+                      })),
+                    });
+                  }}
                 >
                   <Printer size={18} />
                   <span>Imprimir Comprobante Fiscal</span>

@@ -13,7 +13,7 @@ export const RecommendationsPage: React.FC = () => {
       <Navbar />
       <main className="recommendations-main">
         <section className="recommendations-header">
-          <span>CU26</span>
+          <span>Recomendaciones IA</span>
           <h1>Recomendado para ti</h1>
           <p>
             Sugerencias personalizadas con productos reales del catalogo y disponibilidad confirmada.

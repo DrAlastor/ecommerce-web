@@ -3,6 +3,7 @@ import { catalogAdminService } from '../../services/catalog-admin.service';
 import { SeasonModal } from './SeasonModal';
 import { CollectionModal } from './CollectionModal';
 import type { AdminSeason, AdminCollection } from '../../types/catalog-admin.types';
+import { useConfirm } from '../../../../../../shared/components/ConfirmModal';
 
 interface SeasonCollectionTabProps {
   onFeedback: (type: 'success' | 'error', message: string) => void;
@@ -13,6 +14,7 @@ export const SeasonCollectionTab: React.FC<SeasonCollectionTabProps> = ({
   onFeedback,
   onRefreshMetadata,
 }) => {
+  const { confirm } = useConfirm();
   const [seasons, setSeasons] = useState<AdminSeason[]>([]);
   const [collections, setCollections] = useState<AdminCollection[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,7 +72,14 @@ export const SeasonCollectionTab: React.FC<SeasonCollectionTabProps> = ({
   };
 
   const handleDeleteCollection = async (col: AdminCollection) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la colección "${col.nombre}"?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Colección',
+      message: `¿Estás seguro de eliminar la colección "${col.nombre}"?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
     try {
       await catalogAdminService.deleteCollection(col.id_coleccion);
       onFeedback('success', 'Colección eliminada exitosamente.');

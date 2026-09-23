@@ -1,0 +1,177 @@
+/* ==========================================================================
+   Custom Confirmation Modal — Luxury Brand Styling
+   Palette: Charcoal #1C1510, Bronze #8C5E35, Cream #FAF7F2, Pure White #FFFFFF
+   ========================================================================== */
+
+.custom-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 21, 16, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: confirmFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-confirm-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  padding: 2.25rem 2rem 1.75rem;
+  box-shadow: 0 25px 50px -12px rgba(28, 21, 16, 0.35),
+              0 0 0 1px rgba(239, 234, 227, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: confirmScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.custom-confirm-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #A8A29E;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.custom-confirm-close-btn:hover {
+  background: #F5F0EA;
+  color: #1C1510;
+}
+
+/* Icon Bubble */
+.custom-confirm-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  transition: transform 0.2s ease;
+}
+
+.custom-confirm-icon-wrapper.warning {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+}
+
+.custom-confirm-icon-wrapper.danger {
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
+}
+
+.custom-confirm-icon-wrapper.info {
+  background: #F3EDE7;
+  border: 1px solid #E5DFD7;
+}
+
+.custom-confirm-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1C1510;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.custom-confirm-message {
+  font-size: 0.925rem;
+  color: #57534E;
+  line-height: 1.55;
+  margin: 0 0 1.75rem 0;
+  max-width: 360px;
+}
+
+/* Actions Buttons */
+.custom-confirm-actions {
+  display: flex;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.custom-confirm-btn-cancel {
+  flex: 1;
+  background: #FAF7F2;
+  border: 1.5px solid #E5DFD7;
+  color: #57534E;
+  padding: 0.8rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.custom-confirm-btn-cancel:hover {
+  background: #EFEAE3;
+  color: #1C1510;
+  border-color: #D6CECE;
+}
+
+.custom-confirm-btn-confirm {
+  flex: 1;
+  border: none;
+  padding: 0.8rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #FFFFFF;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.custom-confirm-btn-confirm.warning {
+  background: #8C5E35;
+}
+
+.custom-confirm-btn-confirm.warning:hover {
+  background: #734A26;
+  transform: translateY(-1px);
+}
+
+.custom-confirm-btn-confirm.danger {
+  background: #DC2626;
+}
+
+.custom-confirm-btn-confirm.danger:hover {
+  background: #B91C1C;
+  transform: translateY(-1px);
+}
+
+.custom-confirm-btn-confirm.info {
+  background: #1C1510;
+}
+
+.custom-confirm-btn-confirm.info:hover {
+  background: #2E221A;
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes confirmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirmScaleUp {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}

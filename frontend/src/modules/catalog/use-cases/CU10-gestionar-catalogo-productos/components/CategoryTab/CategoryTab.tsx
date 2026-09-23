@@ -3,12 +3,15 @@ import { catalogAdminService } from '../../services/catalog-admin.service';
 import { CategoryModal } from './CategoryModal';
 import type { AdminCategory } from '../../types/catalog-admin.types';
 
+import { useConfirm } from '../../../../../../shared/components/ConfirmModal';
+
 interface CategoryTabProps {
   onFeedback: (type: 'success' | 'error', message: string) => void;
   onRefreshMetadata: () => void;
 }
 
 export const CategoryTab: React.FC<CategoryTabProps> = ({ onFeedback, onRefreshMetadata }) => {
+  const { confirm } = useConfirm();
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -19,7 +22,7 @@ export const CategoryTab: React.FC<CategoryTabProps> = ({ onFeedback, onRefreshM
     try {
       const data = await catalogAdminService.getCategories();
       setCategories(data);
-    } catch (err: any) {
+    } catch {
       onFeedback('error', 'Error al cargar categorías.');
     } finally {
       setLoading(false);
@@ -43,7 +46,14 @@ export const CategoryTab: React.FC<CategoryTabProps> = ({ onFeedback, onRefreshM
   };
 
   const handleDelete = async (cat: AdminCategory) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la categoría "${cat.nombre}"?`)) return;
+    const ok = await confirm({
+      title: 'Eliminar Categoría',
+      message: `¿Estás seguro de eliminar la categoría "${cat.nombre}"?`,
+      confirmText: 'Sí, eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+    if (!ok) return;
     try {
       await catalogAdminService.deleteCategory(cat.id_categoria);
       onFeedback('success', 'Categoría eliminada exitosamente.');

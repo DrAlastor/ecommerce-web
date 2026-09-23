@@ -14,13 +14,14 @@ import {
   ChevronDown,
   ChevronRight,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 
 const normalize = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-// Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 27
-const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 27]);
+// Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 26, 27
+const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 26, 27]);
 
 const getModuleIcon = (modulo: string) => {
   const norm = normalize(modulo);
@@ -28,6 +29,7 @@ const getModuleIcon = (modulo: string) => {
   if (norm.includes('catalogo') || norm.includes('proveedor')) return <Package size={20} />;
   if (norm.includes('inventario') || norm.includes('sucursal')) return <Box size={20} />;
   if (norm.includes('reserva')) return <Calendar size={20} />;
+  if (norm.includes('devolucion') || norm.includes('retorno')) return <RotateCcw size={20} />;
   if (norm.includes('venta') || norm.includes('pago') || norm.includes('factura')) return <ShoppingCart size={20} />;
   if (norm.includes('ia') || norm.includes('realidad')) return <Sparkles size={20} />;
   if (norm.includes('reporte') || norm.includes('dashboard')) return <FileText size={20} />;
@@ -36,7 +38,9 @@ const getModuleIcon = (modulo: string) => {
 
 const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (idFuncion === 24) return '/pos';
+  if (idFuncion === 26) return '/admin/devoluciones';
   const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+  if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
   if (norm.includes('usuario')) return '/admin/users';
   if (norm.includes('rol')) return '/admin/roles';
   if (norm.includes('empleado')) return '/admin/empleados';
@@ -120,11 +124,13 @@ export const AdminSidebar: React.FC = () => {
                 className="admin-nav-item admin-module-toggle"
                 onClick={() => toggleModule(modulo)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  {getModuleIcon(modulo)}
-                  <span>{modulo.replace('Gestión de ', '')}</span>
+                <div className="admin-module-title-wrapper">
+                  <span className="admin-module-icon">
+                    {getModuleIcon(modulo)}
+                  </span>
+                  <span className="admin-module-text">{modulo.replace('Gestión de ', '')}</span>
                 </div>
-                {openModules[modulo] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                {openModules[modulo] ? <ChevronDown size={16} className="admin-module-chevron" /> : <ChevronRight size={16} className="admin-module-chevron" />}
               </div>
 
               {openModules[modulo] && (

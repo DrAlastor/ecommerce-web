@@ -551,7 +551,7 @@
   color: #524a42;
 }
 
-.btn-action-view {
+.movements-table .btn-action-view {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -565,7 +565,7 @@
   transition: all 0.15s ease;
 }
 
-.btn-action-view:hover {
+.movements-table .btn-action-view:hover {
   background-color: #faf7f2;
   border-color: #8c5e35;
   color: #8c5e35;

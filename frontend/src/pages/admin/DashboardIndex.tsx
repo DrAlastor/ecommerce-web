@@ -17,7 +17,8 @@ import {
   KeyRound,
   ChevronDown,
   ChevronUp,
-  ArrowLeftRight
+  ArrowLeftRight,
+  RotateCcw,
 } from 'lucide-react';
 
 export default function DashboardIndex() {
@@ -32,8 +33,8 @@ export default function DashboardIndex() {
   const normalize = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-  // Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 27
-  const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 27]);
+  // Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 26, 27
+  const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 26, 27]);
 
   // Filtrar funciones activas (acceso distinto a Ninguno) excluyendo el módulo 6 móvil
   const allowedFunciones = funciones.filter(f => {
@@ -49,7 +50,9 @@ export default function DashboardIndex() {
 
   const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
     if (idFuncion === 24) return '/pos';
+    if (idFuncion === 26) return '/admin/devoluciones';
     const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+    if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
     if (norm.includes('usuario')) return '/admin/users';
     if (norm.includes('rol')) return '/admin/roles';
     if (norm.includes('empleado')) return '/admin/empleados';
@@ -68,6 +71,7 @@ export default function DashboardIndex() {
 
   const getFunctionIcon = (nombre: string) => {
     const norm = normalize(nombre);
+    if (norm.includes('devolucion') || norm.includes('retorno')) return <RotateCcw size={18} />;
     if (norm.includes('usuario')) return <Users size={18} />;
     if (norm.includes('rol')) return <KeyRound size={18} />;
     if (norm.includes('empleado')) return <Building2 size={18} />;
