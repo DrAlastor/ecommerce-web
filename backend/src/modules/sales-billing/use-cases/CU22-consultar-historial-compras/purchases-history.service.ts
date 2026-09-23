@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU22 — Consultar historial de compras
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Cliente -> historial -> controlador de compras -> servicio de historial -> Venta/DetalleVenta/Pago.
+ */
 import {
   ForbiddenException,
   Injectable,

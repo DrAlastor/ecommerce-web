@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU19 — Gestionar reserva en sucursal
+ * @subsistema Reservas
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Encargado o Cajero -> bandeja de reservas -> controlador de atención -> servicio de reservas -> Reserva/DetalleReserva/Inventario/Bitácora.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { branchReservationsService } from '../services/branch-reservations.service';
 import type {

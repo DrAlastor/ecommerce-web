@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU14 — Consultar sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Cliente -> listado de sucursales -> controlador de consulta -> servicio de sucursales -> Ciudad/Sucursal/Disponibilidad.
+ */
 import React, { useMemo } from 'react';
 import { MapPin, Navigation, Clock, Phone, ExternalLink } from 'lucide-react';
 import type { PublicBranch } from '../types/branchesPublic.types';

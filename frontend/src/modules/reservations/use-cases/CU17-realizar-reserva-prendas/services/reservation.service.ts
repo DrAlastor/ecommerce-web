@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU17 — Realizar reserva de prendas
+ * @subsistema Reservas
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Cliente -> formulario de reserva -> controlador de reservas -> servicio de disponibilidad -> Reserva/DetalleReserva/Inventario/Sucursal.
+ */
 import api from '../../../../../services/api/api';
 import type {
   VariantAvailabilityResponse,

@@ -1,3 +1,13 @@
+/**
+ * @file product-detail.service.ts
+ * @caso-de-uso CU09 — Consultar detalle y disponibilidad de producto
+ * @subsistema Catálogo e Inventario
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Recupera de la base de datos la información completa de un producto, evalúa promociones
+ * activas temporales para calcular precios con descuento, estructura las variantes con sus modelos 3D y agrega
+ * el stock físico disponible en cada sucursal de la cadena.
+ */
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import type {
@@ -7,11 +17,28 @@ import type {
   SizeGuideDto,
 } from './dto/product-detail.dto.js';
 
+/**
+ * Servicio encargado de orquestar la obtención y transformación del detalle de productos y existencias.
+ */
 @Injectable()
 export class ProductDetailService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Consulta y estructura toda la información requerida para la vista de detalle de un producto:
+   * 1. Valida existencia y estado activo en base de datos.
+   * 2. Incluye categoría, guía de tallas, colección, temporada e imágenes ordenadas.
+   * 3. Evalúa si el producto cuenta con promociones vigentes dentro del rango de fechas.
+   * 4. Calcula precios base y con descuento porcentual o por monto fijo.
+   * 5. Mapea cada variante activa con su SKU, talla, color, modelo 3D y desglose de stock por sucursal física.
+   * 6. Retorna mapas consolidados de tallas/colores disponibles y el total de stock global.
+   *
+   * @param {number} id_producto - Identificador numérico del producto a consultar.
+   * @returns {Promise<ProductDetailResponseDto>} Objeto formateado con toda la información técnica y comercial.
+   * @throws {NotFoundException} Si el producto no existe o está inactivo.
+   */
   async getProductDetail(id_producto: number): Promise<ProductDetailResponseDto> {
+    // 1. Consulta en la base de datos con relaciones completas
     const product = await this.prisma.producto.findFirst({
       where: {
         id_producto,
@@ -72,7 +99,7 @@ export class ProductDetailService {
       throw new NotFoundException(`El producto #${id_producto} no existe o no se encuentra disponible.`);
     }
 
-    // Calcular promoción activa
+    // 2. Calcular promoción activa en el instante de tiempo actual
     const now = new Date();
     const activePromo = product.promocion_producto
       .map((pp) => pp.promocion)
@@ -89,7 +116,7 @@ export class ProductDetailService {
       if (activePromo.tipo_descuento === 'porcentaje') {
         descuentoPorcentaje = Number(activePromo.valor_descuento);
       } else {
-        // En caso de monto fijo, aproximamos el porcentaje para badges
+        // En caso de monto fijo, aproximamos el porcentaje para insignias visuales (badges)
         const base = Number(product.precio_base);
         descuentoPorcentaje = base > 0 ? Math.round((Number(activePromo.valor_descuento) / base) * 100) : 0;
       }
@@ -102,7 +129,7 @@ export class ProductDetailService {
         : Math.max(Math.round((precioBase - Number(activePromo?.valor_descuento || 0)) * 100) / 100, 0)
       : precioBase;
 
-    // Procesar variantes
+    // 3. Procesar variantes, modelos 3D y stock por sucursal
     let totalStockGlobal = 0;
     let tieneModelo3D = false;
 
@@ -115,6 +142,7 @@ export class ProductDetailService {
           : Math.max(Math.round((precioVariante - Number(activePromo?.valor_descuento || 0)) * 100) / 100, 0)
         : precioVariante;
 
+      // Disponibilidad en cada tienda física
       const disponibilidadSucursales: BranchStockDto[] = v.inventario_sucursal.map((inv) => ({
         id_sucursal: inv.sucursal.id_sucursal,
         nombre: inv.sucursal.nombre,
@@ -161,7 +189,7 @@ export class ProductDetailService {
       };
     });
 
-    // Tallas y colores únicos
+    // 4. Mapear conjuntos únicos de tallas y colores
     const tallasMap = new Map<number, { id_talla: number; codigo: string }>();
     const coloresMap = new Map<number, { id_color: number; nombre: string; codigo_hex: string | null }>();
 
@@ -177,7 +205,7 @@ export class ProductDetailService {
       });
     });
 
-    // Guía de tallas mapeada
+    // 5. Guía de tallas de la categoría asociada
     const guiaTallas: SizeGuideDto[] = product.categoria.guia_talla.map((g) => ({
       id_guia_talla: g.id_guia_talla,
       parte_cuerpo: g.parte_cuerpo,
@@ -186,6 +214,7 @@ export class ProductDetailService {
       max_cm: Number(g.max_cm),
     }));
 
+    // 6. Retorno de la estructura consolidada
     return {
       id_producto: product.id_producto,
       nombre: product.nombre,

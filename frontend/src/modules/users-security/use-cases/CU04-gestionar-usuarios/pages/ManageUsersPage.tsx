@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU04 — Gestionar usuarios
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador -> vista de usuarios -> controlador de usuarios -> servicio de usuarios -> Usuario/Rol/Bitácora.
+ */
 import React from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { UserFilterBar } from '../components/UserFilterBar';

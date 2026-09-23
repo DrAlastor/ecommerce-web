@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU23 — Procesar pago electrónico y facturación
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Control (API REST) — Backend
+ * @responsabilidad Recibe la solicitud HTTP, aplica guardas o validaciones y delega la lógica al servicio del caso de uso.
+ * @secuencia Cliente -> interfaz de pago -> controlador de pagos -> servicio de pago y facturación -> Pasarela de Pago/Pago/Venta/Factura.
+ */
 import {
   Body,
   Controller,

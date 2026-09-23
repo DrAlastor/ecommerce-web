@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU11 — Gestionar proveedores
+ * @subsistema Catálogo y Proveedores
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> vista de proveedores -> controlador de proveedores -> servicio de proveedores -> Proveedor/ProveedorProducto/Producto.
+ */
 import React from 'react';
 import { PackagePlus, Pencil } from 'lucide-react';
 import type { Supplier, SupplierProduct } from '../../types/suppliers.types';

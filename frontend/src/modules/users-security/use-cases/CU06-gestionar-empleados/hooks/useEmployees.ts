@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU06 — Gestionar empleados
+ * @subsistema Usuarios y Seguridad
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador -> formulario de empleados -> controlador de empleados -> servicio de empleados -> Usuario/Empleado/Rol/Sucursal.
+ */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   empleadosService,

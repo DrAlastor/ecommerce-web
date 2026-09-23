@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU17 — Realizar reserva de prendas
+ * @subsistema Reservas
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Cliente -> formulario de reserva -> controlador de reservas -> servicio de disponibilidad -> Reserva/DetalleReserva/Inventario/Sucursal.
+ */
 import {
   BadRequestException,
   ForbiddenException,

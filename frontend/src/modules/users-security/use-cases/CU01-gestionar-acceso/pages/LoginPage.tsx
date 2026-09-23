@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU01 — Gestionar acceso al sistema
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Usuario -> interfaz de acceso -> controlador de autenticación -> servicio de acceso -> Usuario/Rol/Sesión/Bitácora.
+ */
 import React from 'react';
 import { useLogin } from '../hooks/useLogin';
 import { LoginBrandPanel } from '../components/LoginBrandPanel';

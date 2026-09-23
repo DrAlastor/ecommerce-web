@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU27 — Consultar dashboard y reportes
+ * @subsistema Reportes y Dashboard
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
+ */
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import {

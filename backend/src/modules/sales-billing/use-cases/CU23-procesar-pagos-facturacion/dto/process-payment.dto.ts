@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU23 — Procesar pago electrónico y facturación
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Cliente -> interfaz de pago -> controlador de pagos -> servicio de pago y facturación -> Pasarela de Pago/Pago/Venta/Factura.
+ */
 import {
   IsIn,
   IsInt,

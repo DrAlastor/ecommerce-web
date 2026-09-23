@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU21 — Realizar compra digital
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> checkout -> controlador de compra -> servicios de compra y pago -> Venta/DetalleVenta/Pago/Inventario.
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShop } from '../../../../../context/ShopContext';

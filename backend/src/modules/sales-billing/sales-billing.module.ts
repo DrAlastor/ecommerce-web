@@ -1,3 +1,15 @@
+/**
+ * @modulo SalesBillingModule
+ * @subsistema Ventas y Facturación
+ * @capa Módulo de infraestructura y orquestación NestJS
+ * @descripcion Agrupa y exporta los controladores y servicios que gestionan el ciclo completo de ventas:
+ *              - CU20: Gestión de Carrito de Compras (digital/online)
+ *              - CU21: Realización de Compra Digital (checkout, pasarela y envío)
+ *              - CU22: Historial de Compras y Seguimiento de Pedidos
+ *              - CU23: Procesamiento de Pagos y Facturación Electrónica (QR, tarjeta, efectivo)
+ *              - CU24: Registro de Ventas Presenciales (Punto de Venta / POS en sucursal)
+ *              - CU26: Gestión de Devoluciones y Garantías de Productos
+ */
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module.js';
 import { AuthModule } from '../users-security/auth/auth.module.js';
@@ -43,4 +55,3 @@ import { ReturnsService } from './use-cases/CU26-gestionar-devoluciones/returns.
   ],
 })
 export class SalesBillingModule {}
-

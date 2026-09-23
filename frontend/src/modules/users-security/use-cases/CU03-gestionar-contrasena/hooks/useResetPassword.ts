@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU03 — Gestionar contraseña
+ * @subsistema Usuarios y Seguridad
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Usuario -> formulario de contraseña -> controlador de credenciales -> servicio de recuperación -> Usuario/Token de recuperación.
+ */
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';

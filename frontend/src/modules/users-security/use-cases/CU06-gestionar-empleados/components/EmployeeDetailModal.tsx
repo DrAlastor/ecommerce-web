@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU06 — Gestionar empleados
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> formulario de empleados -> controlador de empleados -> servicio de empleados -> Usuario/Empleado/Rol/Sucursal.
+ */
 import React from 'react';
 import type { EmployeeItem } from '../services/empleados.service';
 import {

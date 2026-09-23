@@ -1,3 +1,13 @@
+/**
+ * @file empleados.service.ts
+ * @caso-de-uso CU06 — Gestionar empleados
+ * @subsistema Usuarios y Seguridad
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Implementa los procedimientos de negocio de contratación y gestión de personal:
+ * validación de unicidad de CI y código de empleado, creación atómica en tres entidades (Usuario, Empleado y Sucursales),
+ * actualización de ficha técnica y sincronización de estado laboral.
+ */
+
 import {
   Injectable,
   NotFoundException,
@@ -26,7 +36,12 @@ export class EmpleadosService {
   ) {}
 
   /**
-   * Listar empleados con búsqueda y filtros dinámicos (Rol, Sucursal, Estado)
+   * Procedimiento de búsqueda y listado paginado de empleados.
+   * Filtra por coincidencia insensitiva en nombre, apellido, CI, código de empleado o email,
+   * y permite acotar por sucursal, rol asignado o estado operativo.
+   *
+   * @param {QueryEmployeesDto} query - Criterios de filtrado y límites de paginación.
+   * @returns {Promise<{ data: any[], meta: any }>} Empleados con datos de usuario, sucursales y presencia online.
    */
   async findAll(query: QueryEmployeesDto) {
     const { search, rol, sucursal, estado, page = 1, limit = 10 } = query;
@@ -144,7 +159,11 @@ export class EmpleadosService {
   }
 
   /**
-   * Obtener detalle completo de un empleado
+   * Obtiene la ficha técnica y laboral completa de un empleado.
+   *
+   * @param {number} id - Identificador del empleado.
+   * @returns {Promise<any>} Objeto con datos personales, código, CI, sucursales y rol.
+   * @throws {NotFoundException} Si el empleado no existe.
    */
   async findOne(id: number) {
     const e = await this.prisma.empleado.findUnique({
@@ -215,7 +234,9 @@ export class EmpleadosService {
   }
 
   /**
-   * Listar todas las sucursales disponibles para asignación
+   * Obtiene todas las sucursales físicas activas disponibles para asignación de personal.
+   *
+   * @returns {Promise<any[]>} Lista de sucursales con su ciudad correspondiente.
    */
   async getBranches() {
     const sucursales = await this.prisma.sucursal.findMany({
@@ -240,7 +261,9 @@ export class EmpleadosService {
   }
 
   /**
-   * Listar roles válidos para empleados (excluyendo Cliente)
+   * Lista los roles del sistema aplicables a personal de la empresa (excluyendo el rol 'Cliente').
+   *
+   * @returns {Promise<any[]>} Roles como Administrador, Encargado de sucursal, Cajero, etc.
    */
   async getEmployeeRoles() {
     return this.prisma.rol.findMany({
@@ -259,7 +282,23 @@ export class EmpleadosService {
   }
 
   /**
-   * Creación transaccional: USUARIO + EMPLEADO + EMPLEADO_SUCURSAL
+   * Procedimiento de contratación y alta de un nuevo empleado.
+   * Flujo atómico:
+   * 1. Valida unicidad estricta de correo electrónico, CI y código de empleado.
+   * 2. Comprueba que el rol asignado exista y no sea 'Cliente'.
+   * 3. Valida la existencia de las sucursales asignadas.
+   * 4. Encripta la contraseña de acceso con bcrypt.
+   * 5. Ejecuta una transacción atómica creando:
+   *    a) La cuenta de acceso en `usuario`.
+   *    b) La ficha de personal en `empleado`.
+   *    c) Las asignaciones físicas en `empleado_sucursal`.
+   * 6. Registra el evento en bitácora de auditoría.
+   *
+   * @param {CreateEmployeeDto} dto - Datos del nuevo empleado.
+   * @param {number} userId - ID del administrador que registra la contratación.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<any>} Ficha del nuevo empleado creada.
+   * @throws {BadRequestException} Si existe duplicidad en correo, CI o código, o si el rol/sucursal son inválidos.
    */
   async create(dto: CreateEmployeeDto, userId: number, ip?: string) {
     const cleanEmail = dto.email.trim().toLowerCase();
@@ -373,7 +412,21 @@ export class EmpleadosService {
   }
 
   /**
-   * Modificación de información laboral, rol y sucursales
+   * Procedimiento de modificación integral de la ficha de un empleado.
+   * Valida unicidad de CI y email si sufren cambios, verifica que el rol sea administrativo,
+   * y ejecuta una transacción Prisma actualizando:
+   * 1. Ficha del personal (`empleado`).
+   * 2. Cuenta de usuario y credenciales si se especificó nueva contraseña (`usuario`).
+   * 3. Sincronización de sucursales vinculadas (`empleado_sucursal`).
+   * 4. Registro en bitácora de auditoría.
+   *
+   * @param {number} id - Identificador del empleado a modificar.
+   * @param {UpdateEmployeeDto} dto - Datos a actualizar.
+   * @param {number} userId - ID del administrador responsable.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<any>} Ficha actualizada del empleado.
+   * @throws {NotFoundException} Si el empleado no existe.
+   * @throws {BadRequestException} Si el CI o email entran en conflicto con otro registro.
    */
   async update(id: number, dto: UpdateEmployeeDto, userId: number, ip?: string) {
     const employee = await this.prisma.empleado.findUnique({
@@ -494,7 +547,15 @@ export class EmpleadosService {
   }
 
   /**
-   * Cambiar estado (activo/inactivo) en empleado y cuenta de usuario
+   * Procedimiento de cambio de estado operativo/laboral del empleado (Activo / Inactivo).
+   * Sincroniza atómicamente el estado tanto en la ficha `empleado` como en su cuenta `usuario`.
+   *
+   * @param {number} id - ID del empleado.
+   * @param {UpdateEmployeeStatusDto} dto - Nuevo estado.
+   * @param {number} userId - ID del administrador que ejecuta la operación.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<any>} Ficha actualizada del empleado.
+   * @throws {NotFoundException} Si el empleado no existe.
    */
   async updateStatus(id: number, dto: UpdateEmployeeStatusDto, userId: number, ip?: string) {
     const employee = await this.prisma.empleado.findUnique({

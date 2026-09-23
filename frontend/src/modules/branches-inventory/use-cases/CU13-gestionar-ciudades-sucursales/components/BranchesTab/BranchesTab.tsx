@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU13 — Gestionar ciudades y sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> vista de sucursales -> controlador geográfico -> servicio de sucursales -> Ciudad/Sucursal.
+ */
 import React, { useState } from 'react';
 import {
   Building2,

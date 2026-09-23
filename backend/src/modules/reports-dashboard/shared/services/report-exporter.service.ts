@@ -1,3 +1,9 @@
+/**
+ * @servicio ReportExporterService
+ * @subsistema Reportes y Analítica
+ * @capa Infraestructura de exportación y presentación — Backend
+ * @responsabilidad Genera archivos binarios y tabulares para reportes ejecutivos en formatos CSV, Excel (.xlsx) y PDF.
+ */
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import ExcelJS from 'exceljs';
 import PDFDocument from 'pdfkit';

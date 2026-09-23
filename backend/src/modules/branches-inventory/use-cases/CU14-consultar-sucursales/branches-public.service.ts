@@ -1,6 +1,20 @@
+/**
+ * @file branches-public.service.ts
+ * @caso-de-uso CU14 — Consultar sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Recupera información pública de tiendas físicas activas para clientes:
+ * - Filtra de forma estricta las sucursales inactivas o clausuradas.
+ * - Formatea las horas de apertura y cierre a formato "HH:mm".
+ * - Proporciona las ciudades activas con tiendas en funcionamiento.
+ */
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 
+/**
+ * Convierte un objeto Date representativo de hora a una cadena "HH:mm" en formato UTC.
+ */
 function formatTimeToHHmm(date?: Date | null): string | null {
   if (!date) return null;
   const d = new Date(date);
@@ -9,14 +23,21 @@ function formatTimeToHHmm(date?: Date | null): string | null {
   return `${hours}:${minutes}`;
 }
 
+/**
+ * Servicio encargado de la consulta pública de tiendas físicas y ciudades habilitadas.
+ */
 @Injectable()
 export class BranchesPublicService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Obtiene todas las sucursales activas con su ciudad asociada.
-   * Filtra estrictamente sucursales inactivas.
-   * Permite filtrado opcional por id_ciudad o búsqueda por texto (nombre, ciudad, dirección).
+   * Obtiene todas las sucursales activas en la base de datos junto con su ciudad asociada.
+   * Aplica filtros opcionales por identificador de ciudad o término de búsqueda textual.
+   *
+   * @param {Object} [query] - Parámetros de consulta opcionales.
+   * @param {number} [query.id_ciudad] - ID numérico de la ciudad.
+   * @param {string} [query.search] - Texto a buscar en nombre, dirección o ciudad.
+   * @returns {Promise<Array>} Lista de sucursales activas con horas formateadas.
    */
   async getActiveBranches(query?: { id_ciudad?: number; search?: string }) {
     const where: any = {
@@ -75,7 +96,11 @@ export class BranchesPublicService {
   }
 
   /**
-   * Obtiene el detalle público de una sucursal activa específica.
+   * Obtiene la información pública de una tienda física por su identificador único.
+   *
+   * @param {number} id - ID de la sucursal.
+   * @returns {Promise<Object>} Datos informativos de la sucursal y ciudad.
+   * @throws {NotFoundException} Si la tienda no existe o se encuentra inactiva.
    */
   async getActiveBranchById(id: number) {
     const branch = await this.prisma.sucursal.findFirst({
@@ -120,7 +145,9 @@ export class BranchesPublicService {
   }
 
   /**
-   * Obtiene la lista de ciudades que cuentan con al menos una sucursal activa.
+   * Obtiene las ciudades que poseen al menos una sucursal en estado activo.
+   *
+   * @returns {Promise<Array>} Lista de ciudades con conteo de tiendas activas.
    */
   async getActiveCities() {
     const cities = await this.prisma.ciudad.findMany({
@@ -150,5 +177,4 @@ export class BranchesPublicService {
       total_sucursales: c.sucursal.length,
     }));
   }
-
 }

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU27 — Consultar dashboard y reportes
+ * @subsistema Reportes y Dashboard
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { reportsService } from '../services/reports.service';
 import type {

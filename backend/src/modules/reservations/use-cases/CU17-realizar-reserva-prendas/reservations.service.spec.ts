@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU17 — Realizar reserva de prendas
+ * @subsistema Reservas
+ * @capa Pruebas — Backend
+ * @responsabilidad Verifica el comportamiento observable y las reglas principales del caso de uso.
+ * @secuencia Cliente -> formulario de reserva -> controlador de reservas -> servicio de disponibilidad -> Reserva/DetalleReserva/Inventario/Sucursal.
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ReservationsService } from './reservations.service.js';

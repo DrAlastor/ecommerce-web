@@ -1,3 +1,14 @@
+/**
+ * @file inventory.service.ts
+ * @caso-de-uso CU15 — Consultar inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Centraliza las consultas y auditorías de existencias físicas por tienda:
+ * - Aplica alcance de sucursales según el perfil del usuario (SuperAdmin accede a todas; personal solo a sus tiendas asignadas).
+ * - Evalúa estados cualitativos de stock: 'agotado' (0), 'bajo' (<= stock_minimo) y 'normal'.
+ * - Calcula estadísticas agregadas globales (stock disponible, stock reservado, ítems agotados y bajo mínimo).
+ */
+
 import {
   ForbiddenException,
   Injectable,
@@ -6,14 +17,20 @@ import {
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { QueryInventoryDto, StockStatusFilter } from './dto/inventory.dto.js';
 
+/**
+ * Servicio encargado de la consulta y estadísticas de existencias de almacén por tienda.
+ */
 @Injectable()
 export class InventoryService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Determina las sucursales a las que el usuario autenticado tiene acceso.
-   * - Administrador (id_rol === 1 o nombre 'administrador'): Todas las sucursales activas.
-   * - Encargado / Personal: Únicamente las asociadas en EMPLEADO_SUCURSAL.
+   * Determina las sucursales a las que el usuario autenticado tiene acceso legal:
+   * - Administrador (id_rol === 1 o nombre 'administrador'): Todas las sucursales de la red.
+   * - Encargados / Vendedores: Únicamente las tiendas vinculadas en la tabla `empleado_sucursal`.
+   *
+   * @param {any} user - Entidad de usuario autenticado extraída del token JWT.
+   * @returns {Promise<{ isSuperAdmin: boolean, allowedBranchIds: number[] }>} Identificadores permitidos.
    */
   private async getAllowedBranchIds(user: any): Promise<{
     isSuperAdmin: boolean;
@@ -37,7 +54,11 @@ export class InventoryService {
   }
 
   /**
-   * Metadatos para filtros del inventario (sucursales autorizadas, tallas, colores, categorías)
+   * Obtiene metadatos para inicializar los filtros en la interfaz (sucursales habilitadas para el operador,
+   * tallas, colores y categorías activas).
+   *
+   * @param {any} user - Usuario autenticado.
+   * @returns {Promise<Object>} Conjunto de metadatos de filtrado.
    */
   async getMetadata(user: any) {
     const { isSuperAdmin, allowedBranchIds } = await this.getAllowedBranchIds(user);
@@ -87,7 +108,16 @@ export class InventoryService {
   }
 
   /**
-   * CU14 — Consultar existencias de inventario por producto/variante y sucursal autorizada
+   * Consulta existencias de inventario por producto/variante según sucursales autorizadas:
+   * 1. Restringe la consulta a las sucursales asignadas si el usuario no es superadministrador.
+   * 2. Aplica filtros opcionales de búsqueda por SKU o nombre de producto, talla y color.
+   * 3. Filtra por estado de stock: disponible (>0), bajo (<= mínimo) o agotado (=0).
+   * 4. Computa estadísticas globales consolidadas del universo autorizado en tiempo real.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @param {QueryInventoryDto} query - Criterios de filtrado y paginación.
+   * @returns {Promise<Object>} Datos paginados, metadatos y estadísticas de existencias.
+   * @throws {ForbiddenException} Si un usuario intenta consultar una sucursal fuera de sus tiendas permitidas.
    */
   async getInventory(user: any, query: QueryInventoryDto) {
     const {
@@ -165,7 +195,6 @@ export class InventoryService {
       } else if (stock_status === StockStatusFilter.DISPONIBLE) {
         where.stock_disponible = { gt: 0 };
       }
-      // Nota: El filtro de 'bajo' (stock_disponible <= stock_minimo) se aplica post-filtro o en query avanzada
     }
 
     const skip = (page - 1) * limit;
@@ -308,7 +337,13 @@ export class InventoryService {
   }
 
   /**
-   * Obtiene el detalle de un registro específico de inventario verificando autorización
+   * Obtiene el detalle de un registro específico de inventario verificando autorización sobre la sucursal.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @param {number} id - ID del registro de inventario_sucursal.
+   * @returns {Promise<Object>} Registro detallado con sucursal y variante.
+   * @throws {NotFoundException} Si el registro no existe.
+   * @throws {ForbiddenException} Si el usuario no tiene acceso a dicha sucursal.
    */
   async getInventoryDetail(user: any, id: number) {
     const item = await this.prisma.inventario_sucursal.findUnique({

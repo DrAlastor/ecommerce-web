@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU20 — Gestionar carrito de compras
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Control (API REST) — Backend
+ * @responsabilidad Recibe la solicitud HTTP, aplica guardas o validaciones y delega la lógica al servicio del caso de uso.
+ * @secuencia Cliente -> carrito -> controlador de carrito -> servicio de carrito -> Carrito/DetalleCarrito/Variante/Inventario.
+ */
 import {
   Body,
   Controller,

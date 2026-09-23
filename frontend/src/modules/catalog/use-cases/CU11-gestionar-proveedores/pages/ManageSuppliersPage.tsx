@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU11 — Gestionar proveedores
+ * @subsistema Catálogo y Proveedores
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador -> vista de proveedores -> controlador de proveedores -> servicio de proveedores -> Proveedor/ProveedorProducto/Producto.
+ */
 import React from 'react';
 import { CheckCircle2, ClipboardList, RefreshCw } from 'lucide-react';
 import { PurchaseOrders } from '../components/PurchaseOrders/PurchaseOrders';

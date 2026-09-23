@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU23 — Procesar pago electrónico y facturación
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> interfaz de pago -> controlador de pagos -> servicio de pago y facturación -> Pasarela de Pago/Pago/Venta/Factura.
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../users-security/shared/components/AuthContext';

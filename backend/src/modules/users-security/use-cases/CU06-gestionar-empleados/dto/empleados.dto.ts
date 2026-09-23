@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU06 — Gestionar empleados
+ * @subsistema Usuarios y Seguridad
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador -> formulario de empleados -> controlador de empleados -> servicio de empleados -> Usuario/Empleado/Rol/Sucursal.
+ */
 import {
   IsString,
   IsOptional,

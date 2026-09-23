@@ -1,3 +1,12 @@
+/**
+ * @file usuarios.service.ts
+ * @caso-de-uso CU04 — Gestionar usuarios
+ * @subsistema Usuarios y Seguridad
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Implementa los procedimientos de gestión de usuarios: filtrado dinámico,
+ * verificación de presencia en tiempo real (`ActiveSessionService`), cambio de estado y actualización administrativa.
+ */
+
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
@@ -12,6 +21,15 @@ export class UsuariosService {
     private readonly activeSessionService: ActiveSessionService,
   ) {}
 
+  /**
+   * Procedimiento de consulta paginada de usuarios con filtros avanzados.
+   * Filtra por coincidencia insensitiva en email, nombres, apellidos y CI (tanto de clientes como de empleados).
+   * Adjunta en tiempo real el indicador booleano `conectado` mediante el servicio de sesiones activas.
+   *
+   * @param {QueryUsersDto} query - Filtros de búsqueda (texto, estado, id_rol, página, límite).
+   * @returns {Promise<{ data: any[], meta: { total: number, page: number, limit: number, totalPages: number } }>}
+   * Lista de usuarios enriquecida con estado de conexión y metadatos de paginación.
+   */
   async findAll(query: QueryUsersDto) {
     const { search, role, status, page = 1, limit = 10 } = query;
 
@@ -65,6 +83,13 @@ export class UsuariosService {
     };
   }
 
+  /**
+   * Obtiene la información detallada de un usuario por su identificador.
+   *
+   * @param {number} id - Identificador del usuario.
+   * @returns {Promise<any>} Usuario con sus perfiles de empleado, cliente y rol.
+   * @throws {NotFoundException} Si el usuario no existe.
+   */
   async findOne(id: number) {
     const user = await this.prisma.usuario.findUnique({
       where: { id_usuario: id },
@@ -88,14 +113,39 @@ export class UsuariosService {
     };
   }
 
+  /**
+   * Registra en la bitácora que un administrador consultó el listado general de usuarios.
+   *
+   * @param {number} adminId - ID del administrador.
+   * @param {string} [ip] - Dirección IP.
+   */
   async logConsultaUsers(adminId: number, ip?: string) {
     await this.bitacora.logConsulta('lista de usuarios', 'Módulo de Gestión de usuarios', adminId, ip);
   }
 
+  /**
+   * Registra en la bitácora que un administrador inspeccionó el detalle de un usuario específico.
+   *
+   * @param {number} userId - ID del usuario inspeccionado.
+   * @param {number} adminId - ID del administrador.
+   * @param {string} [ip] - Dirección IP.
+   */
   async logConsultaUserDetail(userId: number, adminId: number, ip?: string) {
     await this.bitacora.logConsulta('detalle de usuario', `Usuario ID: ${userId}`, adminId, ip);
   }
 
+  /**
+   * Procedimiento de actualización de estado de cuenta (Activar / Suspender).
+   * Si el usuario se desactiva, si estaba conectado se desvincula de las sesiones en memoria.
+   *
+   * @param {number} id - ID del usuario a modificar.
+   * @param {UpdateUserStatusDto} dto - Nuevo estado ('activo' o 'inactivo').
+   * @param {number} adminId - ID del administrador que ejecuta el cambio.
+   * @param {string} ip - Dirección IP de origen.
+   * @returns {Promise<{ message: string, estado: string }>} Confirmación de actualización.
+   * @throws {NotFoundException} Si el usuario no existe.
+   * @throws {BadRequestException} Si el usuario ya posee el estado solicitado.
+   */
   async updateStatus(id: number, dto: UpdateUserStatusDto, adminId: number, ip: string) {
     const user = await this.prisma.usuario.findUnique({ where: { id_usuario: id } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
@@ -108,6 +158,10 @@ export class UsuariosService {
       data: { estado: dto.estado },
     });
 
+    if (dto.estado === 'inactivo') {
+      this.activeSessionService.disconnect(id);
+    }
+
     await this.bitacora.logModificacion(
       `estado de usuario a ${dto.estado}`,
       `Usuario: ${user.email} (ID: ${id})`,
@@ -118,6 +172,18 @@ export class UsuariosService {
     return { message: 'Estado actualizado correctamente', estado: updatedUser.estado };
   }
 
+  /**
+   * Procedimiento administrativo para reasignar rol o actualizar correo electrónico.
+   * Valida que el nuevo correo no esté registrado por otra cuenta antes de proceder.
+   *
+   * @param {number} id - ID del usuario.
+   * @param {UpdateUserAdminDto} dto - Nuevo correo y/o nuevo rol.
+   * @param {number} adminId - ID del administrador.
+   * @param {string} ip - Dirección IP.
+   * @returns {Promise<{ message: string, usuario: Usuario }>} Usuario modificado.
+   * @throws {NotFoundException} Si el usuario no existe.
+   * @throws {BadRequestException} Si el nuevo correo ya se encuentra en uso.
+   */
   async updateAdminData(id: number, dto: UpdateUserAdminDto, adminId: number, ip: string) {
     const user = await this.prisma.usuario.findUnique({ where: { id_usuario: id } });
     if (!user) throw new NotFoundException('Usuario no encontrado');

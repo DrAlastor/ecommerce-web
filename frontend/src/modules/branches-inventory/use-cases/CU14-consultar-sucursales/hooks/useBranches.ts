@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU14 — Consultar sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Cliente -> listado de sucursales -> controlador de consulta -> servicio de sucursales -> Ciudad/Sucursal/Disponibilidad.
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { branchesPublicService } from '../services/branchesPublic.service';
 import type { PublicBranch, PublicCity } from '../types/branchesPublic.types';

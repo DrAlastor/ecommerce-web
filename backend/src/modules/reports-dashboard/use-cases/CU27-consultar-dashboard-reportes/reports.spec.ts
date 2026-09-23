@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU27 — Consultar dashboard y reportes
+ * @subsistema Reportes y Dashboard
+ * @capa Pruebas — Backend
+ * @responsabilidad Verifica el comportamiento observable y las reglas principales del caso de uso.
+ * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   ReportExporterService,

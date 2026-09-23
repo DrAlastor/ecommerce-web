@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU13 — Gestionar ciudades y sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> vista de sucursales -> controlador geográfico -> servicio de sucursales -> Ciudad/Sucursal.
+ */
 import React, { useEffect, useState } from 'react';
 import { X, Store, Clock } from 'lucide-react';
 import type { Branch, City, CreateBranchPayload } from '../../types/branchesAdmin.types';

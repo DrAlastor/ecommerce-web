@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU07 — Consultar bitácora
+ * @subsistema Usuarios y Seguridad
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador -> vista de bitácora -> controlador de auditoría -> servicio de bitácora -> Bitácora/Usuario.
+ */
 import { useEffect, useState, useCallback } from 'react';
 import { 
   bitacoraService, 

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU11 — Gestionar proveedores
+ * @subsistema Catálogo y Proveedores
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador -> vista de proveedores -> controlador de proveedores -> servicio de proveedores -> Proveedor/ProveedorProducto/Producto.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../../../users-security/shared/components/AuthContext';
 import { suppliersService } from '../services/suppliers.service';

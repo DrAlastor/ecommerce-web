@@ -1,3 +1,13 @@
+/**
+ * @file branches-inventory.module.ts
+ * @description Módulo de Sucursales e Inventario.
+ * Agrupa los controladores y servicios correspondientes a los casos de uso:
+ * - CU13: Gestión administrativa de ciudades y sucursales físicas.
+ * - CU14: Consulta pública de sucursales, horarios, ubicación y teléfonos.
+ * - CU15: Consulta y auditoría de inventario por sucursal y stock global.
+ * - CU16: Gestión de movimientos de inventario (entradas, salidas, ajustes y transferencias entre tiendas).
+ */
+
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module.js';
 import { AuthModule } from '../users-security/auth/auth.module.js';
@@ -12,6 +22,9 @@ import { InventoryService } from './use-cases/CU15-consultar-inventario/inventor
 import { MovementsController } from './use-cases/CU16-gestionar-movimientos-inventario/movements.controller.js';
 import { MovementsService } from './use-cases/CU16-gestionar-movimientos-inventario/movements.service.js';
 
+/**
+ * Módulo para la administración de la red física de sucursales, ciudades y el control de existencias en tiempo real.
+ */
 @Module({
   imports: [PrismaModule, AuthModule, UsersSecurityModule],
   controllers: [
@@ -36,4 +49,3 @@ import { MovementsService } from './use-cases/CU16-gestionar-movimientos-inventa
   ],
 })
 export class BranchesInventoryModule {}
-

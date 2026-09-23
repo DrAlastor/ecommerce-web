@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU16 — Gestionar movimientos de inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador o Encargado -> formulario de movimiento -> controlador de inventario -> servicio transaccional -> MovimientoInventario/Inventario/Variante/Sucursal.
+ */
 import {
   IsEnum,
   IsIn,

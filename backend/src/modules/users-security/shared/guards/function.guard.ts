@@ -1,3 +1,10 @@
+/**
+ * @file function.guard.ts
+ * @description Guardián de autorización granular basado en funciones y permisos del sistema (RBAC dinámico).
+ * Verifica si el rol asignado al usuario autenticado posee los privilegios requeridos
+ * (Lectura o Edición) sobre la función o módulo especificado en el decorador `@FunctionRequired()`.
+ */
+
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
@@ -9,6 +16,21 @@ export class FunctionGuard implements CanActivate {
     private prisma: PrismaService
   ) {}
 
+  /**
+   * Evalúa si la petición HTTP actual cumple con las políticas de permisos requeridos.
+   * Flujo:
+   * 1. Extrae los metadatos de 'function_required' del controlador o endpoint.
+   * 2. Si no hay requisitos de función, concede acceso libre.
+   * 3. Obtiene el usuario autenticado desde el objeto request (provisto por JwtAuthGuard).
+   * 4. Si el usuario pertenece al Rol Super Administrador (id_rol === 1), concede acceso total inmediato.
+   * 5. Consulta en la base de datos las funciones autorizadas para el rol del usuario en la tabla `rol_funcion`.
+   * 6. Normaliza cadenas (remueve tildes, diacríticos y mayúsculas) y evalúa alias de casos de uso.
+   * 7. Valida que el nivel de acceso (Lectura o Edición) sea suficiente para la operación.
+   *
+   * @param {ExecutionContext} context - Contexto de ejecución de NestJS.
+   * @returns {Promise<boolean>} True si el usuario tiene permiso suficiente.
+   * @throws {ForbiddenException} Si la sesión es inválida, el usuario no existe o carece de permisos.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredFunc = this.reflector.get<{ modulo: string, permiso: string }>(
       'function_required',

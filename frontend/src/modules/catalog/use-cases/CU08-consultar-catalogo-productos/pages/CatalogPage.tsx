@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU08 — Consultar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> catálogo y filtros -> controlador de catálogo -> servicio de catálogo -> Producto/Categoría/Colección/Promoción.
+ */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../../../../../components/layout/Navbar';

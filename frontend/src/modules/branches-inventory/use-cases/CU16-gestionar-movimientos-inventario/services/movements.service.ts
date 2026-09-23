@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU16 — Gestionar movimientos de inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador o Encargado -> formulario de movimiento -> controlador de inventario -> servicio transaccional -> MovimientoInventario/Inventario/Variante/Sucursal.
+ */
 import api from '../../../../../services/api/api';
 import type {
   CreateMovementPayload,

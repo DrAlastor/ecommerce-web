@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU12 — Obtener recomendaciones de prendas mediante IA
+ * @subsistema Experiencia Inteligente
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> asistente de recomendaciones -> controlador de IA -> servicio de recomendaciones -> Catálogo/Preferencias/Proveedor de IA.
+ */
 import React from 'react';
 import { Navbar } from '../../../../../components/layout/Navbar';
 import { RecommendationCard } from '../components/RecommendationCard/RecommendationCard';

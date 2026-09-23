@@ -1,3 +1,12 @@
+/**
+ * @file resend.service.ts
+ * @description Servicio de mensajería por correo electrónico transaccional.
+ * Soporta entrega híbrida e inteligente:
+ * 1. Resend API para dominios autorizados y producción.
+ * 2. Gmail SMTP autenticado (nodemailer) para entrega directa a cualquier dirección de correo real (@gmail.com).
+ * 3. Log de respaldo en consola para entornos de desarrollo local sin conectividad SMTP.
+ */
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
@@ -40,7 +49,14 @@ export class ResendService {
   }
 
   /**
-   * Envía un correo con el código de verificación y enlace para restablecer contraseña
+   * Procedimiento de envío de correo para recuperación de contraseña (CU03).
+   * Genera una plantilla HTML de alta fidelidad con código numérico de 6 dígitos y botón de acción directa.
+   * Ejecuta la estrategia híbrida: intenta Resend y, si existe restricción de destinatario, conmuta automáticamente a Gmail SMTP.
+   *
+   * @param {string} to - Dirección de correo electrónico del usuario destinatario.
+   * @param {string} resetCode - Código numérico aleatorio de 6 dígitos con vigencia temporal.
+   * @param {string} resetLink - Enlace directo al frontend web para cambio de contraseña.
+   * @returns {Promise<boolean>} True si el correo fue despachado exitosamente por alguno de los canales.
    */
   async sendPasswordResetEmail(to: string, resetCode: string, resetLink: string): Promise<boolean> {
     const subject = 'Código de Recuperación de Contraseña — Dressly';

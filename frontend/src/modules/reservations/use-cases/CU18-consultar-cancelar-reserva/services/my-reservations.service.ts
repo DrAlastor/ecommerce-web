@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU18 — Consultar y cancelar reserva
+ * @subsistema Reservas
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Cliente -> listado de reservas -> controlador de reservas -> servicio de cancelación -> Reserva/DetalleReserva/Inventario.
+ */
 import api from '../../../../../services/api/api';
 import type {
   MyReservationListItem,

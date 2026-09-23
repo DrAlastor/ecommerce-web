@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU09 — Consultar detalle y disponibilidad de producto
+ * @subsistema Catálogo e Inventario
+ * @capa Entity/DTO — Frontend web
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Cliente -> detalle del producto -> controlador de detalle -> servicios de catálogo e inventario -> Producto/Variante/Inventario/Sucursal.
+ */
 export interface BranchStock {
   id_sucursal: number;
   nombre: string;

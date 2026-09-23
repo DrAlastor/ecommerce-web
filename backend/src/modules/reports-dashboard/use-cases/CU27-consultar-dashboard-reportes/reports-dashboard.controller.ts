@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU27 — Consultar dashboard y reportes
+ * @subsistema Reportes y Dashboard
+ * @capa Control (API REST) — Backend
+ * @responsabilidad Recibe la solicitud HTTP, aplica guardas o validaciones y delega la lógica al servicio del caso de uso.
+ * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
+ */
 import {
   Controller,
   Get,

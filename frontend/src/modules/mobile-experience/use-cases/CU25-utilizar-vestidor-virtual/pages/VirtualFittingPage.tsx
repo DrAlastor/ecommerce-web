@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU25 — Utilizar vestidor virtual
+ * @subsistema Experiencia Móvil
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> vestidor virtual -> controlador de experiencia -> servicios de cámara y renderizado -> Producto/Variante/Recursos 3D.
+ */
 import React, { useState } from 'react';
 import { Navbar } from '../../../../../components/layout/Navbar';
 import { useVirtualFitting } from '../hooks/useVirtualFitting';

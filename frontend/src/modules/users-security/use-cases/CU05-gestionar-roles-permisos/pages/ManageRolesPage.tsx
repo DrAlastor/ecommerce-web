@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU05 — Gestionar roles y permisos
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador -> vista de roles -> controlador de autorización -> servicio de roles -> Rol/Función/Acción/Permisos.
+ */
 import React from 'react';
 import { useRolePermissions } from '../hooks/useRolePermissions';
 import { RoleSidebar } from '../components/RoleSidebar';

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU05 — Gestionar roles y permisos
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> vista de roles -> controlador de autorización -> servicio de roles -> Rol/Función/Acción/Permisos.
+ */
 import React from 'react';
 import { CheckCircle2, AlertCircle, RotateCcw, Save, RefreshCw } from 'lucide-react';
 

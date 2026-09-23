@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU07 — Consultar bitácora
+ * @subsistema Usuarios y Seguridad
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador -> vista de bitácora -> controlador de auditoría -> servicio de bitácora -> Bitácora/Usuario.
+ */
 import api from '../../../../../services/api/api';
 
 const API_URL = '/users-security/bitacora';

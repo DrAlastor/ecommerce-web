@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU25 — Utilizar vestidor virtual
+ * @subsistema Experiencia Móvil
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Cliente -> vestidor virtual -> controlador de experiencia -> servicios de cámara y renderizado -> Producto/Variante/Recursos 3D.
+ */
 import React, { useState } from 'react';
 import { WebcamCanvas } from '../WebcamCanvas/WebcamCanvas';
 import { GarmentOverlay } from '../GarmentOverlay/GarmentOverlay';

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Cliente -> formulario de perfil -> controlador de perfil -> servicio de clientes -> Usuario/Cliente/Rol.
+ */
 import React from 'react';
 
 interface ChangePasswordCardProps {

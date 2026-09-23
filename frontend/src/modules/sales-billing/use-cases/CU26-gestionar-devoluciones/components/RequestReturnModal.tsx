@@ -1,3 +1,11 @@
+/**
+ * @caso-de-uso Módulo heredado — Gestión de devoluciones
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Usuario autorizado -> vista de devoluciones -> controlador -> servicio de devoluciones -> Devolución/DetalleDevolución/Venta/Inventario.
+ * Nota: módulo heredado; su numeración no corresponde al catálogo oficial de CU del informe.
+ */
 import React, { useState } from 'react';
 import {
   RotateCcw,

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU26 — Gestionar Devoluciones
+ * @subsistema Ventas y Facturación
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Usuario autorizado -> vista de devoluciones -> controlador -> servicio de devoluciones -> Devolución/DetalleDevolución/Venta/Inventario.
+ */
 import {
   BadRequestException,
   ForbiddenException,

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU20 — Gestionar carrito de compras
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Cliente -> carrito -> controlador de carrito -> servicio de carrito -> Carrito/DetalleCarrito/Variante/Inventario.
+ */
 import {
   BadRequestException,
   ForbiddenException,

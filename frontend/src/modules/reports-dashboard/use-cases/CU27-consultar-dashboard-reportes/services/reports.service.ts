@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU27 — Consultar dashboard y reportes
+ * @subsistema Reportes y Dashboard
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
+ */
 import api from '../../../../../services/api/api';
 import type {
   DashboardMetrics,

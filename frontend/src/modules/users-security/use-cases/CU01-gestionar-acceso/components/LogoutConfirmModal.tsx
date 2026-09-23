@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU01 — Gestionar acceso al sistema
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Usuario -> interfaz de acceso -> controlador de autenticación -> servicio de acceso -> Usuario/Rol/Sesión/Bitácora.
+ */
 import React from 'react';
 import { LogOut } from 'lucide-react';
 

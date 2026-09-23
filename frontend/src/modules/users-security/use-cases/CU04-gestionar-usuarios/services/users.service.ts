@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU04 — Gestionar usuarios
+ * @subsistema Usuarios y Seguridad
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador -> vista de usuarios -> controlador de usuarios -> servicio de usuarios -> Usuario/Rol/Bitácora.
+ */
 import api from '../../../../../services/api/api';
 
 const API_URL = '/users-security/users';

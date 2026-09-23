@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU15 — Consultar inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Entity/DTO — Frontend web
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador o Encargado -> vista de inventario -> controlador de inventario -> servicio de existencias -> Inventario/Variante/Sucursal.
+ */
 export interface InventoryBranch {
   id_sucursal: number;
   nombre: string;

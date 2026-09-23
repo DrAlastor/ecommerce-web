@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU08 — Consultar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Cliente -> catálogo y filtros -> controlador de catálogo -> servicio de catálogo -> Producto/Categoría/Colección/Promoción.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useShop } from '../../../../../context/ShopContext';

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU18 — Consultar y cancelar reserva
+ * @subsistema Reservas
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> listado de reservas -> controlador de reservas -> servicio de cancelación -> Reserva/DetalleReserva/Inventario.
+ */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, RefreshCw, ArrowLeft } from 'lucide-react';

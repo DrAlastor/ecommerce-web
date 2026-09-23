@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU11 — Gestionar proveedores
+ * @subsistema Catálogo y Proveedores
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador -> vista de proveedores -> controlador de proveedores -> servicio de proveedores -> Proveedor/ProveedorProducto/Producto.
+ */
 import api from '../../../../../services/api/api';
 import type {
   PaginatedResponse,

@@ -1,3 +1,11 @@
+/**
+ * @caso-de-uso Módulo heredado — Gestión de devoluciones
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Usuario autorizado -> vista de devoluciones -> controlador -> servicio de devoluciones -> Devolución/DetalleDevolución/Venta/Inventario.
+ * Nota: módulo heredado; su numeración no corresponde al catálogo oficial de CU del informe.
+ */
 import {
   IsArray,
   IsBoolean,

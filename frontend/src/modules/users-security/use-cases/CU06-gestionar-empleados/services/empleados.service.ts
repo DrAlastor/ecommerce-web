@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU06 — Gestionar empleados
+ * @subsistema Usuarios y Seguridad
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador -> formulario de empleados -> controlador de empleados -> servicio de empleados -> Usuario/Empleado/Rol/Sucursal.
+ */
 import api from '../../../../../services/api/api';
 
 export interface BranchItem {

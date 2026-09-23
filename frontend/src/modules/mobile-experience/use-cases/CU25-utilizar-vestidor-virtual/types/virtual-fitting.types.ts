@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU25 — Utilizar vestidor virtual
+ * @subsistema Experiencia Móvil
+ * @capa Entity/DTO — Frontend web
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Cliente -> vestidor virtual -> controlador de experiencia -> servicios de cámara y renderizado -> Producto/Variante/Recursos 3D.
+ */
 /* ═══════════════════════════════════════════════════════════════
    CU25 — Utilizar Vestidor Virtual — Types
    ═══════════════════════════════════════════════════════════════ */

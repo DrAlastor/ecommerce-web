@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU25 — Utilizar vestidor virtual
+ * @subsistema Experiencia Móvil
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Cliente -> vestidor virtual -> controlador de experiencia -> servicios de cámara y renderizado -> Producto/Variante/Recursos 3D.
+ */
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { computeGarmentTransform, computeGarment3DTransform } from '../utils/pose-math';
 import { TransformSmoother, Transform3DSmoother } from '../utils/smoothing';

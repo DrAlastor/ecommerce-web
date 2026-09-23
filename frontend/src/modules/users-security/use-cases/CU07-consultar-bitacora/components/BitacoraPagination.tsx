@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU07 — Consultar bitácora
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> vista de bitácora -> controlador de auditoría -> servicio de bitácora -> Bitácora/Usuario.
+ */
 import React from 'react';
 
 interface BitacoraPaginationProps {

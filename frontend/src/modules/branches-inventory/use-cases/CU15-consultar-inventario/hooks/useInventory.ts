@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU15 — Consultar inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador o Encargado -> vista de inventario -> controlador de inventario -> servicio de existencias -> Inventario/Variante/Sucursal.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { inventoryService } from '../services/inventory.service';
 import type {

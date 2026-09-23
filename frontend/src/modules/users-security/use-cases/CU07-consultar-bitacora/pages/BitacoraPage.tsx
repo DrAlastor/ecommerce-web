@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU07 — Consultar bitácora
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador -> vista de bitácora -> controlador de auditoría -> servicio de bitácora -> Bitácora/Usuario.
+ */
 import React from 'react';
 import { useBitacora } from '../hooks/useBitacora';
 import { BitacoraStats } from '../components/BitacoraStats';

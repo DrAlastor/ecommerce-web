@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU17 — Realizar reserva de prendas
+ * @subsistema Reservas
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Cliente -> formulario de reserva -> controlador de reservas -> servicio de disponibilidad -> Reserva/DetalleReserva/Inventario/Sucursal.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { reservationService } from '../services/reservation.service';
 import type {

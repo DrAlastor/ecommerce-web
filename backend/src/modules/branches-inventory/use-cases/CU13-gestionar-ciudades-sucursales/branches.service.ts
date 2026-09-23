@@ -1,3 +1,17 @@
+/**
+ * @file branches.service.ts
+ * @caso-de-uso CU13 — Gestionar ciudades y sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Implementa las reglas de negocio para la administración de sucursales físicas:
+ * - Conversión y formateo UTC de cadenas horarias (HH:mm).
+ * - Búsqueda multicriterio insensible a mayúsculas/minúsculas y acentos.
+ * - Validación de duplicidad de nombres de sucursal dentro de una misma ciudad.
+ * - Restricción estricta de borrado (impide eliminación si posee historial de inventario, movimientos,
+ *   órdenes de compra o reservas, sugiriendo el pase a estado inactivo).
+ * - Registro minucioso de acciones en la bitácora del sistema.
+ */
+
 import {
   BadRequestException,
   ConflictException,
@@ -12,6 +26,10 @@ import {
   UpdateBranchDto,
 } from './dto/branches.dto.js';
 
+/**
+ * Convierte una cadena de hora "HH:mm" o "HH:mm:ss" a un objeto Date en época UTC 1970-01-01
+ * para persistencia compatible en PostgreSQL/Prisma (tipo Time).
+ */
 function parseTimeStringToDate(timeStr?: string | null): Date | null {
   if (!timeStr || !timeStr.trim()) return null;
   const parts = timeStr.trim().split(':');
@@ -22,6 +40,9 @@ function parseTimeStringToDate(timeStr?: string | null): Date | null {
   return new Date(Date.UTC(1970, 0, 1, hours, minutes, seconds));
 }
 
+/**
+ * Formatea un objeto Date representativo de hora a una cadena "HH:mm" en UTC para clientes REST.
+ */
 function formatTimeToHHmm(date?: Date | null): string | null {
   if (!date) return null;
   const d = new Date(date);
@@ -30,6 +51,9 @@ function formatTimeToHHmm(date?: Date | null): string | null {
   return `${hours}:${minutes}`;
 }
 
+/**
+ * Servicio encargado del ciclo de vida y auditoría de tiendas y sucursales físicas.
+ */
 @Injectable()
 export class BranchesService {
   constructor(
@@ -37,6 +61,12 @@ export class BranchesService {
     private readonly bitacora: BitacoraService,
   ) {}
 
+  /**
+   * Obtiene listas maestras (ciudades registradas y empleados activos con sus cargos y sucursales asignadas)
+   * para alimentar los desplegables de formularios de alta y edición de tiendas.
+   *
+   * @returns {Promise<Object>} Ciudades y empleados formateados.
+   */
   async getMetadata() {
     const [cities, employees] = await Promise.all([
       this.prisma.ciudad.findMany({
@@ -88,6 +118,13 @@ export class BranchesService {
     };
   }
 
+  /**
+   * Lista sucursales con soporte para paginación, filtros por ciudad, estado y búsqueda general
+   * (nombre, dirección, teléfono o ciudad), calculando si posee historial operativo acumulado.
+   *
+   * @param {QueryBranchesDto} query - Criterios de filtrado y paginación.
+   * @returns {Promise<Object>} Lista de sucursales con conteos operativos y metadatos de paginación.
+   */
   async findAll(query: QueryBranchesDto) {
     const { search, id_ciudad, estado, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
@@ -176,6 +213,13 @@ export class BranchesService {
     };
   }
 
+  /**
+   * Consulta una sucursal física por ID, retornando su personal asignado y métricas cuantitativas de actividad.
+   *
+   * @param {number} id - ID de la sucursal.
+   * @returns {Promise<Object>} Detalle de la sucursal y nómina de empleados.
+   * @throws {NotFoundException} Si la sucursal no existe.
+   */
   async findById(id: number) {
     const branch = await this.prisma.sucursal.findUnique({
       where: { id_sucursal: id },
@@ -247,6 +291,20 @@ export class BranchesService {
     };
   }
 
+  /**
+   * Registra una nueva sucursal física:
+   * 1. Valida que la ciudad exista.
+   * 2. Comprueba que el nombre de sucursal sea único en dicha ciudad.
+   * 3. Parsea horas de apertura y cierre a fechas UTC.
+   * 4. Registra en la base de datos y añade entrada a la bitácora de auditoría.
+   *
+   * @param {CreateBranchDto} dto - Datos de la sucursal (nombre, dirección, ciudad, teléfonos, horarios).
+   * @param {number} idUsuario - ID del usuario que ejecuta la acción.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Sucursal creada con horas formateadas a HH:mm.
+   * @throws {BadRequestException} Si la ciudad no existe.
+   * @throws {ConflictException} Si el nombre de sucursal ya existe en esa ciudad.
+   */
   async create(dto: CreateBranchDto, idUsuario: number, ip?: string) {
     const nombre = dto.nombre.trim();
     const direccion = dto.direccion.trim();
@@ -313,6 +371,19 @@ export class BranchesService {
     };
   }
 
+  /**
+   * Actualiza los datos de contacto, ubicación, ciudad u horarios de una sucursal,
+   * auditando la modificación en bitácora.
+   *
+   * @param {number} id - ID de la sucursal.
+   * @param {UpdateBranchDto} dto - Datos modificados.
+   * @param {number} idUsuario - ID del usuario responsable.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Sucursal actualizada.
+   * @throws {NotFoundException} Si la sucursal no existe.
+   * @throws {BadRequestException} Si la ciudad destino no existe.
+   * @throws {ConflictException} Si colisiona con el nombre de otra sucursal en la misma ciudad.
+   */
   async update(id: number, dto: UpdateBranchDto, idUsuario: number, ip?: string) {
     const existing = await this.prisma.sucursal.findUnique({
       where: { id_sucursal: id },
@@ -400,6 +471,16 @@ export class BranchesService {
     };
   }
 
+  /**
+   * Cambia el estado operativo de una sucursal física (activo / inactivo / mantenimiento).
+   *
+   * @param {number} id - ID de la sucursal.
+   * @param {string} estado - Nuevo estado.
+   * @param {number} idUsuario - ID del usuario responsable.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Sucursal con estado actualizado.
+   * @throws {NotFoundException} Si la sucursal no existe.
+   */
   async updateStatus(id: number, estado: string, idUsuario: number, ip?: string) {
     const existing = await this.prisma.sucursal.findUnique({
       where: { id_sucursal: id },
@@ -432,6 +513,17 @@ export class BranchesService {
     };
   }
 
+  /**
+   * Elimina una sucursal física si y solo si no cuenta con historial operativo (inventarios, movimientos,
+   * órdenes de compra o reservas previas), preservando así la integridad contable y legal.
+   *
+   * @param {number} id - ID de la sucursal a eliminar.
+   * @param {number} idUsuario - ID del usuario responsable.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la sucursal no existe.
+   * @throws {ConflictException} Si la sucursal contiene registros históricos que impiden su borrado.
+   */
   async delete(id: number, idUsuario: number, ip?: string) {
     const existing = await this.prisma.sucursal.findUnique({
       where: { id_sucursal: id },

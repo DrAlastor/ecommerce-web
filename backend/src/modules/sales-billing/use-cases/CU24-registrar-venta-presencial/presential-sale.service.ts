@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU24 — Registrar venta presencial
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Cajero -> punto de venta -> controlador de ventas -> servicio transaccional -> Venta/DetalleVenta/Pago/Inventario.
+ */
 import {
   BadRequestException,
   ForbiddenException,

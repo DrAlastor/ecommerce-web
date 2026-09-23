@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU16 — Gestionar movimientos de inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador o Encargado -> formulario de movimiento -> controlador de inventario -> servicio transaccional -> MovimientoInventario/Inventario/Variante/Sucursal.
+ */
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {

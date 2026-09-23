@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU16 — Gestionar movimientos de inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador o Encargado -> formulario de movimiento -> controlador de inventario -> servicio transaccional -> MovimientoInventario/Inventario/Variante/Sucursal.
+ */
 import React from 'react';
 import {
   Calendar,

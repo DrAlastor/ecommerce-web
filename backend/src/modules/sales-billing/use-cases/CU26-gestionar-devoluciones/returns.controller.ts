@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU26 — Gestionar Devoluciones
+ * @subsistema Ventas y Facturación
+ * @capa Control (API REST) — Backend
+ * @responsabilidad Recibe la solicitud HTTP, aplica guardas o validaciones y delega la lógica al servicio del caso de uso.
+ * @secuencia Usuario autorizado -> vista de devoluciones -> controlador -> servicio de devoluciones -> Devolución/DetalleDevolución/Venta/Inventario.
+ */
 import {
   Body,
   Controller,

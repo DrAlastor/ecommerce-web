@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU17 — Realizar reserva de prendas
+ * @subsistema Reservas
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Cliente -> formulario de reserva -> controlador de reservas -> servicio de disponibilidad -> Reserva/DetalleReserva/Inventario/Sucursal.
+ */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {

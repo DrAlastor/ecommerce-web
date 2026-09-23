@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU09 — Consultar detalle y disponibilidad de producto
+ * @subsistema Catálogo e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Cliente -> detalle del producto -> controlador de detalle -> servicios de catálogo e inventario -> Producto/Variante/Inventario/Sucursal.
+ */
 import React from 'react';
 import type { ProductVariant } from '../../types/product-detail.types';
 import { Ruler, Check } from 'lucide-react';

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU13 — Gestionar ciudades y sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador -> vista de sucursales -> controlador geográfico -> servicio de sucursales -> Ciudad/Sucursal.
+ */
 import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator';
 

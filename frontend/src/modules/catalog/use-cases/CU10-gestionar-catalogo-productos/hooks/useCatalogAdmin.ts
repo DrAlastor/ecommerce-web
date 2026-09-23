@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU10 — Gestionar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador -> administración de catálogo -> controlador de productos -> servicio de catálogo -> Producto/Variante/Categoría/Colección/Promoción.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { catalogAdminService } from '../services/catalog-admin.service';

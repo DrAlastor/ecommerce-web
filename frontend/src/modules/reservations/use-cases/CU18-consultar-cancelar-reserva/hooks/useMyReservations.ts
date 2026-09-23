@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU18 — Consultar y cancelar reserva
+ * @subsistema Reservas
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Cliente -> listado de reservas -> controlador de reservas -> servicio de cancelación -> Reserva/DetalleReserva/Inventario.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { myReservationsService } from '../services/my-reservations.service';
 import type {

@@ -1,3 +1,12 @@
+/**
+ * @file roles.service.ts
+ * @caso-de-uso CU05 — Gestionar roles y permisos
+ * @subsistema Usuarios y Seguridad
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Implementa los procedimientos de gestión RBAC: consulta de roles con estadísticas,
+ * construcción del árbol de módulos/funciones del sistema, y actualización atómica en bloque de permisos con reglas de protección de superadministrador.
+ */
+
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
@@ -13,7 +22,11 @@ export class RolesService {
   ) {}
 
   /**
-   * Obtiene todos los roles con estadísticas básicas (usuarios y funciones asignadas)
+   * Obtiene la lista completa de roles del sistema con estadísticas calculadas en base de datos.
+   * Conteo agregado de usuarios asociados y total de funciones activas por rol.
+   *
+   * @returns {Promise<Array<{ id_rol: number, nombre: string, permiso: string, total_usuarios: number, total_funciones: number }>>}
+   * Lista ordenada de roles.
    */
   async getRoles() {
     const roles = await this.prisma.rol.findMany({
@@ -38,7 +51,11 @@ export class RolesService {
   }
 
   /**
-   * Obtiene el árbol completo de módulos con todas sus funciones disponibles en el sistema
+   * Obtiene el árbol completo de módulos y sus funciones de negocio asociadas.
+   * Utilizado en la interfaz gráfica de administración para renderizar el panel de checkboxes y niveles de acceso.
+   *
+   * @returns {Promise<Array<{ id_modulo: number, nombre: string, descripcion: string, funciones: any[] }>>}
+   * Estructura jerárquica de módulos y funciones.
    */
   async getModulesTree() {
     const modulos = await this.prisma.modulo.findMany({
@@ -64,7 +81,12 @@ export class RolesService {
   }
 
   /**
-   * Obtiene el detalle de un rol específico, incluyendo sus funciones asignadas y niveles de acceso
+   * Procedimiento de consulta detallada de un rol específico por su identificador.
+   * Carga las relaciones con la tabla `rol_funcion` y `modulo`, computando resúmenes de permisos (Lectura vs Edición).
+   *
+   * @param {number} id - Identificador del rol.
+   * @returns {Promise<any>} Datos del rol, resumen numérico por nivel y desglose de funciones.
+   * @throws {NotFoundException} Si el rol no existe.
    */
   async getRoleById(id: number) {
     const rol = await this.prisma.rol.findUnique({
@@ -122,7 +144,22 @@ export class RolesService {
   }
 
   /**
-   * Actualiza las relaciones ROL_FUNCION de un rol determinado
+   * Procedimiento de actualización en bloque de los permisos de un rol (tabla `rol_funcion`).
+   * Reglas de integridad y seguridad:
+   * 1. Comprueba la existencia del rol.
+   * 2. Regla de autoprotección: Impide retirar o degradar el permiso de Edición de 'Gestionar roles' al rol Administrador.
+   * 3. Valida que no se envíen IDs de función repetidos en el payload.
+   * 4. Valida que todos los IDs de función referenciados existan en la base de datos.
+   * 5. Ejecuta una transacción atómica: elimina los permisos previos del rol y reinserta los nuevos con nivel normalizado ('Edicion' o 'Lectura').
+   * 6. Registra la auditoría en la bitácora del sistema.
+   *
+   * @param {number} id - ID del rol a modificar.
+   * @param {UpdateRolePermissionsDto} dto - Lista de funciones y niveles a asignar.
+   * @param {number} idUsuario - ID del administrador que realiza la modificación.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<any>} Rol actualizado con sus nuevos permisos.
+   * @throws {NotFoundException} Si el rol no existe.
+   * @throws {BadRequestException} Si se violan reglas de integridad o de protección de superadministrador.
    */
   async updateRolePermissions(
     id: number,

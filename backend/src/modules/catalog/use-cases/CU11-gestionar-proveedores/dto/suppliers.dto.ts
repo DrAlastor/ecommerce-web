@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU11 — Gestionar proveedores
+ * @subsistema Catálogo y Proveedores
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador -> vista de proveedores -> controlador de proveedores -> servicio de proveedores -> Proveedor/ProveedorProducto/Producto.
+ */
 import {
   ArrayMinSize,
   IsArray,

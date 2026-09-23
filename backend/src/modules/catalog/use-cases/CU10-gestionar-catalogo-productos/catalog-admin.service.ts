@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU10 — Gestionar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Administrador -> administración de catálogo -> controlador de productos -> servicio de catálogo -> Producto/Variante/Categoría/Colección/Promoción.
+ */
 import {
   Injectable,
   NotFoundException,
@@ -34,6 +41,13 @@ export class CatalogAdminService {
   // ==========================================
   // METADATA HELPER
   // ==========================================
+
+  /**
+   * Obtiene en paralelo las listas maestras de referencia necesarias para alimentar formularios de administración:
+   * Categorías, Tallas, Colores, Temporadas y Colecciones.
+   *
+   * @returns {Promise<Object>} Listas de entidades maestras para selección en interfaces de usuario.
+   */
   async getMetadata() {
     const [categories, sizes, colors, seasons, collections] = await Promise.all([
       this.prisma.categoria.findMany({
@@ -75,6 +89,15 @@ export class CatalogAdminService {
   // ==========================================
   // PRODUCTS CRUD
   // ==========================================
+
+  /**
+   * Consulta productos con paginación y filtros administrativos avanzados:
+   * término de búsqueda libre en nombre/descripción, categoría, colección, género y estado.
+   * Transforma las promociones activas e incluye las variantes y la imagen principal.
+   *
+   * @param {QueryAdminProductsDto} query - Criterios de filtrado y parámetros de paginación (página, límite).
+   * @returns {Promise<Object>} Lista paginada de productos formateados y metadatos de paginación.
+   */
   async findAllProducts(query: QueryAdminProductsDto) {
     const { search, id_categoria, id_coleccion, genero, estado, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
@@ -209,6 +232,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Busca un producto por su clave primaria, recuperando relaciones completas (categoría, colección,
+   * temporada, imágenes ordenadas, variantes con stock total consolidado y promociones asociadas).
+   *
+   * @param {number} id - ID del producto.
+   * @returns {Promise<Object>} Registro detallado del producto con sus variantes y stock.
+   * @throws {NotFoundException} Si el producto no existe en el sistema.
+   */
   async findProductById(id: number) {
     const p = await this.prisma.producto.findUnique({
       where: { id_producto: id },
@@ -251,6 +282,16 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Crea un nuevo producto base:
+   * 1. Valida existencia de categoría y colección asociada (si se especifica).
+   * 2. Calcula correlativo manual de ID para compatibilidad con el esquema.
+   * 3. Registra el producto con sus atributos iniciales.
+   *
+   * @param {CreateProductDto} dto - Datos de entrada para la creación del producto.
+   * @returns {Promise<Object>} Producto creado con su precio base normalizado a número.
+   * @throws {BadRequestException} Si la categoría o colección no existen.
+   */
   async createProduct(dto: CreateProductDto) {
     // Validar categoría
     const cat = await this.prisma.categoria.findUnique({
@@ -300,6 +341,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza parcialmente la información comercial, clasificación o precio de un producto.
+   *
+   * @param {number} id - ID del producto a actualizar.
+   * @param {UpdateProductDto} dto - Campos modificados del producto.
+   * @returns {Promise<Object>} Producto actualizado con precio numérico.
+   * @throws {NotFoundException} Si el producto no existe.
+   * @throws {BadRequestException} Si la nueva categoría o colección no existen.
+   */
   async updateProduct(id: number, dto: UpdateProductDto) {
     const existing = await this.prisma.producto.findUnique({ where: { id_producto: id } });
     if (!existing) {
@@ -350,6 +400,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Modifica el estado operativo (activo / inactivo) de un producto en catálogo.
+   *
+   * @param {number} id - ID del producto.
+   * @param {'activo' | 'inactivo'} estado - Nuevo estado asignado.
+   * @returns {Promise<Object>} Mensaje de éxito y entidad actualizada.
+   * @throws {NotFoundException} Si el producto no existe.
+   */
   async toggleProductStatus(id: number, estado: 'activo' | 'inactivo') {
     const existing = await this.prisma.producto.findUnique({ where: { id_producto: id } });
     if (!existing) {
@@ -370,6 +428,14 @@ export class CatalogAdminService {
   // ==========================================
   // VARIANTS CRUD
   // ==========================================
+
+  /**
+   * Obtiene la totalidad de variantes registradas para un producto, calculando la sumatoria de stock
+   * disponible en todas las sucursales físicas.
+   *
+   * @param {number} productId - ID del producto padre.
+   * @returns {Promise<Array>} Lista de variantes con tallas, colores, precios calculados y stock total.
+   */
   async findVariantsByProduct(productId: number) {
     const variants = await this.prisma.producto_variante.findMany({
       where: { id_producto: productId },
@@ -390,6 +456,20 @@ export class CatalogAdminService {
     }));
   }
 
+  /**
+   * Crea una nueva variante física para un producto:
+   * 1. Verifica existencia del producto, talla y color.
+   * 2. Comprueba que el código SKU no esté duplicado en la base de datos.
+   * 3. Garantiza que la combinación específica [id_producto, id_talla, id_color] sea única.
+   * 4. Registra la variante con su precio adicional y enlace a modelo 3D.
+   *
+   * @param {number} productId - ID del producto al que se añade la variante.
+   * @param {CreateVariantDto} dto - Datos de la variante (SKU, talla, color, precio adicional, modelo 3D).
+   * @returns {Promise<Object>} Variante creada con relaciones.
+   * @throws {NotFoundException} Si el producto no existe.
+   * @throws {BadRequestException} Si la talla o el color no existen.
+   * @throws {ConflictException} Si el SKU o la combinación talla/color ya existen.
+   */
   async createVariant(productId: number, dto: CreateVariantDto) {
     // Validar existencia de producto
     const prod = await this.prisma.producto.findUnique({ where: { id_producto: productId } });
@@ -461,6 +541,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza los atributos de una variante existente, asegurando la no duplicidad de SKU y combinación talla/color.
+   *
+   * @param {number} id - ID de la variante a actualizar.
+   * @param {UpdateVariantDto} dto - Datos modificados de la variante.
+   * @returns {Promise<Object>} Variante actualizada con relaciones y precio adicional numérico.
+   * @throws {NotFoundException} Si la variante no existe.
+   * @throws {ConflictException} Si el SKU o la combinación de talla y color ya están en uso.
+   */
   async updateVariant(id: number, dto: UpdateVariantDto) {
     const existing = await this.prisma.producto_variante.findUnique({
       where: { id_producto_variante: id },
@@ -526,6 +615,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Cambia el estado de activación (activo / inactivo) de una variante.
+   *
+   * @param {number} id - ID de la variante.
+   * @param {'activo' | 'inactivo'} estado - Nuevo estado asignado.
+   * @returns {Promise<Object>} Mensaje y variante actualizada.
+   * @throws {NotFoundException} Si la variante no existe.
+   */
   async toggleVariantStatus(id: number, estado: 'activo' | 'inactivo') {
     const existing = await this.prisma.producto_variante.findUnique({
       where: { id_producto_variante: id },
@@ -548,6 +645,12 @@ export class CatalogAdminService {
   // ==========================================
   // CATEGORIES CRUD
   // ==========================================
+
+  /**
+   * Obtiene la jerarquía completa de categorías comerciales con conteos de subcategorías, productos y guías de tallas.
+   *
+   * @returns {Promise<Array>} Lista de categorías con métricas agregadas.
+   */
   async findAllCategories() {
     const categories = await this.prisma.categoria.findMany({
       include: {
@@ -575,6 +678,13 @@ export class CatalogAdminService {
     }));
   }
 
+  /**
+   * Crea una nueva categoría en el catálogo, opcionalmente asignando una categoría padre jerárquica.
+   *
+   * @param {CreateCategoryDto} dto - Datos de la categoría (nombre, descripción, ID de categoría padre).
+   * @returns {Promise<Object>} Categoría creada.
+   * @throws {BadRequestException} Si la categoría padre no existe.
+   */
   async createCategory(dto: CreateCategoryDto) {
     if (dto.id_categoria_padre) {
       const parent = await this.prisma.categoria.findUnique({
@@ -603,6 +713,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza el nombre, descripción o jerarquía de una categoría, previniendo ciclos padre-hijo autorreferenciales.
+   *
+   * @param {number} id - ID de la categoría a actualizar.
+   * @param {UpdateCategoryDto} dto - Datos a modificar.
+   * @returns {Promise<Object>} Categoría actualizada.
+   * @throws {NotFoundException} Si la categoría no existe.
+   * @throws {BadRequestException} Si la categoría intenta ser padre de sí misma o la padre no existe.
+   */
   async updateCategory(id: number, dto: UpdateCategoryDto) {
     const existing = await this.prisma.categoria.findUnique({ where: { id_categoria: id } });
     if (!existing) {
@@ -637,6 +756,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Elimina una categoría si no contiene productos ni subcategorías activas vinculadas.
+   *
+   * @param {number} id - ID de la categoría a eliminar.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la categoría no existe.
+   * @throws {ConflictException} Si tiene productos o subcategorías asociadas.
+   */
   async deleteCategory(id: number) {
     const existing = await this.prisma.categoria.findUnique({
       where: { id_categoria: id },
@@ -665,6 +792,12 @@ export class CatalogAdminService {
   // ==========================================
   // SIZES CRUD
   // ==========================================
+
+  /**
+   * Obtiene la totalidad de tallas registradas en el sistema con el conteo de variantes asociadas.
+   *
+   * @returns {Promise<Array>} Lista de tallas ordenadas por ID ascendente.
+   */
   async findAllSizes() {
     return this.prisma.talla.findMany({
       include: {
@@ -674,6 +807,13 @@ export class CatalogAdminService {
     });
   }
 
+  /**
+   * Registra una nueva talla asegurando que no exista un código repetido en mayúsculas.
+   *
+   * @param {CreateSizeDto} dto - Datos de la talla (código alfanumérico, ej. "M", "38").
+   * @returns {Promise<Object>} Talla registrada.
+   * @throws {ConflictException} Si el código de talla ya existe.
+   */
   async createSize(dto: CreateSizeDto) {
     const codigo = dto.codigo.trim().toUpperCase();
     const conflict = await this.prisma.talla.findUnique({ where: { codigo } });
@@ -697,6 +837,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Elimina una talla si no está asignada a ninguna variante de producto existente.
+   *
+   * @param {number} id - ID de la talla.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la talla no existe.
+   * @throws {ConflictException} Si hay variantes usando esta talla.
+   */
   async deleteSize(id: number) {
     const existing = await this.prisma.talla.findUnique({
       where: { id_talla: id },
@@ -717,6 +865,12 @@ export class CatalogAdminService {
   // ==========================================
   // COLORS CRUD
   // ==========================================
+
+  /**
+   * Obtiene la totalidad de colores comerciales registrados junto con el conteo de variantes asociadas.
+   *
+   * @returns {Promise<Array>} Lista de colores ordenados alfabéticamente.
+   */
   async findAllColors() {
     return this.prisma.color.findMany({
       include: {
@@ -726,6 +880,12 @@ export class CatalogAdminService {
     });
   }
 
+  /**
+   * Registra un nuevo color para su utilización en variantes.
+   *
+   * @param {CreateColorDto} dto - Nombre y código hexadecimal del color.
+   * @returns {Promise<Object>} Color creado.
+   */
   async createColor(dto: CreateColorDto) {
     const max = await this.prisma.color.aggregate({ _max: { id_color: true } });
     const nextId = (max._max.id_color || 0) + 1;
@@ -744,6 +904,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza el nombre o código hexadecimal de un color existente.
+   *
+   * @param {number} id - ID del color.
+   * @param {UpdateColorDto} dto - Campos modificados.
+   * @returns {Promise<Object>} Color actualizado.
+   * @throws {NotFoundException} Si el color no existe.
+   */
   async updateColor(id: number, dto: UpdateColorDto) {
     const existing = await this.prisma.color.findUnique({ where: { id_color: id } });
     if (!existing) throw new NotFoundException(`El color con ID ${id} no existe.`);
@@ -762,6 +930,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Elimina un color si no está vinculado a variantes de productos activas.
+   *
+   * @param {number} id - ID del color.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si el color no existe.
+   * @throws {ConflictException} Si hay variantes usando este color.
+   */
   async deleteColor(id: number) {
     const existing = await this.prisma.color.findUnique({
       where: { id_color: id },
@@ -782,6 +958,12 @@ export class CatalogAdminService {
   // ==========================================
   // SEASONS & COLLECTIONS CRUD
   // ==========================================
+
+  /**
+   * Lista todas las temporadas cronológicas registradas con el conteo de colecciones vinculadas.
+   *
+   * @returns {Promise<Array>} Temporadas ordenadas por fecha de inicio descendente.
+   */
   async findAllSeasons() {
     return this.prisma.temporada.findMany({
       include: {
@@ -791,6 +973,13 @@ export class CatalogAdminService {
     });
   }
 
+  /**
+   * Crea una nueva temporada de moda, validando coherencia de fechas cronológicas.
+   *
+   * @param {CreateSeasonDto} dto - Datos de la temporada (nombre, fecha_inicio, fecha_fin, estado).
+   * @returns {Promise<Object>} Temporada creada.
+   * @throws {BadRequestException} Si la fecha de inicio es posterior a la de finalización.
+   */
   async createSeason(dto: CreateSeasonDto) {
     if (new Date(dto.fecha_inicio) > new Date(dto.fecha_fin)) {
       throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de finalización.');
@@ -815,6 +1004,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza el rango temporal o estado de una temporada existente.
+   *
+   * @param {number} id - ID de la temporada.
+   * @param {UpdateSeasonDto} dto - Datos modificados.
+   * @returns {Promise<Object>} Temporada actualizada.
+   * @throws {NotFoundException} Si la temporada no existe.
+   * @throws {BadRequestException} Si el rango de fechas resulta inconsistente.
+   */
   async updateSeason(id: number, dto: UpdateSeasonDto) {
     const existing = await this.prisma.temporada.findUnique({ where: { id_temporada: id } });
     if (!existing) throw new NotFoundException(`La temporada con ID ${id} no existe.`);
@@ -842,6 +1040,11 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Lista todas las colecciones temáticas con su temporada asociada y cantidad de productos.
+   *
+   * @returns {Promise<Array>} Colecciones registradas.
+   */
   async findAllCollections() {
     return this.prisma.coleccion.findMany({
       include: {
@@ -852,6 +1055,13 @@ export class CatalogAdminService {
     });
   }
 
+  /**
+   * Registra una nueva colección asociada opcionalmente a una temporada vigente.
+   *
+   * @param {CreateCollectionDto} dto - Datos de la colección.
+   * @returns {Promise<Object>} Colección creada.
+   * @throws {BadRequestException} Si la temporada especificada no existe.
+   */
   async createCollection(dto: CreateCollectionDto) {
     if (dto.id_temporada) {
       const temp = await this.prisma.temporada.findUnique({
@@ -881,6 +1091,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Modifica el nombre, descripción o temporada vinculada de una colección.
+   *
+   * @param {number} id - ID de la colección.
+   * @param {UpdateCollectionDto} dto - Datos a modificar.
+   * @returns {Promise<Object>} Colección actualizada.
+   * @throws {NotFoundException} Si la colección no existe.
+   * @throws {BadRequestException} Si la nueva temporada no existe.
+   */
   async updateCollection(id: number, dto: UpdateCollectionDto) {
     const existing = await this.prisma.coleccion.findUnique({ where: { id_coleccion: id } });
     if (!existing) throw new NotFoundException(`La colección con ID ${id} no existe.`);
@@ -910,6 +1129,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Elimina una colección si no contiene productos asociados.
+   *
+   * @param {number} id - ID de la colección.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la colección no existe.
+   * @throws {ConflictException} Si tiene productos asociados.
+   */
   async deleteCollection(id: number) {
     const existing = await this.prisma.coleccion.findUnique({
       where: { id_coleccion: id },
@@ -930,6 +1157,13 @@ export class CatalogAdminService {
   // ==========================================
   // SIZE GUIDES CRUD
   // ==========================================
+
+  /**
+   * Obtiene la tabla de medidas corporales y correspondencia de tallas, opcionalmente filtrada por categoría.
+   *
+   * @param {number} [categoryId] - Filtro opcional por ID de categoría de vestimenta.
+   * @returns {Promise<Array>} Reglas de guía de tallas con valores numéricos en centímetros.
+   */
   async findAllSizeGuides(categoryId?: number) {
     const where: any = {};
     if (categoryId) where.id_categoria = categoryId;
@@ -949,6 +1183,14 @@ export class CatalogAdminService {
     }));
   }
 
+  /**
+   * Crea una regla de guía de tallas (ej. Busto, Cintura, Cadera) para una categoría específica.
+   *
+   * @param {CreateSizeGuideDto} dto - Datos de la regla de medición (categoría, parte del cuerpo, talla, min_cm, max_cm).
+   * @returns {Promise<Object>} Regla creada.
+   * @throws {BadRequestException} Si min_cm >= max_cm o la categoría no existe.
+   * @throws {ConflictException} Si ya existe una regla para esa misma combinación.
+   */
   async createSizeGuide(dto: CreateSizeGuideDto) {
     if (dto.min_cm >= dto.max_cm) {
       throw new BadRequestException('El valor mínimo en cm debe ser estrictamente menor que el valor máximo.');
@@ -997,6 +1239,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza el rango de centímetros o etiqueta de una regla de guía de tallas.
+   *
+   * @param {number} id - ID de la regla de guía de talla.
+   * @param {UpdateSizeGuideDto} dto - Datos modificados.
+   * @returns {Promise<Object>} Regla actualizada.
+   * @throws {NotFoundException} Si la regla no existe.
+   * @throws {BadRequestException} Si el valor mínimo es mayor o igual al máximo.
+   */
   async updateSizeGuide(id: number, dto: UpdateSizeGuideDto) {
     const existing = await this.prisma.guia_talla.findUnique({ where: { id_guia_talla: id } });
     if (!existing) throw new NotFoundException(`La guía de talla con ID ${id} no existe.`);
@@ -1029,6 +1280,13 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Elimina un registro de guía de talla.
+   *
+   * @param {number} id - ID de la regla a eliminar.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la regla no existe.
+   */
   async deleteSizeGuide(id: number) {
     const existing = await this.prisma.guia_talla.findUnique({ where: { id_guia_talla: id } });
     if (!existing) throw new NotFoundException(`La guía de talla con ID ${id} no existe.`);
@@ -1040,6 +1298,12 @@ export class CatalogAdminService {
   // ==========================================
   // PROMOTIONS CRUD
   // ==========================================
+
+  /**
+   * Lista todas las promociones comerciales con sus productos asociados y valores de descuento numéricos.
+   *
+   * @returns {Promise<Array>} Campañas promocionales registradas.
+   */
   async findAllPromotions() {
     const promos = await this.prisma.promocion.findMany({
       include: {
@@ -1059,6 +1323,13 @@ export class CatalogAdminService {
     }));
   }
 
+  /**
+   * Crea una nueva campaña de descuento promocional y vincula opcionalmente los productos participantes.
+   *
+   * @param {CreatePromotionDto} dto - Datos de la promoción (tipo, valor, vigencia, límite de usos, IDs de productos).
+   * @returns {Promise<Object>} Promoción creada.
+   * @throws {BadRequestException} Si el rango de fechas es inválido o el porcentaje supera 100%.
+   */
   async createPromotion(dto: CreatePromotionDto) {
     if (new Date(dto.fecha_inicio) > new Date(dto.fecha_fin)) {
       throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de finalización.');
@@ -1105,6 +1376,15 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Actualiza las condiciones comerciales, vigencia temporal o estado de una promoción.
+   *
+   * @param {number} id - ID de la promoción.
+   * @param {UpdatePromotionDto} dto - Datos modificados.
+   * @returns {Promise<Object>} Promoción actualizada.
+   * @throws {NotFoundException} Si la promoción no existe.
+   * @throws {BadRequestException} Si las fechas o el porcentaje son inválidos.
+   */
   async updatePromotion(id: number, dto: UpdatePromotionDto) {
     const existing = await this.prisma.promocion.findUnique({ where: { id_promocion: id } });
     if (!existing) throw new NotFoundException(`La promoción con ID ${id} no existe.`);
@@ -1145,6 +1425,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Reemplaza masivamente la lista de productos asignados a una promoción comercial.
+   *
+   * @param {number} id - ID de la promoción.
+   * @param {number[]} productIds - Array de identificadores de productos participantes.
+   * @returns {Promise<Object>} Resumen de asignación.
+   * @throws {NotFoundException} Si la promoción no existe.
+   */
   async assignProductsToPromotion(id: number, productIds: number[]) {
     const existing = await this.prisma.promocion.findUnique({ where: { id_promocion: id } });
     if (!existing) throw new NotFoundException(`La promoción con ID ${id} no existe.`);
@@ -1169,6 +1457,14 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Modifica el estado de vigencia comercial (activo / inactivo) de una promoción.
+   *
+   * @param {number} id - ID de la promoción.
+   * @param {'activo' | 'inactivo'} estado - Nuevo estado asignado.
+   * @returns {Promise<Object>} Promoción actualizada.
+   * @throws {NotFoundException} Si la promoción no existe.
+   */
   async togglePromotionStatus(id: number, estado: 'activo' | 'inactivo') {
     const existing = await this.prisma.promocion.findUnique({ where: { id_promocion: id } });
     if (!existing) throw new NotFoundException(`La promoción con ID ${id} no existe.`);
@@ -1187,6 +1483,15 @@ export class CatalogAdminService {
   // ==========================================
   // PRODUCT IMAGES
   // ==========================================
+
+  /**
+   * Asocia una nueva imagen a la galería de un producto, gestionando la exclusividad de imagen principal.
+   *
+   * @param {number} productId - ID del producto padre.
+   * @param {CreateProductImageDto} dto - Datos de la imagen (URL, texto alternativo, orden, principal).
+   * @returns {Promise<Object>} Registro de imagen creado.
+   * @throws {NotFoundException} Si el producto no existe.
+   */
   async addProductImage(productId: number, dto: CreateProductImageDto) {
     const prod = await this.prisma.producto.findUnique({ where: { id_producto: productId } });
     if (!prod) throw new NotFoundException(`El producto con ID ${productId} no existe.`);
@@ -1221,6 +1526,13 @@ export class CatalogAdminService {
     };
   }
 
+  /**
+   * Elimina un registro de imagen de producto en la base de datos.
+   *
+   * @param {number} imageId - ID de la imagen a eliminar.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la imagen no existe.
+   */
   async deleteProductImage(imageId: number) {
     const existing = await this.prisma.imagen_producto.findUnique({
       where: { id_imagen_producto: imageId },
@@ -1231,6 +1543,14 @@ export class CatalogAdminService {
     return { message: 'Imagen eliminada exitosamente.' };
   }
 
+  /**
+   * Marca una imagen específica como la portada principal del producto y desmarca todas las demás.
+   *
+   * @param {number} productId - ID del producto.
+   * @param {number} imageId - ID de la imagen a designar como principal.
+   * @returns {Promise<Object>} Confirmación de asignación.
+   * @throws {NotFoundException} Si la imagen no pertenece al producto.
+   */
   async setMainProductImage(productId: number, imageId: number) {
     const img = await this.prisma.imagen_producto.findUnique({
       where: { id_imagen_producto: imageId },

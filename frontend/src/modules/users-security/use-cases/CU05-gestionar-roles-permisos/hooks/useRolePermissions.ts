@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU05 — Gestionar roles y permisos
+ * @subsistema Usuarios y Seguridad
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador -> vista de roles -> controlador de autorización -> servicio de roles -> Rol/Función/Acción/Permisos.
+ */
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   rolesService,

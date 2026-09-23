@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU19 — Gestionar reserva en sucursal
+ * @subsistema Reservas
+ * @capa Entity/DTO — Frontend web
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Encargado o Cajero -> bandeja de reservas -> controlador de atención -> servicio de reservas -> Reserva/DetalleReserva/Inventario/Bitácora.
+ */
 export type BranchReservationStatus =
   | 'Pendiente'
   | 'Preparada'

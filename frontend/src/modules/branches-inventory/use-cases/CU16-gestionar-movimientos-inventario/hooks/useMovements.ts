@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU16 — Gestionar movimientos de inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Control (presentación) — Frontend web
+ * @responsabilidad Coordina estado, validaciones y acciones de la interfaz antes de delegar la operación al servicio o API.
+ * @secuencia Administrador o Encargado -> formulario de movimiento -> controlador de inventario -> servicio transaccional -> MovimientoInventario/Inventario/Variante/Sucursal.
+ */
 import { useCallback, useEffect, useState } from 'react';
 import { movementsService } from '../services/movements.service';
 import type {

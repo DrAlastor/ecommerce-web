@@ -1,10 +1,18 @@
+/**
+ * @file profile.service.ts
+ * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
+ * @subsistema Usuarios y Seguridad
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Implementa la lógica de negocio para auto-registro de clientes en transacción atómica,
+ * consulta de información de perfil enriquecida con funciones/rol, y actualización diferenciada (Cliente vs Empleado).
+ */
+
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import type { FuncionDto } from '../../shared/dto/login-response.dto.js';
 import * as bcrypt from 'bcrypt';
 import { RegisterClienteDto } from './dto/register-cliente.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
-
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 
 @Injectable()
@@ -14,6 +22,17 @@ export class ProfileService {
     private readonly bitacora: BitacoraService,
   ) {}
 
+  /**
+   * Obtiene la información completa del perfil del usuario en sesión.
+   * Flujo:
+   * 1. Consulta el usuario en la BD incluyendo relaciones: Rol, Cliente y Empleado.
+   * 2. Excluye el hash de contraseña por seguridad.
+   * 3. Consulta las funciones y módulos que corresponden a su rol en `rol_funcion`.
+   *
+   * @param {number} userId - Identificador único del usuario autenticado.
+   * @returns {Promise<{ user: any, rol: any, funciones: FuncionDto[] }>} Datos de usuario, rol y permisos.
+   * @throws {UnauthorizedException} Si el usuario no existe en la base de datos.
+   */
   async getProfile(userId: number) {
     const usuario = await this.prisma.usuario.findUnique({
       where: { id_usuario: userId },
@@ -46,6 +65,21 @@ export class ProfileService {
     };
   }
 
+  /**
+   * Procedimiento de auto-registro de un nuevo cliente.
+   * Pasos de negocio:
+   * 1. Verifica que el correo no se encuentre registrado previamente.
+   * 2. Si se suministra CI, valida que no pertenezca a otro cliente existente.
+   * 3. Obtiene el rol base 'Cliente' en el sistema.
+   * 4. Calcula el identificador correlativo para compatibilidad de esquema.
+   * 5. Encripta la contraseña usando bcrypt (salt rounds = 10).
+   * 6. Ejecuta una transacción Prisma atómica creando el registro en `usuario` y en `cliente`.
+   * 7. Registra el evento de creación en la bitácora de auditoría.
+   *
+   * @param {RegisterClienteDto} dto - Datos de entrada para el registro de cliente.
+   * @returns {Promise<Omit<Usuario, 'password_hash'>>} Usuario creado sin información de credenciales.
+   * @throws {BadRequestException} Si el correo o CI ya existen, o si el rol Cliente no está configurado.
+   */
   async registerCliente(dto: RegisterClienteDto) {
     // 1. Validar que el correo no exista
     const existingUser = await this.prisma.usuario.findUnique({
@@ -83,10 +117,10 @@ export class ProfileService {
     });
     const nextId = (result._max.id_usuario || 0) + 1;
 
-    // 5. Hash password
+    // 5. Hash password con algoritmo bcrypt
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    // 6. Transacción para crear usuario y cliente
+    // 6. Transacción para crear usuario y cliente de forma atómica
     const nuevoUsuario = await this.prisma.$transaction(async (tx) => {
       const user = await tx.usuario.create({
         data: {
@@ -121,6 +155,18 @@ export class ProfileService {
     return userSinPass;
   }
 
+  /**
+   * Procedimiento de actualización de datos de perfil propio.
+   * Discrimina automáticamente según el tipo de entidad vinculada:
+   * - Si es Cliente: actualiza nombre, apellido, sexo, fecha_nacimiento o preferencias_estilo.
+   * - Si es Empleado: actualiza nombre, apellido o teléfono de contacto.
+   * Registra el evento 'Modificó perfil de usuario' en la bitácora de auditoría.
+   *
+   * @param {number} userId - Identificador único del usuario autenticado.
+   * @param {UpdateProfileDto} dto - Campos a actualizar.
+   * @returns {Promise<Cliente | Empleado>} Perfil actualizado.
+   * @throws {BadRequestException} Si el usuario no existe o no tiene un perfil polimórfico válido.
+   */
   async updateProfile(userId: number, dto: UpdateProfileDto) {
     const usuario = await this.prisma.usuario.findUnique({
       where: { id_usuario: userId },

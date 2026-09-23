@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU15 — Consultar inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador o Encargado -> vista de inventario -> controlador de inventario -> servicio de existencias -> Inventario/Variante/Sucursal.
+ */
 import React from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 import { useInventory } from '../hooks/useInventory';

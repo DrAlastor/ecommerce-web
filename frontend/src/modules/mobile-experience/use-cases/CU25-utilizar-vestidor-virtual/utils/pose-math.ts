@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU25 — Utilizar vestidor virtual
+ * @subsistema Experiencia Móvil
+ * @capa Soporte del caso de uso — Frontend web
+ * @responsabilidad Aporta configuración, utilidades o contratos necesarios para completar el flujo del caso de uso.
+ * @secuencia Cliente -> vestidor virtual -> controlador de experiencia -> servicios de cámara y renderizado -> Producto/Variante/Recursos 3D.
+ */
 import type { PoseLandmark, PoseResult, GarmentTransform, Garment3DTransform } from '../types/virtual-fitting.types';
 
 /* ─────────────── MediaPipe Pose Landmark Indices ─────────────── */

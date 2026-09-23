@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU24 — Registrar venta presencial
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Control (API REST) — Backend
+ * @responsabilidad Recibe la solicitud HTTP, aplica guardas o validaciones y delega la lógica al servicio del caso de uso.
+ * @secuencia Cajero -> punto de venta -> controlador de ventas -> servicio transaccional -> Venta/DetalleVenta/Pago/Inventario.
+ */
 import {
   Body,
   Controller,

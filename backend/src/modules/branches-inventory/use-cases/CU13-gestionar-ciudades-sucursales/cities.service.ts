@@ -1,3 +1,13 @@
+/**
+ * @file cities.service.ts
+ * @caso-de-uso CU13 — Gestionar ciudades y sucursales
+ * @subsistema Sucursales e Inventario
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Administra las ciudades de cobertura donde opera la cadena de retail.
+ * Valida unicidad geográfica por nombre y país, previene eliminación de ciudades con dependencias
+ * de sucursales o direcciones, y registra todas las mutaciones en la bitácora de auditoría.
+ */
+
 import {
   BadRequestException,
   ConflictException,
@@ -8,6 +18,9 @@ import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../../users-security/shared/services/bitacora.service.js';
 import { CreateCityDto, QueryCitiesDto, UpdateCityDto } from './dto/cities.dto.js';
 
+/**
+ * Servicio para la gestión integral de entidades de ciudades y auditoría asociada.
+ */
 @Injectable()
 export class CitiesService {
   constructor(
@@ -15,6 +28,13 @@ export class CitiesService {
     private readonly bitacora: BitacoraService,
   ) {}
 
+  /**
+   * Lista ciudades con soporte para búsqueda textual insensible a mayúsculas por nombre o país,
+   * paginación y cómputo de sucursales y direcciones asociadas.
+   *
+   * @param {QueryCitiesDto} query - Parámetros de búsqueda y paginación.
+   * @returns {Promise<Object>} Lista de ciudades con metadatos de paginación.
+   */
   async findAll(query: QueryCitiesDto) {
     const { search, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
@@ -63,6 +83,11 @@ export class CitiesService {
     };
   }
 
+  /**
+   * Obtiene la lista resumida de todas las ciudades registradas para uso en selectores y filtros.
+   *
+   * @returns {Promise<Array>} Lista con id_ciudad, nombre y país.
+   */
   async findAllSimple() {
     return this.prisma.ciudad.findMany({
       orderBy: { nombre: 'asc' },
@@ -74,6 +99,13 @@ export class CitiesService {
     });
   }
 
+  /**
+   * Consulta una ciudad por su identificador primario, desglosando sus sucursales activas.
+   *
+   * @param {number} id - ID de la ciudad.
+   * @returns {Promise<Object>} Datos de la ciudad y array de sucursales vinculadas.
+   * @throws {NotFoundException} Si la ciudad no existe.
+   */
   async findById(id: number) {
     const city = await this.prisma.ciudad.findUnique({
       where: { id_ciudad: id },
@@ -111,6 +143,16 @@ export class CitiesService {
     };
   }
 
+  /**
+   * Registra una nueva ciudad en la base de datos previa verificación de duplicados por nombre y país,
+   * asentando la creación en la bitácora de auditoría.
+   *
+   * @param {CreateCityDto} dto - Nombre y país de la ciudad.
+   * @param {number} idUsuario - ID del usuario que ejecuta la acción.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Ciudad registrada.
+   * @throws {ConflictException} Si la ciudad ya existe en dicho país.
+   */
   async create(dto: CreateCityDto, idUsuario: number, ip?: string) {
     const nombre = dto.nombre.trim();
     const pais = dto.pais.trim();
@@ -152,6 +194,17 @@ export class CitiesService {
     };
   }
 
+  /**
+   * Actualiza los datos de una ciudad existente, validando que el nuevo nombre no colisione con otra ciudad registrada.
+   *
+   * @param {number} id - ID de la ciudad a modificar.
+   * @param {UpdateCityDto} dto - Datos actualizados.
+   * @param {number} idUsuario - ID del usuario que ejecuta la acción.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Ciudad actualizada.
+   * @throws {NotFoundException} Si la ciudad no existe.
+   * @throws {ConflictException} Si colisiona con otra ciudad registrada.
+   */
   async update(id: number, dto: UpdateCityDto, idUsuario: number, ip?: string) {
     const existing = await this.prisma.ciudad.findUnique({
       where: { id_ciudad: id },
@@ -204,6 +257,16 @@ export class CitiesService {
     };
   }
 
+  /**
+   * Elimina una ciudad si no tiene sucursales activas ni direcciones de clientes vinculadas.
+   *
+   * @param {number} id - ID de la ciudad a eliminar.
+   * @param {number} idUsuario - ID del usuario que ejecuta la acción.
+   * @param {string} [ip] - Dirección IP de origen.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si la ciudad no existe.
+   * @throws {BadRequestException} Si posee sucursales o direcciones asociadas.
+   */
   async delete(id: number, idUsuario: number, ip?: string) {
     const existing = await this.prisma.ciudad.findUnique({
       where: { id_ciudad: id },

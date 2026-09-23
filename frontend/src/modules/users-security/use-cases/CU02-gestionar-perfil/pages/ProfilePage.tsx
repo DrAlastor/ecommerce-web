@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Cliente -> formulario de perfil -> controlador de perfil -> servicio de clientes -> Usuario/Cliente/Rol.
+ */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useProfile } from '../hooks/useProfile';

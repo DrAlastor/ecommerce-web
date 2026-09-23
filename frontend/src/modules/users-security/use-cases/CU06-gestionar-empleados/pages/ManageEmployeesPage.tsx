@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU06 — Gestionar empleados
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador -> formulario de empleados -> controlador de empleados -> servicio de empleados -> Usuario/Empleado/Rol/Sucursal.
+ */
 import React from 'react';
 import { useEmployees } from '../hooks/useEmployees';
 import { EmployeeMetricsHeader } from '../components/EmployeeMetricsHeader';

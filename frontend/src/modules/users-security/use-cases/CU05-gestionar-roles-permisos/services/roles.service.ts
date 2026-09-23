@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU05 — Gestionar roles y permisos
+ * @subsistema Usuarios y Seguridad
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador -> vista de roles -> controlador de autorización -> servicio de roles -> Rol/Función/Acción/Permisos.
+ */
 import api from '../../../../../services/api/api';
 
 export interface RoleItem {

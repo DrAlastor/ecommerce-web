@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU09 — Consultar detalle y disponibilidad de producto
+ * @subsistema Catálogo e Inventario
+ * @capa Fachada del módulo — Frontend web
+ * @responsabilidad Expone la API pública del caso de uso y centraliza sus exportaciones para el resto de la aplicación.
+ * @secuencia Cliente -> detalle del producto -> controlador de detalle -> servicios de catálogo e inventario -> Producto/Variante/Inventario/Sucursal.
+ */
 export * from './pages/ProductDetailPage';
 export * from './hooks/useProductDetail';
 export * from './types/product-detail.types';

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU04 — Gestionar usuarios
+ * @subsistema Usuarios y Seguridad
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Administrador -> vista de usuarios -> controlador de usuarios -> servicio de usuarios -> Usuario/Rol/Bitácora.
+ */
 import React from 'react';
 
 interface UserTableProps {

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU19 — Gestionar reserva en sucursal
+ * @subsistema Reservas
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Encargado o Cajero -> bandeja de reservas -> controlador de atención -> servicio de reservas -> Reserva/DetalleReserva/Inventario/Bitácora.
+ */
 import api from '../../../../../services/api/api';
 import type {
   StaffBranch,

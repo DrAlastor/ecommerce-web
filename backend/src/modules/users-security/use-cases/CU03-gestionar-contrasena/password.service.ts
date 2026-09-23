@@ -1,3 +1,13 @@
+/**
+ * @file password.service.ts
+ * @caso-de-uso CU03 — Gestionar contraseña
+ * @subsistema Usuarios y Seguridad
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Implementa los procedimientos criptográficos de seguridad para cambio de contraseña,
+ * generación y validación de tokens de recuperación aleatorios (SHA-256 / 15 min),
+ * envío de correos electrónicos y auditoría en bitácora.
+ */
+
 import {
   Injectable,
   UnauthorizedException,
@@ -28,7 +38,14 @@ export class PasswordService {
   ) {}
 
   /**
-   * Cambio de contraseña para un usuario autenticado
+   * Procedimiento de cambio voluntario de contraseña para usuarios autenticados.
+   * Valida la contraseña actual mediante bcrypt y actualiza el hash de la nueva contraseña.
+   *
+   * @param {number} userId - ID del usuario autenticado.
+   * @param {ChangePasswordDto} dto - Contraseña actual y nueva contraseña.
+   * @returns {Promise<{ success: boolean, message: string }>} Resultado de la operación.
+   * @throws {UnauthorizedException} Si el usuario no existe.
+   * @throws {BadRequestException} Si la contraseña actual no coincide.
    */
   async changePassword(userId: number, dto: ChangePasswordDto) {
     const usuario = await this.prisma.usuario.findUnique({
@@ -61,7 +78,17 @@ export class PasswordService {
   }
 
   /**
-   * Solicitar recuperación de contraseña (envío de código y enlace vía Resend)
+   * Procedimiento de solicitud de recuperación de contraseña olvidada.
+   * Pasos de seguridad:
+   * 1. Normaliza el correo. Si no existe o está inactivo, retorna mensaje neutro (anti-enumeración de usuarios).
+   * 2. Invalida tokens previos emitidos para este usuario (`usado = true`).
+   * 3. Genera un código criptográfico de 6 dígitos aleatorios (`crypto.randomInt`).
+   * 4. Almacena en base de datos el hash SHA-256 del código con caducidad estricta de 15 minutos.
+   * 5. Construye el enlace web y lo remite por correo electrónico mediante ResendService.
+   * 6. Registra el evento en la bitácora de auditoría.
+   *
+   * @param {ForgotPasswordDto} dto - Correo del usuario que solicita recuperación.
+   * @returns {Promise<{ success: boolean, message: string }>} Confirmación neutra.
    */
   async forgotPassword(dto: ForgotPasswordDto) {
     const cleanEmail = dto.email.trim().toLowerCase();
@@ -155,7 +182,18 @@ export class PasswordService {
   }
 
   /**
-   * Validar token y cambiar contraseña
+   * Procedimiento de restablecimiento de contraseña mediante token.
+   * Pasos de validación y aplicación:
+   * 1. Valida el formato del código recibido (mínimo 6 caracteres).
+   * 2. Calcula el hash SHA-256 y busca en `token_recuperacion` tokens vigentes (`fecha_expiracion > now()`) y no usados.
+   * 3. Aplica fallback retrocompatible para tokens antiguos hasheados con bcrypt.
+   * 4. Encripta la nueva contraseña con bcrypt.
+   * 5. En una transacción atómica actualiza la contraseña del usuario y marca el token como usado.
+   * 6. Registra el evento en bitácora.
+   *
+   * @param {ResetPasswordDto} dto - Token o código de 6 dígitos y la nueva contraseña.
+   * @returns {Promise<{ success: boolean, message: string }>} Confirmación de éxito.
+   * @throws {BadRequestException} Si el token es inválido, expiró o ya fue consumido.
    */
   async resetPassword(dto: ResetPasswordDto) {
     const rawCode = dto.token.trim();

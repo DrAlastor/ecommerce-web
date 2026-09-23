@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU19 — Gestionar reserva en sucursal
+ * @subsistema Reservas
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Encargado o Cajero -> bandeja de reservas -> controlador de atención -> servicio de reservas -> Reserva/DetalleReserva/Inventario/Bitácora.
+ */
 import React from 'react';
 import { Loader2, CalendarClock } from 'lucide-react';
 import { useBranchReservations } from '../hooks/useBranchReservations';

@@ -1,3 +1,13 @@
+/**
+ * @file suppliers.service.ts
+ * @caso-de-uso CU11 — Gestionar proveedores y compras de reabastecimiento
+ * @subsistema Catálogo y Proveedores
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Implementa las reglas comerciales para el registro y mantenimiento de proveedores,
+ * vinculación de productos con costos pactados, emisión de órdenes de compra para sucursales físicas,
+ * y recepción de mercancía mediante transacciones ACID que incrementan el inventario e insertan auditoría de movimientos.
+ */
+
 import {
   BadRequestException,
   ConflictException,
@@ -16,10 +26,19 @@ import {
   UpdateSupplierProductDto,
 } from './dto/suppliers.dto.js';
 
+/**
+ * Servicio encargado de la gestión comercial de proveedores, órdenes de compra y recepción en inventario.
+ */
 @Injectable()
 export class SuppliersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Obtiene metadatos de referencia en paralelo para alimentar interfaces de compras:
+   * productos, sucursales activas, variantes con SKU, temporadas y proveedores vigentes.
+   *
+   * @returns {Promise<Object>} Conjuntos maestros de datos para selección.
+   */
   async getMetadata() {
     const [products, branches, variants, seasons, suppliers] = await Promise.all([
       this.prisma.producto.findMany({
@@ -54,6 +73,13 @@ export class SuppliersService {
     return { products, branches, variants, seasons, suppliers };
   }
 
+  /**
+   * Lista los proveedores registrados aplicando búsqueda libre por razón social, NIT, contacto o email,
+   * con paginación y conteo de productos u órdenes vinculadas.
+   *
+   * @param {QuerySuppliersDto} query - Parámetros de búsqueda y paginación.
+   * @returns {Promise<Object>} Lista de proveedores con metadatos de paginación.
+   */
   async findAllSuppliers(query: QuerySuppliersDto) {
     const { search, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
@@ -103,6 +129,14 @@ export class SuppliersService {
     };
   }
 
+  /**
+   * Consulta un proveedor por su ID, recuperando la lista de productos asociados con sus costos pactados
+   * y el historial de órdenes de compra emitidas a su nombre.
+   *
+   * @param {number} id - ID del proveedor.
+   * @returns {Promise<Object>} Ficha del proveedor con productos y órdenes.
+   * @throws {NotFoundException} Si el proveedor no existe.
+   */
   async findSupplierById(id: number) {
     const supplier = await this.prisma.proveedor.findUnique({
       where: { id_proveedor: id },
@@ -140,6 +174,13 @@ export class SuppliersService {
     };
   }
 
+  /**
+   * Registra un nuevo proveedor en la base de datos previa validación de unicidad de NIT.
+   *
+   * @param {CreateSupplierDto} dto - Datos de la empresa proveedora (razón social, NIT, contacto, teléfono, email, dirección).
+   * @returns {Promise<Object>} Proveedor creado.
+   * @throws {ConflictException} Si el NIT ya se encuentra registrado.
+   */
   async createSupplier(dto: CreateSupplierDto) {
     const nit = dto.nit.trim();
     const conflict = await this.prisma.proveedor.findUnique({ where: { nit } });
@@ -166,6 +207,15 @@ export class SuppliersService {
     return { message: 'Proveedor creado exitosamente.', data: created };
   }
 
+  /**
+   * Actualiza la información tributaria, datos de contacto o ubicación de un proveedor.
+   *
+   * @param {number} id - ID del proveedor.
+   * @param {UpdateSupplierDto} dto - Campos a actualizar.
+   * @returns {Promise<Object>} Proveedor actualizado.
+   * @throws {NotFoundException} Si el proveedor no existe.
+   * @throws {ConflictException} Si el nuevo NIT colisiona con otro registro existente.
+   */
   async updateSupplier(id: number, dto: UpdateSupplierDto) {
     const existing = await this.prisma.proveedor.findUnique({ where: { id_proveedor: id } });
     if (!existing) {
@@ -200,6 +250,14 @@ export class SuppliersService {
     return { message: 'Proveedor actualizado exitosamente.', data: updated };
   }
 
+  /**
+   * Elimina un proveedor si no posee órdenes de compra emitidas en el histórico comercial.
+   *
+   * @param {number} id - ID del proveedor.
+   * @returns {Promise<Object>} Confirmación de eliminación.
+   * @throws {NotFoundException} Si el proveedor no existe.
+   * @throws {ConflictException} Si posee órdenes de compra registradas.
+   */
   async deleteSupplier(id: number) {
     const existing = await this.prisma.proveedor.findUnique({
       where: { id_proveedor: id },
@@ -222,6 +280,12 @@ export class SuppliersService {
     return { message: 'Proveedor eliminado exitosamente.' };
   }
 
+  /**
+   * Lista los productos vinculados a un proveedor específico con sus costos de adquisición.
+   *
+   * @param {number} supplierId - ID del proveedor.
+   * @returns {Promise<Array>} Lista de productos con precios normalizados a número.
+   */
   async findSupplierProducts(supplierId: number) {
     await this.ensureSupplierExists(supplierId);
 
@@ -252,6 +316,14 @@ export class SuppliersService {
     }));
   }
 
+  /**
+   * Vincula un producto del catálogo general a la lista de suministros de un proveedor.
+   *
+   * @param {number} supplierId - ID del proveedor.
+   * @param {CreateSupplierProductDto} dto - ID del producto, costo de referencia y estado de disponibilidad.
+   * @returns {Promise<Object>} Registro creado de proveedor-producto.
+   * @throws {ConflictException} Si el producto ya está asociado al proveedor.
+   */
   async addSupplierProduct(supplierId: number, dto: CreateSupplierProductDto) {
     await this.ensureSupplierExists(supplierId);
     await this.ensureProductExists(dto.id_producto);
@@ -293,6 +365,15 @@ export class SuppliersService {
     };
   }
 
+  /**
+   * Actualiza el costo de referencia pactado o estado de suministro de un producto de este proveedor.
+   *
+   * @param {number} supplierId - ID del proveedor.
+   * @param {number} productId - ID del producto.
+   * @param {UpdateSupplierProductDto} dto - Nuevos valores de costo o estado.
+   * @returns {Promise<Object>} Relación actualizada.
+   * @throws {NotFoundException} Si la asociación no existe.
+   */
   async updateSupplierProduct(
     supplierId: number,
     productId: number,
@@ -340,6 +421,14 @@ export class SuppliersService {
     };
   }
 
+  /**
+   * Desvincula un producto del catálogo de suministro de un proveedor.
+   *
+   * @param {number} supplierId - ID del proveedor.
+   * @param {number} productId - ID del producto.
+   * @returns {Promise<Object>} Confirmación de desvinculación.
+   * @throws {NotFoundException} Si la asociación no existe.
+   */
   async removeSupplierProduct(supplierId: number, productId: number) {
     const existing = await this.prisma.proveedor_producto.findUnique({
       where: {
@@ -366,6 +455,12 @@ export class SuppliersService {
     return { message: 'Producto desasociado del proveedor.' };
   }
 
+  /**
+   * Consulta las órdenes de compra emitidas aplicando filtros por proveedor, sucursal o estado.
+   *
+   * @param {QueryPurchaseOrdersDto} query - Criterios de filtrado.
+   * @returns {Promise<Array>} Lista de órdenes con totales calculados y variantes incluidas.
+   */
   async findPurchaseOrders(query: QueryPurchaseOrdersDto) {
     const where: any = {};
     if (query.id_proveedor) where.id_proveedor = query.id_proveedor;
@@ -398,6 +493,13 @@ export class SuppliersService {
     return orders.map((order: any) => this.mapPurchaseOrder(order));
   }
 
+  /**
+   * Obtiene una orden de compra específica con su desglose detallado de ítems y temporadas.
+   *
+   * @param {number} id - ID de la orden de compra.
+   * @returns {Promise<Object>} Orden de compra mapeada con totales monetarios y de unidades.
+   * @throws {NotFoundException} Si la orden de compra no existe.
+   */
   async findPurchaseOrderById(id: number) {
     const order = await this.prisma.orden_compra.findUnique({
       where: { id_orden_compra: id },
@@ -426,6 +528,16 @@ export class SuppliersService {
     return this.mapPurchaseOrder(order);
   }
 
+  /**
+   * Genera una nueva orden de compra para un proveedor y sucursal destino:
+   * 1. Valida existencia de proveedor, sucursal, variantes y temporadas.
+   * 2. Comprueba que la fecha estimada de entrega no sea en el pasado.
+   * 3. Registra en transacción la cabecera y el array de detalles con costo unitario pactado.
+   * Nota: Crear la orden NO incrementa el stock; el inventario solo sube al recibir físicamente el pedido.
+   *
+   * @param {CreatePurchaseOrderDto} dto - Datos de la orden y líneas de detalle.
+   * @returns {Promise<Object>} Orden de compra generada con estado inicial 'pendiente'.
+   */
   async createPurchaseOrder(dto: CreatePurchaseOrderDto) {
     await this.ensureSupplierExists(dto.id_proveedor);
     await this.ensureBranchExists(dto.id_sucursal);
@@ -504,6 +616,16 @@ export class SuppliersService {
     };
   }
 
+  /**
+   * Cambia el estado de una orden de compra existente (pendiente, en_transito, cancelada),
+   * impidiendo modificar órdenes que ya fueron recibidas en almacén.
+   *
+   * @param {number} id - ID de la orden de compra.
+   * @param {'pendiente' | 'en_transito' | 'cancelada'} estado - Nuevo estado.
+   * @returns {Promise<Object>} Orden actualizada.
+   * @throws {NotFoundException} Si la orden no existe.
+   * @throws {ConflictException} Si la orden ya se encuentra en estado 'recibida'.
+   */
   async updatePurchaseOrderStatus(
     id: number,
     estado: 'pendiente' | 'en_transito' | 'cancelada',
@@ -528,6 +650,24 @@ export class SuppliersService {
     return { message: `Orden actualizada a estado "${estado}".`, data: updated };
   }
 
+  /**
+   * Ejecuta la recepción física de mercancía amparada en una orden de compra:
+   * 1. Valida que la orden no esté cancelada ni haya sido recibida con anterioridad.
+   * 2. Verifica la identidad del empleado responsable del ingreso a bodega.
+   * 3. Dentro de una transacción ACID:
+   *    - Itera cada variante en el detalle de la orden.
+   *    - Si la variante ya tiene inventario en la sucursal, suma la cantidad recibida.
+   *    - Si no existe el registro de inventario, lo inicializa con stock disponible.
+   *    - Registra un movimiento de inventario de tipo 'entrada' por motivo de recepción.
+   *    - Marca la orden de compra como 'recibida' con su respectiva marca de tiempo.
+   *
+   * @param {number} id - ID de la orden de compra.
+   * @param {ReceivePurchaseOrderDto} dto - ID del empleado responsable y fecha de recepción opcional.
+   * @returns {Promise<Object>} Orden de compra recibida con inventario actualizado.
+   * @throws {NotFoundException} Si la orden no existe.
+   * @throws {ConflictException} Si la orden ya fue recibida o está cancelada.
+   * @throws {BadRequestException} Si no se especifica un empleado válido.
+   */
   async receivePurchaseOrder(id: number, dto: ReceivePurchaseOrderDto) {
     const order = await this.prisma.orden_compra.findUnique({
       where: { id_orden_compra: id },
@@ -640,6 +780,9 @@ export class SuppliersService {
     };
   }
 
+  /**
+   * Helper de validación que asegura la existencia de un proveedor en la base de datos.
+   */
   private async ensureSupplierExists(id: number) {
     const supplier = await this.prisma.proveedor.findUnique({ where: { id_proveedor: id } });
     if (!supplier) {
@@ -648,6 +791,9 @@ export class SuppliersService {
     return supplier;
   }
 
+  /**
+   * Helper de validación que asegura la existencia de un producto base en catálogo.
+   */
   private async ensureProductExists(id: number) {
     const product = await this.prisma.producto.findUnique({ where: { id_producto: id } });
     if (!product) {
@@ -656,6 +802,9 @@ export class SuppliersService {
     return product;
   }
 
+  /**
+   * Helper de validación que asegura la existencia de una sucursal destino.
+   */
   private async ensureBranchExists(id: number) {
     const branch = await this.prisma.sucursal.findUnique({ where: { id_sucursal: id } });
     if (!branch) {
@@ -664,6 +813,9 @@ export class SuppliersService {
     return branch;
   }
 
+  /**
+   * Helper de validación de fechas que garantiza que la fecha estimada no esté en el pasado.
+   */
   private validateEstimatedDate(fechaEstimada?: string) {
     if (!fechaEstimada) return;
 
@@ -676,6 +828,10 @@ export class SuppliersService {
     }
   }
 
+  /**
+   * Helper de mapeo que normaliza los números decimales y calcula el total monetario estimado
+   * y la suma total de unidades físicas de una orden de compra.
+   */
   private mapPurchaseOrder(order: any) {
     const detalles = order.detalle_orden_compra || [];
     const total = detalles.reduce(

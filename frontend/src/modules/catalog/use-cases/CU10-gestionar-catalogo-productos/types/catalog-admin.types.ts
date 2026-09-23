@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU10 — Gestionar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Entity/DTO — Frontend web
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador -> administración de catálogo -> controlador de productos -> servicio de catálogo -> Producto/Variante/Categoría/Colección/Promoción.
+ */
 export type CatalogTabKey =
   | 'products'
   | 'categories'

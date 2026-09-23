@@ -1,3 +1,16 @@
+/**
+ * @file recommendations.service.ts
+ * @caso-de-uso CU12 — Obtener recomendaciones de prendas mediante IA
+ * @subsistema Experiencia Inteligente
+ * @capa Lógica de Negocio, Integración Externa y Heurística Local — Backend
+ * @responsabilidad Implementa el motor de sugerencias inteligentes con arquitectura híbrida:
+ * 1. Consulta candidatos disponibles con existencias en stock.
+ * 2. Si hay servicio de IA configurado, envía el contexto del cliente, prompt libre y candidatos a un modelo LLM.
+ * 3. En caso de timeout o indisponibilidad del servicio externo, aplica una heurística local de scoring basada en
+ *    coincidencia léxica, interacciones previas, género, categoría y promociones activas.
+ * 4. Registra interacciones de recomendación en la base de datos para aprendizaje continuo.
+ */
+
 import { BadRequestException, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
@@ -8,6 +21,9 @@ interface AiRecommendation {
   reason?: string;
 }
 
+/**
+ * Servicio encargado de computar sugerencias personalizadas de prendas y complementos de moda.
+ */
 @Injectable()
 export class RecommendationsService {
   private readonly logger = new Logger(RecommendationsService.name);
@@ -17,6 +33,19 @@ export class RecommendationsService {
     private readonly configService: ConfigService,
   ) {}
 
+  /**
+   * Obtiene recomendaciones de catálogo para un usuario registrado o visitante anónimo:
+   * - Recupera perfil de cliente (género, estilo, historial de clics e interacciones recientes).
+   * - Filtra hasta 40 productos candidatos activos con stock positivo en tiendas físicas.
+   * - Intenta scoring mediante modelo de IA externo vía REST.
+   * - Si la IA falla o no está configurada, utiliza scoring determinista local (`rankLocally`).
+   * - Asocia la justificación de la recomendación y registra la sugerencia en la bitácora de interacción.
+   *
+   * @param {number} [userId] - Identificador de usuario autenticado (opcional).
+   * @param {GetRecommendationsDto} [dto] - Prompt del usuario (ej. "vestido para boda de día") y límite de resultados.
+   * @returns {Promise<Object>} Conjunto de productos recomendados con imágenes, precios y razones de afinidad.
+   * @throws {BadRequestException} Si no existen productos activos disponibles con stock.
+   */
   async getRecommendations(userId?: number, dto: GetRecommendationsDto = {}) {
     const limit = dto.limit || 6;
     let cliente: any = null;
@@ -96,6 +125,11 @@ export class RecommendationsService {
     };
   }
 
+  /**
+   * Obtiene hasta 40 productos candidatos activos que posean stock disponible mayor a 0 en sucursales físicas.
+   *
+   * @returns {Promise<Array>} Lista de productos con variantes, imágenes y promociones vigentes.
+   */
   private async getCandidateProducts() {
     const now = new Date();
     const products = await this.prisma.producto.findMany({
@@ -160,6 +194,17 @@ export class RecommendationsService {
     });
   }
 
+  /**
+   * Intenta consultar el servicio de Inteligencia Artificial externo mediante HTTP POST,
+   * enviando el perfil de estilo, interacciones recientes y candidatos.
+   * Incluye control de tiempo de espera (timeout) mediante AbortController.
+   *
+   * @param {any} cliente - Perfil del cliente actual.
+   * @param {any[]} candidates - Productos candidatos prefiltrados.
+   * @param {string} [prompt] - Texto ingresado por el usuario.
+   * @param {number} limit - Cantidad máxima de recomendaciones.
+   * @returns {Promise<AiRecommendation[]>} Recomendaciones devueltas por la IA o array vacío si falla.
+   */
   private async tryAiRecommendations(
     cliente: any,
     candidates: any[],
@@ -225,6 +270,9 @@ export class RecommendationsService {
     }
   }
 
+  /**
+   * Normaliza la respuesta JSON del servicio de IA tolerando múltiples estructuras de datos devueltas.
+   */
   private parseAiPayload(payload: any): AiRecommendation[] {
     const source = Array.isArray(payload) ? payload : payload?.recommendations || payload?.data || [];
     if (!Array.isArray(source)) return [];
@@ -237,6 +285,9 @@ export class RecommendationsService {
       .filter((item) => Number.isInteger(item.id_producto));
   }
 
+  /**
+   * Empareja las IDs sugeridas por el modelo de IA con los objetos completos de producto en catálogo.
+   */
   private mergeAiRecommendations(recommendations: AiRecommendation[], candidates: any[]) {
     const candidateMap = new Map(candidates.map((product) => [product.id_producto, product]));
     return recommendations
@@ -247,6 +298,19 @@ export class RecommendationsService {
       }));
   }
 
+  /**
+   * Motor de puntuación heurística local (fallback) en caso de ausencia de IA:
+   * - Coincidencia de tokens léxicos del prompt en nombre, categoría, colección o temporada (+2 pts c/u).
+   * - Coincidencia de género del cliente con el producto (+2 pts).
+   * - Categorías en las que el cliente ya interactuó (+3 pts).
+   * - Existencia de promociones comerciales (+1 pt).
+   * - Stock positivo disponible (+5 pts).
+   *
+   * @param {any} cliente - Perfil del cliente.
+   * @param {any[]} candidates - Candidatos a puntuar.
+   * @param {string} [prompt] - Texto libre opcional del usuario.
+   * @returns {Array} Productos ordenados de mayor a menor puntuación y stock.
+   */
   private rankLocally(cliente: any, candidates: any[], prompt?: string) {
     const preferenceText = `${cliente.preferencias_estilo || ''} ${prompt || ''}`.toLowerCase();
     const interactedCategoryIds = new Set(
@@ -282,6 +346,9 @@ export class RecommendationsService {
       .sort((a, b) => b.score - a.score || b.stock_total - a.stock_total);
   }
 
+  /**
+   * Construye una explicación textual amigable en español sobre por qué se le recomienda la prenda al usuario.
+   */
   private buildLocalReason(product: any, preferenceText: string) {
     if (product.coleccion?.temporada?.nombre && preferenceText.includes(product.coleccion.temporada.nombre.toLowerCase())) {
       return `Coincide con la temporada ${product.coleccion.temporada.nombre} y tiene disponibilidad.`;
@@ -295,6 +362,10 @@ export class RecommendationsService {
     return 'Disponible en catalogo y alineado con tus preferencias.';
   }
 
+  /**
+   * Consulta formal en base de datos para recuperar la estructura comercial completa
+   * (precios finales con descuento, variantes activas, mapas de colores y tallas) para las IDs seleccionadas.
+   */
   private async getOfficialProducts(productIds: number[]) {
     if (productIds.length === 0) return [];
     const now = new Date();
@@ -395,6 +466,10 @@ export class RecommendationsService {
     });
   }
 
+  /**
+   * Registra las interacciones generadas por la recomendación en la tabla `cliente_interaccion_ia`
+   * para retroalimentar futuros cálculos de preferencia del usuario.
+   */
   private async registerInteractions(clienteId: number, productIds: number[]) {
     const max = await this.prisma.cliente_interaccion_ia.aggregate({
       _max: { id_cliente_interaccion_ia: true },

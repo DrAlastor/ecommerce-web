@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU08 — Consultar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Cliente -> catálogo y filtros -> controlador de catálogo -> servicio de catálogo -> Producto/Categoría/Colección/Promoción.
+ */
 import {
   IsOptional,
   IsString,

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU10 — Gestionar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Administrador -> administración de catálogo -> controlador de productos -> servicio de catálogo -> Producto/Variante/Categoría/Colección/Promoción.
+ */
 import api from '../../../../../services/api/api';
 import type {
   AdminProduct,

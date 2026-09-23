@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU03 — Gestionar contraseña
+ * @subsistema Usuarios y Seguridad
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Usuario -> formulario de contraseña -> controlador de credenciales -> servicio de recuperación -> Usuario/Token de recuperación.
+ */
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class ChangePasswordDto {

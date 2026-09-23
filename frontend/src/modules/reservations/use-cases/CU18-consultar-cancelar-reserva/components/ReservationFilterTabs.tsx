@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU18 — Consultar y cancelar reserva
+ * @subsistema Reservas
+ * @capa Boundary — Frontend web
+ * @responsabilidad Implementa una parte reutilizable de la interfaz de Frontend web y comunica eventos al controlador de presentación.
+ * @secuencia Cliente -> listado de reservas -> controlador de reservas -> servicio de cancelación -> Reserva/DetalleReserva/Inventario.
+ */
 import React from 'react';
 import { Clock, Archive } from 'lucide-react';
 import type { ReservationTab } from '../types/my-reservations.types';

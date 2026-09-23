@@ -1,3 +1,16 @@
+/**
+ * @file movements.service.ts
+ * @caso-de-uso CU16 — Gestionar movimientos de inventario
+ * @subsistema Sucursales e Inventario
+ * @capa Lógica de Negocio y Persistencia — Backend
+ * @responsabilidad Ejecuta la lógica transaccional atómica de movimientos de stock:
+ * - Valida permisos de sucursal asignada para el operador.
+ * - Controla suficiencia de stock disponible para operaciones de salida y ajustes por merma o daño.
+ * - Actualiza o crea el registro en `inventario_sucursal`.
+ * - Inserta el registro de auditoría en `movimiento_inventario` vinculado al empleado responsable.
+ * - Calcula métricas de balance (unidades ingresadas, egresadas, ajustes y devoluciones).
+ */
+
 import {
   BadRequestException,
   ForbiddenException,
@@ -7,12 +20,19 @@ import {
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { CreateMovementDto, QueryMovementsDto } from './dto/movements.dto.js';
 
+/**
+ * Servicio encargado del procesamiento transaccional de movimientos de existencias por tienda.
+ */
 @Injectable()
 export class MovementsService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Obtiene los IDs de las sucursales permitidas para el usuario autenticado
+   * Obtiene los IDs de las sucursales a las que el usuario autenticado tiene acceso legal:
+   * SuperAdmin accede a todas las sucursales; otros usuarios solo a las asignadas en `empleado_sucursal`.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @returns {Promise<number[]>} Array de identificadores de sucursales permitidas.
    */
   private async getAllowedBranchIds(user: any): Promise<number[]> {
     const isSuperAdmin =
@@ -37,7 +57,11 @@ export class MovementsService {
   }
 
   /**
-   * Obtiene el ID del empleado asociado al usuario autenticado
+   * Obtiene el identificador numérico de empleado responsable para asociar al movimiento.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @returns {Promise<number>} ID del empleado.
+   * @throws {BadRequestException} Si no es posible identificar un empleado responsable en el sistema.
    */
   private async getEmployeeId(user: any): Promise<number> {
     const userId = user?.id_usuario ?? user?.sub;
@@ -65,8 +89,11 @@ export class MovementsService {
   }
 
   /**
-   * Obtiene metadatos para el formulario de movimientos:
-   * Sucursales permitidas y variantes activas con información de existencias
+   * Obtiene metadatos para inicializar el formulario de movimientos de inventario:
+   * Sucursales permitidas y variantes activas con sus existencias discriminadas por tienda.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @returns {Promise<Object>} Listas de sucursales y variantes con mapa de stocks.
    */
   async getMovementMetadata(user: any) {
     const allowedBranchIds = await this.getAllowedBranchIds(user);
@@ -147,7 +174,21 @@ export class MovementsService {
   }
 
   /**
-   * Registra un movimiento de inventario manual con validación y transacción atómica
+   * Registra un movimiento de inventario manual mediante transacción atómica:
+   * 1. Verifica que la sucursal esté autorizada para el usuario.
+   * 2. Comprueba existencia de la variante y obtiene el empleado responsable.
+   * 3. Dentro de la transacción:
+   *    - Evalúa el tipo de movimiento (entrada, salida, ajuste, devolución).
+   *    - Para salidas y ajustes por merma/baja/daño, valida que haya stock suficiente.
+   *    - Actualiza o crea el registro en `inventario_sucursal`.
+   *    - Inserta el registro en `movimiento_inventario`.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @param {CreateMovementDto} dto - Datos del movimiento a registrar.
+   * @returns {Promise<Object>} Confirmación, entidad del movimiento, stock anterior y stock actual.
+   * @throws {ForbiddenException} Si el usuario no tiene permisos en la sucursal seleccionada.
+   * @throws {NotFoundException} Si la variante no existe.
+   * @throws {BadRequestException} Si el stock es insuficiente o el tipo de movimiento es inválido.
    */
   async createMovement(user: any, dto: CreateMovementDto) {
     const allowedBranchIds = await this.getAllowedBranchIds(user);
@@ -291,7 +332,13 @@ export class MovementsService {
   }
 
   /**
-   * Consulta el historial paginado de movimientos con filtros y métricas
+   * Consulta el historial paginado de movimientos con filtros avanzados (tipo, sucursal, fechas, búsqueda)
+   * y calcula métricas globales de balance (entradas, salidas, ajustes, devoluciones).
+   *
+   * @param {any} user - Usuario autenticado.
+   * @param {QueryMovementsDto} query - Criterios de filtrado y parámetros de paginación.
+   * @returns {Promise<Object>} Datos paginados, información de paginación y estadísticas consolidadas.
+   * @throws {ForbiddenException} Si se solicita una sucursal no permitida para el usuario.
    */
   async getMovements(user: any, query: QueryMovementsDto) {
     const allowedBranchIds = await this.getAllowedBranchIds(user);
@@ -472,7 +519,13 @@ export class MovementsService {
   }
 
   /**
-   * Obtiene el detalle de un movimiento de inventario específico
+   * Obtiene el detalle de un movimiento de inventario específico, validando autorización sobre la sucursal.
+   *
+   * @param {any} user - Usuario autenticado.
+   * @param {number} id - ID del movimiento.
+   * @returns {Promise<Object>} Datos del movimiento con variante, tienda y empleado responsable.
+   * @throws {NotFoundException} Si el movimiento no existe.
+   * @throws {ForbiddenException} Si el usuario no tiene permisos sobre la sucursal del movimiento.
    */
   async getMovementDetail(user: any, id: number) {
     const allowedBranchIds = await this.getAllowedBranchIds(user);

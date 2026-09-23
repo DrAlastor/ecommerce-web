@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU10 — Gestionar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Boundary — Frontend web
+ * @responsabilidad Representa la pantalla principal de Frontend web; compone la interfaz e inicia las acciones del caso de uso.
+ * @secuencia Administrador -> administración de catálogo -> controlador de productos -> servicio de catálogo -> Producto/Variante/Categoría/Colección/Promoción.
+ */
 import React from 'react';
 import { useCatalogAdmin } from '../hooks/useCatalogAdmin';
 import { CatalogAdminTabs } from '../components/CatalogAdminTabs/CatalogAdminTabs';

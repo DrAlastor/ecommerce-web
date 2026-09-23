@@ -1,3 +1,11 @@
+/**
+ * @caso-de-uso Módulo heredado — Gestión de devoluciones
+ * @subsistema Ventas, Pagos y Compras
+ * @capa Service/Gateway — Frontend web
+ * @responsabilidad Encapsula la comunicación con la API o integración externa y transforma su respuesta para la capa de presentación.
+ * @secuencia Usuario autorizado -> vista de devoluciones -> controlador -> servicio de devoluciones -> Devolución/DetalleDevolución/Venta/Inventario.
+ * Nota: módulo heredado; su numeración no corresponde al catálogo oficial de CU del informe.
+ */
 import api from '../../../../../services/api/api';
 import type {
   CreateReturnPayload,

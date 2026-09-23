@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU04 — Gestionar usuarios
+ * @subsistema Usuarios y Seguridad
+ * @capa Entity/DTO — Backend
+ * @responsabilidad Define los contratos de datos intercambiados entre la interfaz, los servicios y el backend.
+ * @secuencia Administrador -> vista de usuarios -> controlador de usuarios -> servicio de usuarios -> Usuario/Rol/Bitácora.
+ */
 import { IsString, IsOptional, IsEnum, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 

@@ -1,3 +1,10 @@
+/**
+ * @caso-de-uso CU08 — Consultar catálogo de productos
+ * @subsistema Catálogo y Proveedores
+ * @capa Control/Service de dominio — Backend
+ * @responsabilidad Ejecuta las reglas del negocio y coordina persistencia, auditoría e integraciones del caso de uso.
+ * @secuencia Cliente -> catálogo y filtros -> controlador de catálogo -> servicio de catálogo -> Producto/Categoría/Colección/Promoción.
+ */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { QueryCatalogDto } from './dto/catalog.dto.js';
@@ -13,7 +20,18 @@ export class CatalogService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * CU10 — Consultar catálogo de productos con filtros, búsqueda, ordenamiento y paginación
+   * Procedimiento nuclear de consulta de catálogo público (CU08).
+   * Algoritmo de filtrado y liquidación:
+   * 1. Búsqueda insensitiva multitérmino por nombre de prenda, descripción, categoría, SKU o color (normalizando acentos).
+   * 2. Filtros por categoría, talla, color, colección o temporada.
+   * 3. Filtro por modelos 3D compatibles con el vestidor virtual (`solo_3d = true`).
+   * 4. Filtro por rebajas activas (`en_oferta = true`), evaluando fechas de vigencia de promociones vinculadas.
+   * 5. Ordenamiento dinámico: recientes, precio menor a mayor, precio mayor a menor, o alfabético.
+   * 6. Cálculo en tiempo real de descuentos vigentes por producto y formateo de variantes/imágenes.
+   *
+   * @param {QueryCatalogDto} query - Parámetros de consulta y filtros.
+   * @returns {Promise<{ data: any[], meta: { total: number, page: number, limit: number, totalPages: number } }>}
+   * Lista de productos con precios calculados y metadatos de paginación.
    */
   async getCatalog(query: QueryCatalogDto) {
     const {
@@ -338,7 +356,15 @@ export class CatalogService {
   }
 
   /**
-   * Obtiene metadatos para poblar dinámicamente los filtros de la interfaz
+   * Obtiene metadatos consolidados para poblar dinámicamente los filtros de búsqueda en el cliente.
+   * Consulta en paralelo:
+   * - Categorías activas con conteo de productos disponibles.
+   * - Colecciones y temporadas.
+   * - Tallas y colores registrados.
+   * - Rango de precios global (mínimo y máximo actual).
+   * - Cantidad de productos con modelo 3D habilitado para Realidad Aumentada / Vestidor Virtual.
+   *
+   * @returns {Promise<Object>} Objeto con las opciones de filtros disponibles y rangos numéricos.
    */
   async getFilterMetadata() {
     const [categorias, colecciones, tallas, colores, precios, count3D] = await Promise.all([
