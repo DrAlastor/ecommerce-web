@@ -903,3 +903,22 @@
     grid-column: span 2;
   }
 }
+
+@media (max-width: 480px) {
+  .branch-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .card-action-btn.details-btn {
+    grid-column: span 1;
+  }
+
+  .branches-modal-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .modal-branch-name {
+    font-size: 1.45rem;
+  }
+}
+

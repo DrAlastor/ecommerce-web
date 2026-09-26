@@ -227,3 +227,22 @@
     min-height: 44px;
   }
 }
+
+@media (max-width: 640px) {
+  .recommendations-main {
+    padding: 1.25rem 0.75rem 2rem;
+  }
+
+  .recommendations-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .recommendation-prompt {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-prompt button {
+    padding: 0.75rem;
+  }
+}
+

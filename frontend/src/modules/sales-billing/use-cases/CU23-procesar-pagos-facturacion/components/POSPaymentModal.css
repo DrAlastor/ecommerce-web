@@ -619,3 +619,30 @@
     padding: 0 !important;
   }
 }
+
+@media (max-width: 640px) {
+  .pos-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .pos-modal-header {
+    padding: 1rem;
+  }
+
+  .pos-modal-form-content,
+  .pos-modal-success-content {
+    padding: 1rem 0.75rem;
+  }
+
+  .pos-payment-modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-cancel-payment,
+  .btn-confirm-payment {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

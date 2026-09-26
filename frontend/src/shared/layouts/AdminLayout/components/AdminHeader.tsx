@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../../modules/users-security/shared/components/AuthContext';
-import { LogOut, User, ChevronDown } from 'lucide-react';
+import { LogOut, User, ChevronDown, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export const AdminHeader: React.FC = () => {
+interface AdminHeaderProps {
+  onToggleSidebar?: () => void;
+}
+
+export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
   const { user, rol, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -15,8 +19,20 @@ export const AdminHeader: React.FC = () => {
 
   return (
     <header className="admin-header">
-      <div className="admin-header-search">
-        {/* Aquí iría un buscador global si fuera necesario */}
+      <div className="admin-header-left">
+        {onToggleSidebar && (
+          <button 
+            type="button"
+            className="admin-mobile-toggle-btn"
+            onClick={onToggleSidebar}
+            aria-label="Abrir navegación lateral"
+          >
+            <Menu size={24} />
+          </button>
+        )}
+        <div className="admin-header-search">
+          {/* Aquí iría un buscador global si fuera necesario */}
+        </div>
       </div>
 
       <div className="admin-header-actions">

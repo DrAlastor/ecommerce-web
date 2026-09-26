@@ -417,3 +417,38 @@
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 640px) {
+  .return-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .return-modal-header {
+    padding: 1rem 1rem 0.5rem;
+  }
+
+  .return-modal-subheader {
+    padding: 0 1rem 0.75rem;
+  }
+
+  .return-modal-subheader h2 {
+    font-size: 1.3rem;
+  }
+
+  .return-modal-body {
+    padding: 1rem;
+  }
+
+  .return-modal-footer {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-return-cancel,
+  .btn-return-submit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

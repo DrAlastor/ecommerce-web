@@ -1185,3 +1185,163 @@
     text-align: center;
   }
 }
+
+/* =========================================
+   ADDITIONAL MOBILE RESPONSIVE ENHANCEMENTS
+   ========================================= */
+@media (max-width: 640px) {
+  .toast-notification {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    justify-content: center;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .hero-content {
+    padding: 2.5rem 1rem 2rem;
+  }
+
+  .hero-headline {
+    font-size: clamp(2rem, 8vw, 2.75rem);
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-trust-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 1.25rem;
+  }
+
+  .hero-image-wrapper {
+    min-height: 280px;
+    height: 320px;
+  }
+
+  .section-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-main-title {
+    font-size: 1.75rem;
+  }
+
+  .collections-quad-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .collection-card {
+    height: 280px;
+  }
+
+  .promo-banner-card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .promo-img-side {
+    height: 200px;
+  }
+
+  .promo-text-side {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .promo-title {
+    font-size: 1.45rem;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
+    gap: 0.85rem;
+  }
+
+  .product-card-media {
+    height: 210px;
+  }
+
+  .product-card-info {
+    padding: 0.85rem;
+  }
+
+  .product-title {
+    font-size: 0.88rem;
+  }
+
+  .product-price {
+    font-size: 1.05rem;
+  }
+
+  .trust-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .newsletter-section {
+    padding: 2.5rem 0;
+  }
+
+  .newsletter-image-side {
+    height: 180px;
+  }
+
+  .newsletter-form-side {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .newsletter-title {
+    font-size: 1.55rem;
+  }
+
+  .site-footer {
+    padding: 3rem 0 1.5rem;
+  }
+
+  .lookbook-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .lookbook-modal-content {
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-container {
+    padding: 0 1rem;
+  }
+
+  .circular-categories-row {
+    gap: 0.65rem;
+  }
+
+  .circle-image-wrapper {
+    width: 68px;
+    height: 68px;
+  }
+
+  .circle-category-name {
+    font-size: 0.74rem;
+  }
+
+  .hero-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

@@ -20,6 +20,7 @@ import {
   ArrowLeftRight,
   RotateCcw,
 } from 'lucide-react';
+import './DashboardIndex.css';
 
 export default function DashboardIndex() {
   const { user, rol, funciones } = useAuth();
@@ -95,43 +96,27 @@ export default function DashboardIndex() {
   const isSuperAdmin = rol?.id_rol === 1 || rol?.nombre?.toLowerCase() === 'administrador';
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="dashboard-index-container">
       {/* Cabecera de bienvenida personalizada */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1C1510 0%, #2E221A 100%)',
-        color: '#FFFFFF',
-        borderRadius: '16px',
-        padding: '2.5rem',
-        marginBottom: '2rem',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
-        position: 'relative',
-        overflow: 'hidden',
-        border: '1px solid rgba(196, 149, 106, 0.3)'
-      }}>
+      <div className="dashboard-hero-card">
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(196, 149, 106, 0.25)', padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 600, color: '#EBD5BE', marginBottom: '1rem' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
+          <div className="dashboard-hero-badge">
+            <span className="dashboard-hero-dot"></span>
             Sesión Activa: {rol?.nombre || 'Personal Interno'}
           </div>
-          <h1 style={{ fontSize: '2.3rem', fontFamily: 'var(--font-display, Georgia, serif)', margin: '0 0 0.5rem 0', letterSpacing: '-0.02em', color: '#FFFFFF', fontWeight: 700 }}>
+          <h1 className="dashboard-hero-title">
             Bienvenido, {user?.empleado?.nombre ? `${user.empleado.nombre} ${user.empleado.apellido || ''}` : user?.email}
           </h1>
-          <p style={{ color: '#F3EAE2', maxWidth: '680px', fontSize: '1.02rem', lineHeight: 1.6, margin: 0 }}>
+          <p className="dashboard-hero-subtitle">
             {isSuperAdmin
               ? 'Tienes privilegios completos de Administrador sobre todos los módulos y funciones del sistema.'
               : `Has iniciado sesión con el rol de ${rol?.nombre}. En este panel dispones de acceso exclusivo a los módulos y herramientas que tienes asignados.`}
           </p>
-
         </div>
       </div>
 
       {/* Métricas / Resumen del perfil del colaborador */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: '1.25rem',
-        marginBottom: '2.5rem'
-      }}>
+      <div className="dashboard-metrics-grid">
         <div style={metricCardStyle}>
           <div style={iconWrapperStyle('#F4ECE1', '#8C5E35')}><KeyRound size={22} color="#8C5E35" /></div>
           <div>
@@ -169,12 +154,12 @@ export default function DashboardIndex() {
 
       {/* Módulos y Funciones Habilitados para el Empleado */}
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        <div className="dashboard-section-header">
           <div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#1A1A1A', margin: '0 0 0.25rem 0' }}>
+            <h2 className="dashboard-section-title">
               Tus Módulos y Accesos Directos
             </h2>
-            <p style={{ color: '#736B63', fontSize: '0.9rem', margin: 0 }}>
+            <p className="dashboard-section-subtitle">
               Selecciona cualquier función autorizada para comenzar a operar en el sistema.
             </p>
           </div>
@@ -195,63 +180,35 @@ export default function DashboardIndex() {
             </p>
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '1.5rem'
-          }}>
+          <div className="dashboard-modules-grid">
             {Array.from(modulesMap.entries()).map(([modulo, funcs]) => {
               const isOpen = !!openModules[modulo];
               return (
-                <div key={modulo} style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '14px',
-                  border: isOpen ? '1px solid #C4956A' : '1px solid #EAE6DF',
-                  padding: '1.25rem 1.5rem',
-                  boxShadow: isOpen ? '0 4px 14px rgba(196,149,106,0.12)' : '0 2px 10px rgba(0,0,0,0.03)',
-                  transition: 'all 0.2s ease'
-                }}>
+                <div key={modulo} className={`dashboard-module-card ${isOpen ? 'is-open' : ''}`}>
                   <div
                     onClick={() => toggleModule(modulo)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      userSelect: 'none'
-                    }}
+                    className="dashboard-module-header"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{
+                    <div className="dashboard-module-info">
+                      <div className="dashboard-module-icon-wrap" style={{
                         backgroundColor: isOpen ? '#8C5E35' : '#FAF8F5',
-                        border: '1px solid #EAE4DC',
-                        padding: '0.6rem',
-                        borderRadius: '10px',
-                        color: isOpen ? '#FFFFFF' : '#8C5E35',
-                        transition: 'all 0.2s ease'
+                        color: isOpen ? '#FFFFFF' : '#8C5E35'
                       }}>
                         <ShieldCheck size={20} />
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1A1A1A', margin: 0 }}>
+                        <h3 className="dashboard-module-title">
                           {modulo.replace('Gestión de ', '')}
                         </h3>
-                        <span style={{ fontSize: '0.78rem', color: '#8C827A' }}>
+                        <span className="dashboard-module-count">
                           {funcs.length} {funcs.length === 1 ? 'función asignada' : 'funciones asignadas'}
                         </span>
                       </div>
                     </div>
 
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
+                    <div className="dashboard-module-toggle-pill" style={{
                       color: isOpen ? '#8C5E35' : '#736B63',
-                      backgroundColor: isOpen ? '#F4ECE1' : '#F5F5F5',
-                      padding: '0.4rem 0.75rem',
-                      borderRadius: '8px'
+                      backgroundColor: isOpen ? '#F4ECE1' : '#F5F5F5'
                     }}>
                       <span>{isOpen ? 'Ocultar' : 'Abrir'}</span>
                       {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -263,36 +220,15 @@ export default function DashboardIndex() {
                       {funcs.map(f => (
                         <button
                           key={f.nombre}
+                          type="button"
+                          className="dashboard-function-btn"
                           onClick={() => navigate(getUseCaseRoute(f.nombre, f.id_funcion))}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '0.75rem 1rem',
-                            borderRadius: '8px',
-                            border: '1px solid #F0ECE6',
-                            backgroundColor: '#FAF8F5',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            transition: 'all 0.2s ease',
-                            color: '#2E2722'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#F2EDE4';
-                            e.currentTarget.style.borderColor = '#C4956A';
-                            e.currentTarget.style.transform = 'translateX(4px)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#FAF8F5';
-                            e.currentTarget.style.borderColor = '#F0ECE6';
-                            e.currentTarget.style.transform = 'translateX(0)';
-                          }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            <span style={{ color: '#8C5E35' }}>{getFunctionIcon(f.nombre)}</span>
+                            <span style={{ color: '#8C5E35', display: 'flex' }}>{getFunctionIcon(f.nombre)}</span>
                             <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{f.nombre.replace(/^CU\d+\s*[-—]\s*/i, '')}</span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', alignSelf: 'flex-end' }}>
                             <span style={{
                               fontSize: '0.72rem',
                               fontWeight: 700,

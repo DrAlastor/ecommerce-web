@@ -101,6 +101,9 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 body {
@@ -110,17 +113,38 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
 }
 
-img {
+img, picture, video, canvas, svg {
   max-width: 100%;
+  height: auto;
   display: block;
+}
+
+/* Tablas con scroll horizontal responsivo automático */
+.admin-table-container,
+.table-responsive-wrapper,
+.table-container,
+.purchases-table-container,
+.history-table-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 a {
@@ -321,3 +345,53 @@ h1, h2, h3, h4, h5, h6 {
     background: #F9FAFB !important;
   }
 }
+
+/* ================================================
+   AJUSTES RESPONSIVOS GLOBALES DEL SISTEMA
+   ================================================ */
+@media (max-width: 768px) {
+  /* Modales universales adaptables a pantallas móviles */
+  .admin-modal-backdrop,
+  .modal-backdrop,
+  .reservation-modal-backdrop,
+  .pos-modal-backdrop,
+  .return-modal-backdrop,
+  .custom-confirm-backdrop,
+  .size-guide-backdrop,
+  .lookbook-modal-overlay {
+    padding: 0.5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .admin-modal-box,
+  .modal-box,
+  .modal-container,
+  .modal-card,
+  .receipt-modal-card,
+  .reservation-modal-container,
+  .pos-modal-box,
+  .return-modal-card,
+  .custom-confirm-card,
+  .size-guide-modal,
+  .lookbook-modal-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: 14px !important;
+    margin: 0 auto !important;
+  }
+
+  /* Grids de formularios a 1 columna */
+  .form-row-2,
+  .form-grid-2,
+  .form-fields-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Evitar desbordes en inputs y textareas */
+  input, select, textarea {
+    max-width: 100% !important;
+  }
+}
+

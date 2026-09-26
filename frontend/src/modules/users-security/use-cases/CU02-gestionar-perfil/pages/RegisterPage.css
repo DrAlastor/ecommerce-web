@@ -187,3 +187,19 @@
 .register-back-btn:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 640px) {
+  .register-right {
+    padding: 1.5rem 1rem;
+  }
+
+  .register-title {
+    font-size: 2rem;
+  }
+
+  .form-group-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+

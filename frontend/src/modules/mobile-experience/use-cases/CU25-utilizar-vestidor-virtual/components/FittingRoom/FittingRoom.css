@@ -156,3 +156,39 @@
   color: #FFFFFF;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+@media (max-width: 640px) {
+  .fitting-room-viewport,
+  .fitting-viewport-media {
+    min-height: 380px;
+    height: 55vh;
+  }
+
+  .fitting-mode-toggle-bar {
+    top: 10px;
+    left: 10px;
+    padding: 2px;
+  }
+
+  .btn-mode-toggle {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+
+  .fitting-ar-active-badge {
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    font-size: 0.65rem;
+  }
+
+  .fitting-ar-disclaimer-overlay {
+    width: 90%;
+    white-space: normal;
+    text-align: center;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    bottom: 10px;
+  }
+}
+

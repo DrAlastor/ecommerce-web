@@ -62,7 +62,7 @@
 /* Layout Grid: Gallery + Details */
 .product-detail-grid {
   display: grid;
-  grid-template-columns: minmax(360px, 0.88fr) minmax(420px, 1fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 2.25rem;
   align-items: start;
 }
@@ -1060,3 +1060,73 @@
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* =========================================
+   ADDITIONAL MOBILE RESPONSIVE ENHANCEMENTS
+   ========================================= */
+@media (max-width: 640px) {
+  .product-detail-main {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .actions-buttons-row {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .quantity-control-wrap {
+    width: 100%;
+    justify-content: space-between;
+    height: 44px;
+  }
+
+  .btn-qty {
+    width: 40px;
+    height: 40px;
+  }
+
+  .btn-add-to-cart,
+  .btn-reserve-store {
+    flex: 1 1 100%;
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .branch-items-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .branch-stock-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .virtual-fitting-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-launch-fitting {
+    width: 100%;
+    justify-content: center;
+    padding: 0.7rem;
+  }
+
+  .size-guide-modal {
+    width: 95vw;
+    margin: 0 auto;
+  }
+
+  .size-guide-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .size-guide-table th,
+  .size-guide-table td {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+  }
+}
+

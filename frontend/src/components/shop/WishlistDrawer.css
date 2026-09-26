@@ -192,3 +192,19 @@
 .wishlist-add-cart-btn:hover {
   background-color: #333333;
 }
+
+@media (max-width: 480px) {
+  .wishlist-drawer {
+    max-width: 100vw;
+    width: 100vw;
+  }
+
+  .wishlist-drawer-header {
+    padding: 1rem;
+  }
+
+  .wishlist-drawer-footer {
+    padding: 1rem;
+  }
+}
+

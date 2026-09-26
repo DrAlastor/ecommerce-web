@@ -933,3 +933,33 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 640px) {
+  .checkout-page-main {
+    padding: 1.25rem 0.75rem 3rem;
+  }
+
+  .checkout-main-title {
+    font-size: 1.75rem;
+  }
+
+  .checkout-card-box {
+    padding: 1.25rem 1rem;
+  }
+
+  .invoice-parties-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .totals-row {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .order-confirmation-card,
+  .receipt-modal-card {
+    padding: 1.25rem 1rem;
+  }
+}
+

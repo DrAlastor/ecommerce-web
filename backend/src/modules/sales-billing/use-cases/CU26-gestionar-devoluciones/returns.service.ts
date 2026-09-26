@@ -73,9 +73,10 @@ export class ReturnsService {
       throw new NotFoundException(`La venta #${dto.id_venta} no existe.`);
     }
 
-    if (venta.estado.toLowerCase() !== 'completada') {
+    const estadoVentaNorm = venta.estado.toLowerCase().trim();
+    if (estadoVentaNorm !== 'completada' && estadoVentaNorm !== 'pagada' && estadoVentaNorm !== 'entregada') {
       throw new BadRequestException(
-        `Solo se pueden realizar devoluciones de ventas con estado "completada". Estado actual: "${venta.estado}".`,
+        `Solo se pueden realizar devoluciones de ventas pagadas o completadas. Estado actual: "${venta.estado}".`,
       );
     }
 

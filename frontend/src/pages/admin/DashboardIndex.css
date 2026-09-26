@@ -1,0 +1,222 @@
+/* ==========================================================================
+   DashboardIndex.css — Dressly Internal Staff & Admin Dashboard
+   ========================================================================== */
+
+.dashboard-index-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-hero-card {
+  background: linear-gradient(135deg, #1C1510 0%, #2E221A 100%);
+  color: #FFFFFF;
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(196, 149, 106, 0.3);
+}
+
+.dashboard-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(196, 149, 106, 0.25);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #EBD5BE;
+  margin-bottom: 1rem;
+}
+
+.dashboard-hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10B981;
+}
+
+.dashboard-hero-title {
+  font-size: clamp(1.6rem, 5vw, 2.3rem);
+  font-family: var(--font-display, Georgia, serif);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.dashboard-hero-subtitle {
+  color: #F3EAE2;
+  max-width: 680px;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.dashboard-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.dashboard-section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0 0 0.25rem 0;
+}
+
+.dashboard-section-subtitle {
+  color: #736B63;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.dashboard-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-module-card {
+  background-color: #FFFFFF;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  border: 1px solid #EAE6DF;
+}
+
+.dashboard-module-card.is-open {
+  border-color: #C4956A;
+  box-shadow: 0 4px 14px rgba(196, 149, 106, 0.12);
+}
+
+.dashboard-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.75rem;
+}
+
+.dashboard-module-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.dashboard-module-icon-wrap {
+  border: 1px solid #EAE4DC;
+  padding: 0.6rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.dashboard-module-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+  word-break: break-word;
+}
+
+.dashboard-module-count {
+  font-size: 0.78rem;
+  color: #8C827A;
+}
+
+.dashboard-module-toggle-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.dashboard-function-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #F0ECE6;
+  background-color: #FAF8F5;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  color: #2E2722;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.dashboard-function-btn:hover {
+  background-color: #F2EDE4;
+  border-color: #C4956A;
+  transform: translateX(4px);
+}
+
+/* ================================================
+   RESPONSIVIDAD MÓVIL
+   ================================================ */
+@media (max-width: 768px) {
+  .dashboard-index-container {
+    padding: 0 !important;
+  }
+
+  .dashboard-hero-card {
+    padding: 1.5rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+  }
+
+  .dashboard-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .dashboard-modules-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-module-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .dashboard-function-btn {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .dashboard-function-btn:hover {
+    transform: none;
+  }
+}

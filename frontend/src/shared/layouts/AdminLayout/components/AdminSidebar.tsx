@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Sparkles,
   RotateCcw,
+  X,
 } from 'lucide-react';
 
 const normalize = (value: string) =>
@@ -57,12 +58,21 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   return '/admin';
 };
 
-export const AdminSidebar: React.FC = () => {
+interface AdminSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const { funciones } = useAuth();
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
 
   const toggleModule = (modulo: string) => {
     setOpenModules((prev) => ({ ...prev, [modulo]: !prev[modulo] }));
+  };
+
+  const handleNavClick = () => {
+    if (onClose) onClose();
   };
 
   const modulesWithFunctions = useMemo(() => {
@@ -99,11 +109,21 @@ export const AdminSidebar: React.FC = () => {
   }, [funciones]);
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
       <div className="admin-sidebar-header">
         <h2 className="admin-logo">
           Dressly<span>Admin</span>
         </h2>
+        {onClose && (
+          <button 
+            type="button" 
+            className="admin-sidebar-close-btn" 
+            onClick={onClose} 
+            aria-label="Cerrar menú"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <div className="admin-sidebar-menu">
@@ -112,6 +132,7 @@ export const AdminSidebar: React.FC = () => {
           <NavLink
             to="/admin"
             end
+            onClick={handleNavClick}
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
             <LayoutDashboard size={20} />
@@ -139,6 +160,7 @@ export const AdminSidebar: React.FC = () => {
                     <NavLink
                       key={funcion.id_funcion}
                       to={getUseCaseRoute(funcion.nombre, funcion.id_funcion)}
+                      onClick={handleNavClick}
                       className={({ isActive }) => `admin-nav-subitem ${isActive ? 'active' : ''}`}
                     >
                       {funcion.nombre.replace(/^CU\d+\s*[-—]\s*/i, '')}
@@ -156,12 +178,13 @@ export const AdminSidebar: React.FC = () => {
         <nav>
           <NavLink
             to="/admin/settings"
+            onClick={handleNavClick}
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
             <Settings size={20} />
             <span>Configuración</span>
           </NavLink>
-          <a href="/" className="admin-nav-item">
+          <a href="/" className="admin-nav-item" onClick={handleNavClick}>
             <Store size={20} />
             <span>Volver a la Tienda</span>
           </a>
@@ -170,3 +193,4 @@ export const AdminSidebar: React.FC = () => {
     </aside>
   );
 };
+

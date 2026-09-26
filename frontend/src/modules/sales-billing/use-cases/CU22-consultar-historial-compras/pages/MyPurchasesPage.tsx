@@ -90,6 +90,23 @@ export const MyPurchasesPage: React.FC = () => {
     fetchPurchases();
   }, []);
 
+  // Bloquear scroll de fondo cuando un modal esté activo para evitar repaint lag
+  useEffect(() => {
+    if (selectedPurchaseId !== null || returnTargetPurchase !== null) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [selectedPurchaseId, returnTargetPurchase]);
+
+  // Determinar si una venta es apta para solicitar devolución (CU26)
+  const isEligibleForReturn = (estado: string) => {
+    const norm = (estado || '').toLowerCase().trim();
+    return norm === 'completada' || norm === 'pagada' || norm === 'entregada';
+  };
+
   // Abrir detalle
   const handleOpenDetail = async (idVenta: number) => {
     setSelectedPurchaseId(idVenta);
@@ -441,7 +458,7 @@ export const MyPurchasesPage: React.FC = () => {
                       </div>
 
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                          {purchase.estado.toLowerCase() === 'completada' &&
+                          {isEligibleForReturn(purchase.estado) &&
                             !myReturns.some((r) => r.id_venta === purchase.id_venta) && (
                               <button
                                 type="button"
@@ -701,7 +718,7 @@ export const MyPurchasesPage: React.FC = () => {
 
                 {/* Botones del Modal */}
                 <div className="modal-actions-footer">
-                  {purchaseDetail.estado.toLowerCase() === 'completada' && (
+                  {isEligibleForReturn(purchaseDetail.estado) && (
                     <button
                       type="button"
                       className="btn-request-return"

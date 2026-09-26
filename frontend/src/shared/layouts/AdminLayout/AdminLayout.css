@@ -17,8 +17,29 @@
 }
 
 .admin-sidebar-header {
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.admin-sidebar-close-btn:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .admin-logo {
@@ -272,3 +293,200 @@
   padding: 2rem;
   overflow-y: auto;
 }
+
+.admin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-mobile-toggle-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.admin-mobile-toggle-btn:hover {
+  background-color: var(--bg-secondary);
+}
+
+.admin-sidebar-backdrop {
+  display: none;
+}
+
+/* ================================================
+   RESPONSIVE DESIGN PANEL DE ADMINISTRACIÓN
+   ================================================ */
+@media (max-width: 992px) {
+  .admin-layout {
+    position: relative;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .admin-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(3px);
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 6px 0 25px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-close-btn {
+    display: flex;
+  }
+
+  .admin-mobile-toggle-btn {
+    display: flex;
+  }
+
+  .admin-main-wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-header {
+    padding: 0 1.25rem;
+  }
+
+  .admin-main-content {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-header {
+    padding: 0 0.85rem;
+    height: 56px;
+  }
+
+  .admin-user-info {
+    display: none;
+  }
+
+  .admin-main-content {
+    padding: 1rem 0.65rem;
+  }
+
+  /* Eliminar doble padding en vistas administrativas internas */
+  .admin-main-content > div,
+  .manage-users-page,
+  .manage-catalog-page,
+  .manage-branches-page,
+  .manage-inventory-page,
+  .manage-movements-page,
+  .manage-suppliers-page,
+  .manage-roles-page,
+  .manage-employees-page,
+  .manage-returns-container,
+  .bitacora-page,
+  .dashboard-index-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Encabezados y barras de herramientas de módulos administrativos */
+  .admin-page-header,
+  .page-header,
+  .roles-header,
+  .bitacora-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .admin-page-title,
+  .page-header h1,
+  .roles-header-title h1,
+  .bitacora-header-title h1 {
+    font-size: 1.45rem !important;
+  }
+
+  /* Barras de filtros y controles */
+  .filters-bar,
+  .admin-controls-bar,
+  .admin-table-toolbar,
+  .toolbar-search-filter,
+  .bitacora-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+  }
+
+  .search-input,
+  .filter-select,
+  .bitacora-search-box,
+  .admin-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Tablas administrativas con scroll horizontal nativo y ancho legible */
+  .admin-table-container,
+  .table-container,
+  .bitacora-table-container,
+  .roles-table-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 10px !important;
+  }
+
+  .admin-table,
+  .users-table,
+  .roles-table,
+  .bitacora-table {
+    min-width: 580px !important;
+  }
+
+  /* Modales administrativos */
+  .admin-modal-box,
+  .modal-card,
+  .role-modal-container {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 0 auto !important;
+  }
+
+  /* Banners de cabecera de módulos */
+  .returns-header-banner {
+    padding: 1.5rem 1.25rem !important;
+    border-radius: 12px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+}
+

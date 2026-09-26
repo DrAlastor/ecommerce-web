@@ -108,3 +108,14 @@
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: 640px) {
+  .virtual-fitting-main {
+    padding: 12px 10px 32px;
+  }
+
+  .fitting-viewport-column {
+    min-height: 380px;
+  }
+}
+

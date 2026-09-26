@@ -602,3 +602,29 @@
     margin-top: 0.4rem;
   }
 }
+
+@media (max-width: 640px) {
+  .cart-page-main {
+    padding: 1.25rem 0.75rem 3rem;
+  }
+
+  .cart-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .cart-page-title {
+    font-size: 1.75rem;
+  }
+
+  .cart-row-product {
+    gap: 0.75rem;
+  }
+
+  .cart-row-image {
+    width: 64px;
+    height: 80px;
+  }
+}
+

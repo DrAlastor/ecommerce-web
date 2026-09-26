@@ -994,3 +994,34 @@
     display: none !important;
   }
 }
+
+@media (max-width: 640px) {
+  .reservation-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .reservation-modal-header {
+    padding: 1rem;
+  }
+
+  .reservation-modal-body,
+  .modal-body {
+    padding: 1rem 0.75rem;
+  }
+
+  .receipt-footer-left,
+  .receipt-footer-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-receipt-catalog,
+  .btn-receipt-secondary,
+  .btn-receipt-print,
+  .btn-receipt-close-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

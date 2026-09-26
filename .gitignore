@@ -20,3 +20,8 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# AI Tools & IDE caches
+.agents/
+.claude/
+.windsurf/

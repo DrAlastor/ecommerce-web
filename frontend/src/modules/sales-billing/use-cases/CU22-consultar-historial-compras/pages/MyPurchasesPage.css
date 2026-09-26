@@ -570,13 +570,14 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.65);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 .receipt-modal-card {
@@ -589,7 +590,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: modalScaleUp 0.25s ease-out;
+  animation: modalScaleUp 0.2s ease-out;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  contain: content;
 }
 
 @keyframes modalScaleUp {
@@ -645,6 +649,11 @@
   padding: 1.75rem;
   overflow-y: auto;
   flex: 1;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: layout paint;
+  transform: translateZ(0);
+  will-change: scroll-position;
 }
 
 /* Official Header */
@@ -787,6 +796,7 @@
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid #E5E7EB;
+  content-visibility: auto;
 }
 
 .table-product-name {
@@ -1092,3 +1102,37 @@
     max-width: 100%;
   }
 }
+
+@media (max-width: 640px) {
+  .purchases-main {
+    padding: 1.25rem 0.75rem 3rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .purchase-card-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .modal-scroll-content {
+    padding: 1rem 0.75rem;
+  }
+
+  .receipt-official-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .invoice-badge-box {
+    text-align: left;
+  }
+}
+

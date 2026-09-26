@@ -996,3 +996,60 @@
   from { transform: scale(0.96); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .manage-returns-container {
+    padding: 0 !important;
+  }
+
+  .returns-header-banner {
+    padding: 1.5rem 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    border-radius: 12px;
+  }
+
+  .returns-header-info h1 {
+    font-size: 1.4rem;
+  }
+
+  .returns-tab-nav {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .returns-tab-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .returns-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .returns-search-box {
+    max-width: 100%;
+  }
+
+  .returns-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .returns-table {
+    min-width: 650px;
+  }
+
+  .return-modal-card {
+    max-width: 95vw;
+    width: 95vw;
+    margin: 0 auto;
+  }
+}
+

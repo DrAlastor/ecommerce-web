@@ -545,3 +545,59 @@
     padding-top: 0.85rem;
   }
 }
+
+@media (max-width: 640px) {
+  .announcement-bar {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+  }
+
+  .announcement-content {
+    justify-content: flex-start;
+    text-align: left;
+    line-height: 1.3;
+  }
+
+  .staff-admin-bar {
+    padding: 0.4rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .staff-admin-content {
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+  }
+
+  .user-dropdown {
+    right: -10px;
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0.65rem 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .brand-name {
+    font-size: 1.2rem;
+  }
+
+  .brand-tagline {
+    font-size: 0.45rem;
+  }
+
+  .nav-actions {
+    gap: 0.35rem;
+  }
+
+  .nav-action-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0.35rem;
+  }
+}
+
