@@ -54,11 +54,12 @@ async function bootstrapServer(): Promise<any> {
   return cachedServer;
 }
 
-// Export predeterminado requerido por Vercel Serverless Functions
+// Export predeterminado y con nombre requerido por Vercel Serverless Functions
 export default async function handler(req: any, res: any) {
   const server = await bootstrapServer();
   return server(req, res);
 }
+export { handler };
 
 // Ejecución local (cuando no está en entorno Vercel Serverless)
 if (!process.env.VERCEL) {

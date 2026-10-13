@@ -6,8 +6,10 @@
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
+  "main": "dist/main.js",
   "scripts": {
-    "build": "prisma generate && nest build",
+    "build": "prisma generate && nest build && node -e \"import('node:fs').then(fs => fs.writeFileSync('dist/package.json', JSON.stringify({ type: 'module', main: 'main.js' }, null, 2)))\"",
+    "postbuild": "node -e \"import('node:fs').then(fs => fs.writeFileSync('dist/package.json', JSON.stringify({ type: 'module', main: 'main.js' }, null, 2)))\"",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main",
