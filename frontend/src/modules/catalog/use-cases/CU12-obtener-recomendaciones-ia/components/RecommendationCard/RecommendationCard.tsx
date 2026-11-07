@@ -18,7 +18,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({ product,
   <article className="recommendation-card" onClick={() => onOpenProduct(product.id_producto)}>
     <div className="recommendation-media">
       <img
-        src={product.imagen_principal || 'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png'}
+        src={product.imagen_principal || 'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png'}
         alt={product.nombre}
       />
       {product.tiene_descuento && (

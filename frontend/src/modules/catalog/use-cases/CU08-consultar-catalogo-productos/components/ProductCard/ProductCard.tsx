@@ -40,7 +40,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, toShopProduct
         <img
           src={
             product.imagen_principal ||
-            'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png'
+            'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png'
           }
           alt={product.nombre}
           loading="lazy"

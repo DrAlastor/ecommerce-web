@@ -6,6 +6,7 @@
  * @secuencia Cliente -> interfaz de pago -> controlador de pagos -> servicio de pago y facturación -> Pasarela de Pago/Pago/Venta/Factura.
  */
 import React, { useState } from 'react';
+import QRCode from 'qrcode';
 import { paymentBillingService } from '../../../services/payment-billing.service';
 import { presentialSaleService } from '../../../services/presential-sale.service';
 import type {
@@ -24,6 +25,10 @@ import {
   FileText,
   DollarSign,
   ArrowRight,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
+  Sparkles,
 } from 'lucide-react';
 import { printReceipt } from '../../../../../shared/utils/printReceipt';
 import './POSPaymentModal.css';
@@ -88,6 +93,112 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<PaymentConfirmationResult | null>(initialReceipt || null);
+
+  // Tarjeta POS
+  const [selectedCardBrand, setSelectedCardBrand] = useState<'visa' | 'mastercard' | 'amex' | 'debito'>('visa');
+  const [cardLast4, setCardLast4] = useState<string>('');
+
+  // Cuentas bancarias y billeteras móviles para QR
+  const POS_QR_ACCOUNTS = [
+    {
+      id: 'yape',
+      name: 'Yape / BCP',
+      banco: 'Banco de Crédito (BCP)',
+      cuenta: 'Cel: 71234567 • Cta: 201-5093821',
+      titular: 'FashionStore S.R.L.',
+      color: '#7C3AED',
+      badge: 'Yape Móvil',
+    },
+    {
+      id: 'bmsc',
+      name: 'QR Simple (BMSC)',
+      banco: 'Mercantil Santa Cruz',
+      cuenta: 'Cta Cte: 4010-892341-01',
+      titular: 'FashionStore S.R.L. (NIT: 1029384756)',
+      color: '#0D9488',
+      badge: 'QR Simple',
+    },
+    {
+      id: 'bnb',
+      name: 'BNB Móvil',
+      banco: 'Banco Nacional de Bolivia',
+      cuenta: 'Cta: 150-0294810-01',
+      titular: 'FashionStore Bolivia',
+      color: '#2563EB',
+      badge: 'BNB',
+    },
+    {
+      id: 'tigo',
+      name: 'Tigo Money',
+      banco: 'Tigo Money Billetera',
+      cuenta: 'Línea: 78901234',
+      titular: 'FashionStore Retail',
+      color: '#EA580C',
+      badge: 'Billetera',
+    },
+  ];
+
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('yape');
+  const [generatedPosQrUrl, setGeneratedPosQrUrl] = useState<string>('');
+  const [isQrGenerated, setIsQrGenerated] = useState<boolean>(false);
+
+  // QR de Sucursal guardado en localStorage permanentemente
+  const [savedPosQrImage, setSavedPosQrImage] = useState<string | null>(() => {
+    return localStorage.getItem('dressly_pos_qr_image') || null;
+  });
+  const [qrDisplayMode, setQrDisplayMode] = useState<'dinamico' | 'subido'>(() => {
+    return localStorage.getItem('dressly_pos_qr_image') ? 'subido' : 'dinamico';
+  });
+
+  // Generador de código QR conectado a cuenta y monto
+  const handleGenerateQR = () => {
+    const acc = POS_QR_ACCOUNTS.find((a) => a.id === selectedAccountId) || POS_QR_ACCOUNTS[0];
+    const qrData = `${acc.name.toUpperCase()}|MONTO:${totalPagar.toFixed(2)}|BOB|BANCO:${acc.banco}|CUENTA:${acc.cuenta}|TITULAR:${acc.titular}|GLOSA:POS-VENTA-${Date.now().toString().slice(-6)}`;
+    QRCode.toDataURL(qrData, {
+      width: 240,
+      margin: 2,
+      color: { dark: acc.color, light: '#ffffff' },
+    })
+      .then((url) => {
+        setGeneratedPosQrUrl(url);
+        setIsQrGenerated(true);
+        setTransaccionRef(`QR-${acc.id.toUpperCase()}-${Date.now().toString().slice(-6)}`);
+      })
+      .catch((err) => console.error('Error generando QR:', err));
+  };
+
+  // Simular autorización de terminal física
+  const handleSimulateCardAuth = () => {
+    const authCode = `AUT-${Math.floor(100000 + Math.random() * 900000)}`;
+    setTransaccionRef(authCode);
+    setCardLast4('4242');
+  };
+
+  // Manejador de subida de imagen de QR de sucursal persistido
+  const handleUploadPosQrImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('Por favor selecciona una imagen válida (PNG, JPG o WEBP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setSavedPosQrImage(result);
+        localStorage.setItem('dressly_pos_qr_image', result);
+        setQrDisplayMode('subido');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveSavedPosQr = () => {
+    setSavedPosQrImage(null);
+    localStorage.removeItem('dressly_pos_qr_image');
+    setQrDisplayMode('dinamico');
+  };
 
   // Cálculo del cambio
   const cambio = Math.max(0, Math.round((cashReceived - totalPagar) * 100) / 100);
@@ -455,25 +566,314 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
               </div>
             )}
 
-            {/* Panel de Tarjeta */}
+            {/* Panel de Tarjeta POS Mejorado */}
             {paymentMethod === 'tarjeta' && (
               <div className="other-payment-box">
-                <label>Número de Autorización / Lote de la Terminal POS</label>
-                <input
-                  type="text"
-                  placeholder="Ej: AUT-928194 o Tarjeta Stripe"
-                  value={transaccionRef}
-                  onChange={(e) => setTransaccionRef(e.target.value)}
-                  className="form-input font-mono"
-                />
+                <div style={{ marginBottom: '0.85rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.4rem' }}>
+                    Tipo de Tarjeta del Cliente:
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {(['visa', 'mastercard', 'amex', 'debito'] as const).map((brand) => (
+                      <button
+                        key={brand}
+                        type="button"
+                        onClick={() => setSelectedCardBrand(brand)}
+                        style={{
+                          padding: '0.4rem 0.85rem',
+                          borderRadius: '6px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          border: '1px solid',
+                          borderColor: selectedCardBrand === brand ? '#111827' : '#D1D5DB',
+                          background: selectedCardBrand === brand ? '#111827' : '#FFFFFF',
+                          color: selectedCardBrand === brand ? '#FFFFFF' : '#374151',
+                          cursor: 'pointer',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {brand === 'debito' ? 'Débito Bancario' : brand}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '0.85rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', margin: 0 }}>
+                      Número de Autorización / Lote de la Terminal POS *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleSimulateCardAuth}
+                      style={{
+                        background: '#EEF2FF',
+                        border: '1px solid #C7D2FE',
+                        color: '#4F46E5',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                      }}
+                    >
+                      <Sparkles size={12} />
+                      <span>Simular Aprobación POS</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ej: AUT-928194 o lote de terminal"
+                    value={transaccionRef}
+                    onChange={(e) => setTransaccionRef(e.target.value)}
+                    className="form-input font-mono"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.35rem' }}>
+                    Últimos 4 dígitos de la tarjeta (Opcional):
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={4}
+                    placeholder="Ej: 4242"
+                    value={cardLast4}
+                    onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    className="form-input font-mono"
+                    style={{ maxWidth: '160px' }}
+                  />
+                </div>
               </div>
             )}
 
-            {/* Panel de QR */}
+            {/* Panel de QR con Conexión a Cuentas de Banco / Yape y Botón Generador */}
             {paymentMethod === 'qr' && (
-              <div className="other-payment-box qr-center-box">
-                <QrCode size={120} className="qr-simulated-pic" />
-                <p>El cliente debe escanear el código desde su aplicación bancaria.</p>
+              <div className="other-payment-box qr-center-box" style={{ textAlign: 'center' }}>
+                {/* Selector entre QR Conectado a Banco y QR subido de caja */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => setQrDisplayMode('dinamico')}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: qrDisplayMode === 'dinamico' ? '#111827' : '#E5E7EB',
+                      background: qrDisplayMode === 'dinamico' ? '#111827' : '#F9FAFB',
+                      color: qrDisplayMode === 'dinamico' ? '#FFFFFF' : '#374151',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    <QrCode size={15} />
+                    <span>Generador QR (Banco / Yape)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setQrDisplayMode('subido')}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: qrDisplayMode === 'subido' ? '#111827' : '#E5E7EB',
+                      background: qrDisplayMode === 'subido' ? '#111827' : '#F9FAFB',
+                      color: qrDisplayMode === 'subido' ? '#FFFFFF' : '#374151',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    <ImageIcon size={15} />
+                    <span>QR Fijo de Caja Guardado</span>
+                  </button>
+                </div>
+
+                {qrDisplayMode === 'dinamico' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+                    {/* Selector de Cuentas: Yape, BMSC, BNB, Tigo */}
+                    <div style={{ width: '100%', textAlign: 'left' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#4B5563', display: 'block', marginBottom: '0.4rem' }}>
+                        Seleccionar Cuenta o Billetera Receptora:
+                      </span>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem' }}>
+                        {POS_QR_ACCOUNTS.map((acc) => (
+                          <div
+                            key={acc.id}
+                            onClick={() => {
+                              setSelectedAccountId(acc.id);
+                              setIsQrGenerated(false);
+                            }}
+                            style={{
+                              padding: '0.5rem 0.65rem',
+                              borderRadius: '6px',
+                              border: '1.5px solid',
+                              borderColor: selectedAccountId === acc.id ? acc.color : '#E5E7EB',
+                              background: selectedAccountId === acc.id ? `${acc.color}10` : '#FFFFFF',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '2px',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <strong style={{ fontSize: '0.8rem', color: selectedAccountId === acc.id ? acc.color : '#111827' }}>
+                                {acc.name}
+                              </strong>
+                              <span style={{ fontSize: '0.65rem', background: `${acc.color}20`, color: acc.color, padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
+                                {acc.badge}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '0.7rem', color: '#6B7280' }}>{acc.cuenta}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Botón explícito para Generar el QR */}
+                    <button
+                      type="button"
+                      onClick={handleGenerateQR}
+                      style={{
+                        width: '100%',
+                        padding: '0.7rem',
+                        borderRadius: '8px',
+                        background: '#111827',
+                        color: '#FFFFFF',
+                        fontWeight: 600,
+                        fontSize: '0.88rem',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        transition: 'background 0.2s',
+                      }}
+                    >
+                      <Sparkles size={16} />
+                      <span>Generar Código QR ({totalPagar.toFixed(2)} Bs)</span>
+                    </button>
+
+                    {/* QR Generado en Pantalla */}
+                    {isQrGenerated && generatedPosQrUrl && (
+                      <div style={{ background: '#FFFFFF', padding: '0.85rem', borderRadius: '10px', border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', marginTop: '0.25rem' }}>
+                        <img
+                          src={generatedPosQrUrl}
+                          alt="QR de Pago"
+                          style={{
+                            width: '190px',
+                            height: '190px',
+                            borderRadius: '8px',
+                            border: '1px solid #E5E7EB',
+                            background: '#FFFFFF',
+                            padding: '6px',
+                          }}
+                        />
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#111827' }}>
+                          Monto exacto: {totalPagar.toFixed(2)} Bs
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#6B7280' }}>
+                          Cuenta vinculada: {POS_QR_ACCOUNTS.find(a => a.id === selectedAccountId)?.cuenta}
+                        </span>
+                        <p style={{ fontSize: '0.72rem', color: '#059669', margin: 0, fontWeight: 600 }}>
+                          ✓ Listo para escanear desde app de {POS_QR_ACCOUNTS.find(a => a.id === selectedAccountId)?.name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                    {savedPosQrImage ? (
+                      <>
+                        <img
+                          src={savedPosQrImage}
+                          alt="QR de Caja Guardado"
+                          style={{
+                            width: '190px',
+                            height: '190px',
+                            objectFit: 'contain',
+                            borderRadius: '8px',
+                            border: '1px solid #E5E7EB',
+                            background: '#FFFFFF',
+                            padding: '6px',
+                          }}
+                        />
+                        <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>
+                          ✓ QR de sucursal guardado y activo permanentemente
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveSavedPosQr}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#DC2626',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          <span>Eliminar QR de caja</span>
+                        </button>
+                      </>
+                    ) : (
+                      <div style={{ padding: '1.5rem', border: '2px dashed #D1D5DB', borderRadius: '8px', width: '100%' }}>
+                        <ImageIcon size={36} color="#9CA3AF" style={{ margin: '0 auto 0.4rem' }} />
+                        <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: 0 }}>
+                          No hay imagen QR de caja subida aún
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Botón persistente para subir el QR de la tienda */}
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <label
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          padding: '0.45rem 0.9rem',
+                          background: '#F3F4F6',
+                          border: '1px solid #D1D5DB',
+                          borderRadius: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          color: '#374151',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Upload size={14} />
+                        <span>{savedPosQrImage ? 'Cambiar Imagen QR' : 'Subir Imagen QR (Se mantendrá ahí)'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUploadPosQrImage}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

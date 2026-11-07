@@ -24,4 +24,6 @@ Thumbs.db
 # AI Tools & IDE caches
 .agents/
 .claude/
-.windsurf/
+.windsurf/
+*.zip
+

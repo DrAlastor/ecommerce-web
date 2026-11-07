@@ -17,6 +17,28 @@ export const checkoutService = {
   },
 
   /**
+   * Crea una sesión oficial de Stripe Checkout con redirección a Stripe
+   */
+  async createStripeCheckoutSession(dto: any): Promise<{ url: string; sessionId: string; amount: number }> {
+    const response = await api.post<{ url: string; sessionId: string; amount: number }>(
+      '/sales-billing/checkout/create-stripe-session',
+      dto,
+    );
+    return response.data;
+  },
+
+  /**
+   * Confirma la sesión de Stripe una vez el cliente regresa de Stripe Checkout
+   */
+  async confirmStripeCheckoutSession(sessionId: string): Promise<OrderReceipt> {
+    const response = await api.post<OrderReceipt>(
+      '/sales-billing/checkout/confirm-stripe-session',
+      { sessionId },
+    );
+    return response.data;
+  },
+
+  /**
    * Procesa la compra digital de forma atómica en backend
    */
   async processPurchase(payload: ProcessPurchasePayload): Promise<OrderReceipt> {

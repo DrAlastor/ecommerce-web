@@ -306,8 +306,8 @@ export const ThreeGarmentCanvas: React.FC<ThreeGarmentCanvasProps> = ({
     let rawModelUrl = variant?.modelo_3d_url || '/models/blusa_satinada.glb';
 
     // Usar proxy local de Vite si es Azure Blob Storage para evitar bloqueos CORS
-    if (rawModelUrl.includes('fashionstorestorage.blob.core.windows.net')) {
-      rawModelUrl = rawModelUrl.replace('https://fashionstorestorage.blob.core.windows.net', '/azure-storage');
+    if (rawModelUrl.includes('fashionstorestorages.blob.core.windows.net')) {
+      rawModelUrl = rawModelUrl.replace('https://fashionstorestorages.blob.core.windows.net', '/azure-storage');
     }
 
     const modelUrl = rawModelUrl;

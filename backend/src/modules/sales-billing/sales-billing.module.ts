@@ -26,6 +26,7 @@ import { PresentialSaleController } from './use-cases/CU24-registrar-venta-prese
 import { PresentialSaleService } from './use-cases/CU24-registrar-venta-presencial/presential-sale.service.js';
 import { ReturnsController } from './use-cases/CU26-gestionar-devoluciones/returns.controller.js';
 import { ReturnsService } from './use-cases/CU26-gestionar-devoluciones/returns.service.js';
+import { SaasCheckoutController } from './saas-checkout.controller.js';
 
 @Module({
   imports: [PrismaModule, AuthModule, UsersSecurityModule],
@@ -36,6 +37,7 @@ import { ReturnsService } from './use-cases/CU26-gestionar-devoluciones/returns.
     PaymentBillingController,
     PresentialSaleController,
     ReturnsController,
+    SaasCheckoutController,
   ],
   providers: [
     CartService,

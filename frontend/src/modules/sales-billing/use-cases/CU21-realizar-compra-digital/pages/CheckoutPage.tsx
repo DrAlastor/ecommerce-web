@@ -12,6 +12,7 @@ import { useAuth } from '../../../../users-security/shared/components/AuthContex
 import { checkoutService } from '../../../services/checkout.service';
 import type { OrderReceipt, OrderItemReceipt } from '../../../types/checkout.types';
 import { Navbar } from '../../../../../components/layout/Navbar';
+import QRCode from 'qrcode';
 import {
   ShieldCheck,
   CreditCard,
@@ -28,6 +29,9 @@ import {
   ArrowLeft,
   Store,
   Sparkles,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
 } from 'lucide-react';
 import { printReceipt } from '../../../../../shared/utils/printReceipt';
 import './CheckoutPage.css';
@@ -67,8 +71,57 @@ export const CheckoutPage: React.FC = () => {
   const [cardCvc, setCardCvc] = useState('');
   const [cardHolder, setCardHolder] = useState(defaultClientName);
 
+  // Cuentas bancarias y billeteras móviles para pago QR
+  const CLIENT_QR_ACCOUNTS = [
+    {
+      id: 'yape',
+      name: 'Yape / BCP',
+      banco: 'Banco de Crédito (BCP)',
+      cuenta: 'Cel: 71234567 • Cta: 201-5093821',
+      titular: 'FashionStore S.R.L.',
+      color: '#7C3AED',
+      badge: 'Yape Móvil',
+    },
+    {
+      id: 'bmsc',
+      name: 'QR Simple (BMSC)',
+      banco: 'Mercantil Santa Cruz',
+      cuenta: 'Cta Cte: 4010-892341-01',
+      titular: 'FashionStore S.R.L. (NIT: 1029384756)',
+      color: '#0D9488',
+      badge: 'QR Simple',
+    },
+    {
+      id: 'bnb',
+      name: 'BNB Móvil',
+      banco: 'Banco Nacional de Bolivia',
+      cuenta: 'Cta: 150-0294810-01',
+      titular: 'FashionStore Bolivia',
+      color: '#2563EB',
+      badge: 'BNB',
+    },
+    {
+      id: 'tigo',
+      name: 'Tigo Money',
+      banco: 'Tigo Money Billetera',
+      cuenta: 'Línea: 78901234',
+      titular: 'FashionStore Retail',
+      color: '#EA580C',
+      badge: 'Billetera',
+    },
+  ];
 
-  // QR
+  const [selectedClientAccountId, setSelectedClientAccountId] = useState<string>('yape');
+  const [isClientQrGenerated, setIsClientQrGenerated] = useState<boolean>(false);
+
+  // QR dinámico y personalizado persistente
+  const [generatedQrDataUrl, setGeneratedQrDataUrl] = useState<string>('');
+  const [savedQrImage, setSavedQrImage] = useState<string | null>(() => {
+    return localStorage.getItem('dressly_saved_qr_image') || null;
+  });
+  const [qrDisplayMode, setQrDisplayMode] = useState<'dinamico' | 'subido'>(() => {
+    return localStorage.getItem('dressly_saved_qr_image') ? 'subido' : 'dinamico';
+  });
   const [qrConfirmed, setQrConfirmed] = useState(false);
   const [qrSecondsLeft, setQrSecondsLeft] = useState(300);
 
@@ -117,6 +170,90 @@ export const CheckoutPage: React.FC = () => {
       ? 0
       : 25.0;
   const totalConEnvio = cartTotal + shippingCost;
+
+  // Generador de código QR con cuenta bancaria / Yape
+  const handleGenerateClientQR = () => {
+    const acc = CLIENT_QR_ACCOUNTS.find((a) => a.id === selectedClientAccountId) || CLIENT_QR_ACCOUNTS[0];
+    const qrData = `${acc.name.toUpperCase()}|MONTO:${totalConEnvio.toFixed(2)}|MONEDA:BOB|BANCO:${acc.banco}|CUENTA:${acc.cuenta}|TITULAR:${acc.titular}|REF:PEDIDO-${Date.now().toString().slice(-6)}`;
+    QRCode.toDataURL(qrData, {
+      width: 240,
+      margin: 2,
+      color: { dark: acc.color, light: '#ffffff' },
+    })
+      .then((url) => {
+        setGeneratedQrDataUrl(url);
+        setIsClientQrGenerated(true);
+      })
+      .catch((err) => console.error('Error generando QR:', err));
+  };
+
+  // Detectar retorno desde Stripe Checkout oficial
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const sessionId = params.get('session_id');
+
+    if (status === 'stripe_success' && sessionId) {
+      setIsProcessing(true);
+      checkoutService
+        .confirmStripeCheckoutSession(sessionId)
+        .then(async (resReceipt) => {
+          setReceipt(resReceipt);
+          await clearCart();
+          await refreshCart();
+          window.history.replaceState({}, document.title, window.location.pathname);
+        })
+        .catch((err) => {
+          setErrorMessage(err.response?.data?.message || 'Error confirmando el pago con Stripe.');
+        })
+        .finally(() => {
+          setIsProcessing(false);
+        });
+    } else if (status === 'stripe_cancel') {
+      setErrorMessage('El pago en Stripe Checkout fue cancelado.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  // Generador de QR dinámico oficial con el monto exacto de la orden
+  useEffect(() => {
+    if (paymentMethod === 'qr' && totalConEnvio > 0) {
+      const qrData = `FASHIONSTORE-BO|MONTO:${totalConEnvio.toFixed(2)}|MONEDA:BOB|BANCO:BMSC|CTA:4010-892341-01|NIT:1029384756|BENEFICIARIO:FashionStore SRL|REF:PEDIDO-${Date.now().toString().slice(-6)}`;
+      QRCode.toDataURL(qrData, {
+        width: 280,
+        margin: 2,
+        color: { dark: '#111827', light: '#ffffff' },
+      })
+        .then((url) => setGeneratedQrDataUrl(url))
+        .catch((err) => console.error('Error generando QR:', err));
+    }
+  }, [paymentMethod, totalConEnvio]);
+
+  // Manejo de imagen QR personalizada persistida en localStorage
+  const handleUploadQrImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setErrorMessage('Por favor selecciona una imagen válida (PNG, JPG o WEBP).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setSavedQrImage(result);
+        localStorage.setItem('dressly_saved_qr_image', result);
+        setQrDisplayMode('subido');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveSavedQr = () => {
+    setSavedQrImage(null);
+    localStorage.removeItem('dressly_saved_qr_image');
+    setQrDisplayMode('dinamico');
+  };
 
   // Formateadores automáticos de tarjeta estándar
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -627,7 +764,7 @@ export const CheckoutPage: React.FC = () => {
                       onClick={() => setPaymentMethod('stripe')}
                     >
                       <CreditCard size={18} />
-                      <span>Tarjeta de Crédito / Débito (Stripe)</span>
+                      <span>Tarjeta de Crédito / Débito</span>
                     </button>
 
                     <button
@@ -649,13 +786,13 @@ export const CheckoutPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Contenido Pestaña: STRIPE */}
+                  {/* Contenido Pestaña: TARJETA DE CRÉDITO / DÉBITO */}
                   {paymentMethod === 'stripe' && (
                     <div className="payment-tab-panel stripe-panel">
                       <div className="stripe-header-row">
                         <div className="stripe-secure-label">
                           <Lock size={14} />
-                          <span>Pasarela Oficial Stripe • Modo Sandbox</span>
+                          <span>Pasarela de Pago con Tarjeta • Modo Seguro</span>
                         </div>
                         <button
                           type="button"
@@ -746,21 +883,242 @@ export const CheckoutPage: React.FC = () => {
                   {/* Contenido Pestaña: PAGO QR */}
                   {paymentMethod === 'qr' && (
                     <div className="payment-tab-panel qr-panel">
+                      {/* Selector de modo QR: Generador Conectado a Cuentas vs Imagen QR Personalizada */}
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => setQrDisplayMode('dinamico')}
+                          style={{
+                            flex: 1,
+                            padding: '0.6rem',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            border: '1px solid',
+                            borderColor: qrDisplayMode === 'dinamico' ? '#111827' : '#E5E7EB',
+                            background: qrDisplayMode === 'dinamico' ? '#111827' : '#F9FAFB',
+                            color: qrDisplayMode === 'dinamico' ? '#FFFFFF' : '#374151',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <QrCode size={16} />
+                          <span>Generador QR (Banco / Yape)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setQrDisplayMode('subido')}
+                          style={{
+                            flex: 1,
+                            padding: '0.6rem',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            border: '1px solid',
+                            borderColor: qrDisplayMode === 'subido' ? '#111827' : '#E5E7EB',
+                            background: qrDisplayMode === 'subido' ? '#111827' : '#F9FAFB',
+                            color: qrDisplayMode === 'subido' ? '#FFFFFF' : '#374151',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <ImageIcon size={16} />
+                          <span>Imagen QR Personalizada</span>
+                        </button>
+                      </div>
+
+                      {qrDisplayMode === 'dinamico' && (
+                        <div style={{ marginBottom: '1.25rem' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.45rem' }}>
+                            Seleccionar Cuenta Bancaria o Billetera Móvil Receptora:
+                          </span>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            {CLIENT_QR_ACCOUNTS.map((acc) => (
+                              <div
+                                key={acc.id}
+                                onClick={() => {
+                                  setSelectedClientAccountId(acc.id);
+                                  setIsClientQrGenerated(false);
+                                }}
+                                style={{
+                                  padding: '0.6rem 0.75rem',
+                                  borderRadius: '8px',
+                                  border: '1.5px solid',
+                                  borderColor: selectedClientAccountId === acc.id ? acc.color : '#E5E7EB',
+                                  background: selectedClientAccountId === acc.id ? `${acc.color}10` : '#FFFFFF',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '3px',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                  <strong style={{ fontSize: '0.82rem', color: selectedClientAccountId === acc.id ? acc.color : '#111827' }}>
+                                    {acc.name}
+                                  </strong>
+                                  <span style={{ fontSize: '0.68rem', background: `${acc.color}20`, color: acc.color, padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                    {acc.badge}
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: '0.72rem', color: '#6B7280' }}>{acc.cuenta}</span>
+                                <span style={{ fontSize: '0.68rem', color: '#9CA3AF' }}>{acc.titular}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleGenerateClientQR}
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem 1rem',
+                              borderRadius: '8px',
+                              background: '#111827',
+                              color: '#FFFFFF',
+                              fontWeight: 600,
+                              fontSize: '0.9rem',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.5rem',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            <Sparkles size={16} />
+                            <span>Generar Código QR ({totalConEnvio.toFixed(2)} Bs)</span>
+                          </button>
+                        </div>
+                      )}
+
                       <div className="qr-display-card">
                         <div className="qr-image-wrapper">
-                          <div className="qr-simulated-code">
-                            <QrCode size={160} />
+                          {qrDisplayMode === 'dinamico' ? (
+                            <>
+                              {generatedQrDataUrl ? (
+                                <img
+                                  src={generatedQrDataUrl}
+                                  alt="Código QR Oficial"
+                                  style={{
+                                    width: '220px',
+                                    height: '220px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #E5E7EB',
+                                    background: '#FFFFFF',
+                                    padding: '6px',
+                                  }}
+                                />
+                              ) : (
+                                <div className="qr-simulated-code" style={{ padding: '1rem', textAlign: 'center' }}>
+                                  <QrCode size={120} color="#9CA3AF" />
+                                  <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: '0.5rem 0 0' }}>
+                                    Haz clic en "Generar Código QR" para crear el código con tu monto exacto
+                                  </p>
+                                </div>
+                              )}
+                              <p className="qr-amount-chip">
+                                Monto a transferir: <strong>{totalConEnvio.toFixed(2)} Bs</strong>
+                              </p>
+                              {isClientQrGenerated && (
+                                <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 600 }}>
+                                  ✓ Vinculado a {CLIENT_QR_ACCOUNTS.find(a => a.id === selectedClientAccountId)?.name}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {savedQrImage ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                  <img
+                                    src={savedQrImage}
+                                    alt="QR de Cobro Guardado"
+                                    style={{
+                                      width: '220px',
+                                      height: '220px',
+                                      objectFit: 'contain',
+                                      borderRadius: '8px',
+                                      border: '1px solid #E5E7EB',
+                                      background: '#FFFFFF',
+                                      padding: '6px',
+                                    }}
+                                  />
+                                  <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>
+                                    ✓ Imagen QR guardada y activa permanentemente
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={handleRemoveSavedQr}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#DC2626',
+                                      fontSize: '0.75rem',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                    }}
+                                  >
+                                    <Trash2 size={13} />
+                                    <span>Eliminar esta imagen</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ padding: '2rem 1rem', textAlign: 'center', border: '2px dashed #D1D5DB', borderRadius: '10px' }}>
+                                  <ImageIcon size={40} color="#9CA3AF" style={{ margin: '0 auto 0.5rem' }} />
+                                  <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: 0 }}>
+                                    No hay imagen QR subida aún
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          )}
+
+                          {/* Botón persistente para subir o actualizar imagen QR */}
+                          <div style={{ marginTop: '0.75rem', width: '100%', textAlign: 'center' }}>
+                            <label
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.4rem',
+                                padding: '0.45rem 0.9rem',
+                                background: '#F3F4F6',
+                                border: '1px solid #D1D5DB',
+                                borderRadius: '6px',
+                                fontSize: '0.78rem',
+                                fontWeight: 600,
+                                color: '#374151',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s',
+                              }}
+                            >
+                              <Upload size={14} />
+                              <span>{savedQrImage ? 'Cambiar Imagen QR' : 'Subir Imagen QR (Se mantendrá aquí)'}</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleUploadQrImage}
+                                style={{ display: 'none' }}
+                              />
+                            </label>
                           </div>
-                          <p className="qr-amount-chip">
-                            Monto a transferir: <strong>{totalConEnvio.toFixed(2)} Bs</strong>
-                          </p>
                         </div>
 
                         <div className="qr-instructions">
-                          <h4>Escanea con tu aplicación bancaria (QR Simple)</h4>
+                          <h4>Escanea con tu aplicación bancaria o billetera (Yape / QR Simple)</h4>
                           <ol>
-                            <li>Abre tu app bancaria (BCP, BMSC, BNB, Ganadero, etc.).</li>
-                            <li>Selecciona la opción <strong>Pago con QR</strong>.</li>
+                            <li>Abre tu app bancaria o billetera móvil (BCP, Yape, BMSC, BNB, Tigo Money).</li>
+                            <li>Selecciona la opción <strong>Pago con QR</strong> o <strong>Escanear</strong>.</li>
                             <li>Apunta la cámara a este código y confirma la transferencia.</li>
                           </ol>
 

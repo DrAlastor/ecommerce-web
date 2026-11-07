@@ -36,6 +36,25 @@ export class DigitalPurchaseController {
   }
 
   /**
+   * CU21: Crea una sesión oficial de Stripe Checkout para redirigir al checkout oficial de Stripe
+   */
+  @Post('create-stripe-session')
+  @FunctionRequired('Realizar Compra Digital', 'Edicion')
+  async createStripeSession(@Req() req: any, @Body() dto: any) {
+    return this.digitalPurchaseService.createStripeCheckoutSession(req.user, dto);
+  }
+
+  /**
+   * CU21: Confirma y finaliza una compra digital pagada mediante Stripe Checkout
+   */
+  @Post('confirm-stripe-session')
+  @FunctionRequired('Realizar Compra Digital', 'Edicion')
+  async confirmStripeSession(@Req() req: any, @Body() body: { sessionId: string }) {
+    const ip = req.ip || req.connection?.remoteAddress;
+    return this.digitalPurchaseService.confirmStripeCheckoutSession(req.user, body.sessionId, ip);
+  }
+
+  /**
    * CU21: Procesa la compra digital de forma atómica: venta + pago + salida de inventario + factura
    */
   @Post('process')

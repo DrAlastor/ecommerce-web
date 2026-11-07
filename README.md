@@ -52,7 +52,7 @@
 | **Frontend Web (React SPA)** | Azure Static Web Apps | [**proud-pond-01d50030f.6.azurestaticapps.net**](https://proud-pond-01d50030f.6.azurestaticapps.net) |
 | **Backend API (NestJS + Docker)** | Azure App Service (Linux) | `https://dressly-api-2026.azurewebsites.net` |
 | **Base de Datos Relacional** | Azure Database for PostgreSQL | `fashionstore-postgres-alessandro.postgres.database.azure.com` |
-| **Almacenamiento Multimedia (Imágenes/3D)** | Azure Blob Storage | `https://fashionstorestorage.blob.core.windows.net/productos/` |
+| **Almacenamiento Multimedia (Imágenes/3D)** | Azure Blob Storage | `https://fashionstorestorages.blob.core.windows.net/productos/` |
 | **Repositorio Aplicación Móvil (AR)** | GitHub | [DrAlastor/ecommerce-movil](https://github.com/DrAlastor/ecommerce-movil) |
 
 ---

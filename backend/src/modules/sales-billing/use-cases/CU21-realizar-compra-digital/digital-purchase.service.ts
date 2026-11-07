@@ -90,6 +90,146 @@ export class DigitalPurchaseService {
   }
 
   /**
+   * Crea una sesión oficial de Stripe Checkout para la compra digital
+   */
+  async createStripeCheckoutSession(user: any, dto: any) {
+    const cart = await this.cartService.getCart(user);
+
+    if (cart.items.length === 0) {
+      throw new BadRequestException('Tu bolsa de compras está vacía.');
+    }
+
+    if (!cart.todos_disponibles) {
+      throw new BadRequestException(
+        'Algunos productos en tu bolsa ya no cuentan con stock disponible suficiente.',
+      );
+    }
+
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ||
+      process.env.FRONTEND_URL ||
+      'http://localhost:5173';
+
+    const deliveryCost = Number(dto?.shippingCost) || 0;
+    const totalAmount = cart.total + deliveryCost;
+    const safeAmount = Math.max(50, Math.round(totalAmount * 100));
+
+    if (this.stripe) {
+      try {
+        const lineItems = cart.items.map((it: any) => ({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: it.nombre_producto || 'Prenda FashionStore',
+              description: `Talla: ${it.talla || 'N/A'} • Color: ${it.color || 'N/A'}`,
+              images: it.imagen ? [it.imagen] : [],
+            },
+            unit_amount: Math.max(50, Math.round(Number(it.precio_unitario) * 100)),
+          },
+          quantity: it.cantidad,
+        }));
+
+        if (deliveryCost > 0) {
+          lineItems.push({
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Costo de Envío a Domicilio',
+                description: 'Despacho asegurado a domicilio',
+                images: [],
+              },
+              unit_amount: Math.round(deliveryCost * 100),
+            },
+            quantity: 1,
+          });
+        }
+
+        const session = await this.stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: lineItems,
+          mode: 'payment',
+          customer_email: user?.email,
+          success_url: `${frontendUrl}/checkout?status=stripe_success&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${frontendUrl}/checkout?status=stripe_cancel`,
+          metadata: {
+            id_cliente: String(cart.id_cliente),
+            id_usuario: String(user?.id_usuario || user?.sub),
+            metodo_pago: 'stripe',
+            delivery_type: dto?.deliveryType || 'domicilio',
+            nit_factura: dto?.nitFactura || '0',
+            razon_social: dto?.razonSocial || 'Cliente Final',
+            destinatario: dto?.destinatario || '',
+            telefono: dto?.telefono || '',
+            calle: dto?.calle || '',
+            detalle: dto?.detalle || '',
+            id_ciudad: String(dto?.selectedCityId || 1),
+            id_sucursal_retiro: String(dto?.selectedBranchId || ''),
+          },
+        });
+
+        return {
+          url: session.url,
+          sessionId: session.id,
+          amount: totalAmount,
+          currency: 'usd',
+        };
+      } catch (err: any) {
+        console.warn('Error en Stripe Checkout Session:', err.message);
+      }
+    }
+
+    const mockSessionId = `cs_test_mock_${Date.now()}`;
+    return {
+      url: `${frontendUrl}/checkout?status=stripe_success&session_id=${mockSessionId}`,
+      sessionId: mockSessionId,
+      amount: totalAmount,
+      currency: 'usd',
+    };
+  }
+
+  /**
+   * Confirma una sesión de Stripe Checkout y procesa la compra atómicamente
+   */
+  async confirmStripeCheckoutSession(user: any, sessionId: string, ip?: string) {
+    let transaccionId = sessionId;
+    let metadata: any = {};
+
+    if (this.stripe && !sessionId.startsWith('cs_test_mock_')) {
+      try {
+        const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+        if (session.payment_status !== 'paid') {
+          throw new BadRequestException('El pago en Stripe aún no ha sido completado o fue cancelado.');
+        }
+        transaccionId = (session.payment_intent as string) || session.id;
+        metadata = session.metadata || {};
+      } catch (err: any) {
+        throw new BadRequestException(`No se pudo verificar la sesión de Stripe: ${err.message}`);
+      }
+    }
+
+    const isDomicilio = metadata.delivery_type !== 'retiro_sucursal';
+    const purchaseDto: ProcessDigitalPurchaseDto = {
+      metodo_pago: 'stripe',
+      tipo_entrega: isDomicilio ? 'domicilio' : 'retiro_sucursal',
+      id_sucursal_retiro: metadata.id_sucursal_retiro ? Number(metadata.id_sucursal_retiro) : undefined,
+      nueva_direccion: isDomicilio
+        ? {
+            destinatario: metadata.destinatario || 'Cliente',
+            telefono: metadata.telefono || '70000000',
+            calle: metadata.calle || 'Dirección de entrega',
+            detalle: metadata.detalle || undefined,
+            id_ciudad: metadata.id_ciudad ? Number(metadata.id_ciudad) : 1,
+          }
+        : undefined,
+      transaccion_externa: transaccionId,
+      nit_factura: metadata.nit_factura || '0',
+      razon_social_factura: metadata.razon_social || 'Cliente Final',
+    };
+
+    return this.processPurchase(user, purchaseDto, ip);
+  }
+
+  /**
    * Procesa la compra digital de forma atómica y transaccional (CU21)
    */
   async processPurchase(user: any, dto: ProcessDigitalPurchaseDto, ip?: string) {

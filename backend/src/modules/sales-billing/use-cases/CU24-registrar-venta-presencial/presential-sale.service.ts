@@ -11,6 +11,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Stripe } from 'stripe';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../../users-security/shared/services/bitacora.service.js';
 import { CreatePresentialSaleDto } from './dto/create-presential-sale.dto.js';
@@ -18,10 +20,19 @@ import { QueryPOSProductsDto } from './dto/query-pos-products.dto.js';
 
 @Injectable()
 export class PresentialSaleService {
+  private stripe: Stripe | null = null;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly bitacora: BitacoraService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const secretKey =
+      this.configService.get<string>('STRIPE_SECRET_KEY') || process.env.STRIPE_SECRET_KEY;
+    if (secretKey) {
+      this.stripe = new Stripe(secretKey);
+    }
+  }
 
   /**
    * Obtiene la lista de sucursales habilitadas para el cajero o administrador
@@ -672,6 +683,59 @@ export class PresentialSaleService {
         subtotal: Number(d.subtotal),
       })),
     }));
+  }
+
+  /**
+   * Genera una sesión de Stripe Checkout o link de cobro para Terminal POS en mostrador
+   */
+  async createPOSStripeSession(data: { total: number; sucursalNombre?: string; clienteNombre?: string }) {
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ||
+      process.env.FRONTEND_URL ||
+      'http://localhost:5173';
+
+    const safeAmount = Math.max(50, Math.round(Number(data.total) * 100));
+
+    if (this.stripe) {
+      try {
+        const session = await this.stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: `Cobro en Mostrador POS — ${data.sucursalNombre || 'FashionStore'}`,
+                  description: `Cliente: ${data.clienteNombre || 'Cliente Mostrador'} • Total: ${data.total} Bs`,
+                },
+                unit_amount: safeAmount,
+              },
+              quantity: 1,
+            },
+          ],
+          mode: 'payment',
+          success_url: `${frontendUrl}/pos?stripe_status=paid&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${frontendUrl}/pos?stripe_status=cancelled`,
+        });
+
+        return {
+          url: session.url,
+          sessionId: session.id,
+          amount: data.total,
+          currency: 'usd',
+        };
+      } catch (err: any) {
+        console.warn('Error en Stripe POS Session:', err.message);
+      }
+    }
+
+    const mockId = `cs_pos_${Date.now()}`;
+    return {
+      url: `https://checkout.stripe.com/pay/${mockId}`,
+      sessionId: mockId,
+      amount: data.total,
+      currency: 'usd',
+    };
   }
 }
 

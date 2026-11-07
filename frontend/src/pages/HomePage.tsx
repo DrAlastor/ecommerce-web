@@ -133,7 +133,7 @@ export const HomePage: React.FC = () => {
           <div className="hero-image-wrapper">
             <div className="hero-image-container">
               <img
-                src="https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg"
+                src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg"
                 alt="Dressly Colección Exclusiva de Lino Femenino"
                 className="hero-main-img"
               />
@@ -248,7 +248,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="promo-img-side">
                 <img
-                  src="https://fashionstorestorage.blob.core.windows.net/productos/linen-collection.jpg"
+                  src="https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg"
                   alt="Colección Lino Natural Femenino"
                 />
               </div>
@@ -268,7 +268,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="promo-img-side">
                 <img
-                  src="https://fashionstorestorage.blob.core.windows.net/productos/accessories.jpg"
+                  src="https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg"
                   alt="Bolsos y Accesorios de Lujo"
                 />
               </div>
@@ -400,7 +400,7 @@ export const HomePage: React.FC = () => {
           <div className="newsletter-card">
             <div className="newsletter-image-side">
               <img
-                src="https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg"
+                src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg"
                 alt="Dressly Style Club"
               />
             </div>
@@ -513,9 +513,9 @@ export const HomePage: React.FC = () => {
               <button className="lookbook-close" onClick={() => setShowLookbookModal(false)}>✕</button>
             </div>
             <div className="lookbook-gallery">
-              <img src="https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg" alt="Look Sastrería & Lino" />
-              <img src="https://fashionstorestorage.blob.core.windows.net/productos/linen-collection.jpg" alt="Colección Lino Natural" />
-              <img src="https://fashionstorestorage.blob.core.windows.net/productos/accessories.jpg" alt="Marroquinería & Accesorios" />
+              <img src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg" alt="Look Sastrería & Lino" />
+              <img src="https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg" alt="Colección Lino Natural" />
+              <img src="https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg" alt="Marroquinería & Accesorios" />
             </div>
             <div className="lookbook-footer">
               <button

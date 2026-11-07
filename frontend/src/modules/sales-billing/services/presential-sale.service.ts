@@ -55,6 +55,17 @@ export const presentialSaleService = {
   },
 
   /**
+   * Genera una sesión de cobro oficial con Stripe para mostrador/POS
+   */
+  async createStripePOSSession(data: { total: number; sucursalNombre?: string; clienteNombre?: string }): Promise<{ url: string; sessionId: string; amount: number }> {
+    const response = await api.post<{ url: string; sessionId: string; amount: number }>(
+      '/sales-billing/pos/stripe-session',
+      data,
+    );
+    return response.data;
+  },
+
+  /**
    * Consulta el historial de ventas registradas (físicas y digitales)
    */
   async getSalesHistory(params?: {

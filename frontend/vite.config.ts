@@ -1,4 +1,4 @@
-import react from '@vitejs/plugin-react'
+﻿import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
@@ -18,7 +18,7 @@ export default defineConfig({
     },
     proxy: {
       '/azure-storage': {
-        target: 'https://fashionstorestorage.blob.core.windows.net',
+        target: 'https://fashionstorestorages.blob.core.windows.net',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/azure-storage/, ''),
       },

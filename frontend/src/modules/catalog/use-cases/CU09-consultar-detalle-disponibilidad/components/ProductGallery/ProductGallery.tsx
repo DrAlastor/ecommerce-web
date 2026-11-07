@@ -36,7 +36,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
   onToggleFavorite,
 }) => {
   const activeImage = images[activeImageIndex] || images[0] || {
-    url: 'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png',
+    url: 'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png',
     texto_alternativo: 'Prenda FashionStore',
   };
 

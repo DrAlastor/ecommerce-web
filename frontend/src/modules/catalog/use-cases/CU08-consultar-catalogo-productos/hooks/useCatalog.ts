@@ -222,7 +222,7 @@ export function useCatalog() {
     reviewsCount: 15,
     image:
       cp.imagen_principal ||
-      'https://fashionstorestorage.blob.core.windows.net/productos/chaleco_sastre.png',
+      'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png',
     isNew: cp.id_producto > 15,
     isSale: cp.tiene_descuento,
     description: cp.descripcion || '',

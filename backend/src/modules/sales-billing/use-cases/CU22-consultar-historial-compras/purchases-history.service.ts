@@ -143,7 +143,7 @@ export class PurchasesHistoryService {
         const imagenUrl =
           prod.imagen_producto?.[0]?.url ||
           det.producto_variante.imagen_url ||
-          'https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg';
+          'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg';
 
         return {
           id_detalle_venta: det.id_detalle_venta,
@@ -271,7 +271,7 @@ export class PurchasesHistoryService {
       const imagenUrl =
         prod.imagen_producto?.[0]?.url ||
         det.producto_variante.imagen_url ||
-        'https://fashionstorestorage.blob.core.windows.net/productos/hero-model.jpg';
+        'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg';
 
       return {
         id_detalle_venta: det.id_detalle_venta,

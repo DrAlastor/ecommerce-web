@@ -1,6 +1,6 @@
 import type { Category, Product } from '../types/shop.types';
 
-const AZURE_BASE = 'https://fashionstorestorage.blob.core.windows.net/productos';
+const AZURE_BASE = 'https://fashionstorestorages.blob.core.windows.net/productos';
 
 export const CATEGORIES: Category[] = [
   {

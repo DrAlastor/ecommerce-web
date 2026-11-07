@@ -66,6 +66,15 @@ export class PresentialSaleController {
   }
 
   /**
+   * Genera un link/sesión de cobro Stripe para terminal o cliente en mostrador
+   * POST /api/sales-billing/pos/stripe-session
+   */
+  @Post('stripe-session')
+  async createStripeSession(@Body() body: { total: number; sucursalNombre?: string; clienteNombre?: string }) {
+    return this.posService.createPOSStripeSession(body);
+  }
+
+  /**
    * Consulta el historial de ventas presenciales y digitales
    * GET /api/sales-billing/pos/history
    */

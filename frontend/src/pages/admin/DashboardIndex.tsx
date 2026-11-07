@@ -34,29 +34,58 @@ export default function DashboardIndex() {
   const normalize = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-  // Casos de uso internos visibles en el panel web para empleados/admin: 04, 05, 06, 07, 10, 11, 13, 15, 16, 19, 24, 26, 27
-  const webPanelUseCaseIds = new Set([4, 5, 6, 7, 10, 11, 13, 15, 16, 19, 24, 26, 27]);
+  // Casos de uso internos visibles en el panel web para empleados/admin:
+  // Módulo 1: 04, 05, 06, 07, 08, 09, 10
+  // Módulo 2: 11, 13, 14, 15
+  // Módulo 3: 16, 18, 19
+  // Módulo 4: 22
+  // Módulo 5: 27, 28
+  // Módulo 6: 29
+  // Módulo 7: 30, 31, 32, 33
+  const webPanelUseCaseIds = new Set([
+    4, 5, 6, 7, 8, 9, 10,
+    11, 13, 14, 15,
+    16, 18, 19,
+    22,
+    27, 28,
+    29,
+    30, 31, 32, 33
+  ]);
 
-  // Filtrar funciones activas (acceso distinto a Ninguno) excluyendo el módulo 6 móvil
+  // Filtrar funciones activas (acceso distinto a Ninguno)
   const allowedFunciones = funciones.filter(f => {
     const access = normalize(f.nivel_acceso || '');
-    const isMobileExclusive = normalize(f.modulo || '').includes('movil');
     return (
       webPanelUseCaseIds.has(f.id_funcion) &&
-      !isMobileExclusive &&
       access !== 'ninguno' &&
       access !== ''
     );
   });
 
   const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
-    if (idFuncion === 24) return '/pos';
-    if (idFuncion === 26) return '/admin/devoluciones';
+    if (idFuncion === 27) return '/pos';
+    if (idFuncion === 28) return '/admin/devoluciones';
+    if (idFuncion === 22) return '/admin/reservas';
+    if (idFuncion === 18) return '/admin/inventario';
+    if (idFuncion === 19) return '/admin/movimientos';
+    if (idFuncion === 16) return '/admin/sucursales';
+    if (idFuncion === 14) return '/admin/proveedores';
+    if (idFuncion === 13) return '/admin/catalog?tab=products';
+    if (idFuncion === 11) return '/catalog';
+    if (idFuncion === 10) return '/admin/bitacora';
+    if (idFuncion === 7 || idFuncion === 8 || idFuncion === 9) return '/admin/settings';
+    if (idFuncion === 6) return '/admin/empleados';
+    if (idFuncion === 5) return '/admin/roles';
+    if (idFuncion === 4) return '/admin/users';
+    if (idFuncion === 29) return '/virtual-fitting/1';
+    if (idFuncion === 30 || idFuncion === 31 || idFuncion === 32 || idFuncion === 33) return '/admin/reports';
+
     const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
     if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
     if (norm.includes('usuario')) return '/admin/users';
     if (norm.includes('rol')) return '/admin/roles';
     if (norm.includes('empleado')) return '/admin/empleados';
+    if (norm.includes('empresa') || norm.includes('apariencia') || norm.includes('backup')) return '/admin/settings';
     if (norm.includes('bitacora')) return '/admin/bitacora';
     if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
     if (norm.includes('proveedor')) return '/admin/proveedores';
@@ -66,7 +95,8 @@ export default function DashboardIndex() {
     if (norm.includes('inventario')) return '/admin/inventario';
     if (norm.includes('reserva')) return '/admin/reservas';
     if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
-    if (norm.includes('dashboard') || norm.includes('reporte')) return '/admin/reports';
+    if (norm.includes('vestidor') || norm.includes('movil')) return '/virtual-fitting/1';
+    if (norm.includes('dashboard') || norm.includes('reporte') || norm.includes('inteligencia') || norm.includes('negocio') || norm.includes('qbe') || norm.includes('voz')) return '/admin/reports';
     return '/admin';
   };
 

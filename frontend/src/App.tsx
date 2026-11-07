@@ -4,6 +4,7 @@ import { ProtectedRoute } from './modules/users-security/shared/components/Prote
 import { ShopProvider } from './context/ShopContext';
 import LoginPage from './modules/users-security/use-cases/CU01-gestionar-acceso/pages/LoginPage';
 import { HomePage } from './pages/HomePage';
+import { SaasLandingPage } from './pages/SaasLandingPage';
 import { CatalogPage } from './modules/catalog/use-cases/CU08-consultar-catalogo-productos/pages/CatalogPage';
 import { ProductDetailPage } from './modules/catalog/use-cases/CU09-consultar-detalle-disponibilidad/pages/ProductDetailPage';
 import RegisterPage from './modules/users-security/use-cases/CU02-gestionar-perfil/pages/RegisterPage';
@@ -41,155 +42,161 @@ function App() {
         <ShopProvider>
           <ConfirmProvider>
             <Routes>
-            {/* Página Principal / Tienda Pública (Accesible para todos) */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/catalog" element={<CatalogPage />} />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            {/* Vestidor Virtual 3D / RA (CU25) */}
-            <Route path="/virtual-fitting/:productId" element={<VirtualFittingPage />} />
-            <Route path="/vestidor/:productId" element={<VirtualFittingPage />} />
-            {/* Carrito de Compras (CU20) */}
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/bolsa" element={<CartPage />} />
+              {/* Landing Page Corporativa del SaaS FashionStore (Venta de Planes y Precios) */}
+              <Route path="/" element={<SaasLandingPage />} />
 
-            {/* Proceso de Compra Digital (CU21) */}
-            <Route
-              path="/checkout"
-              element={
-                <ProtectedRoute>
-                  <CheckoutPage />
-                </ProtectedRoute>
-              }
-            />
+              {/* Vitrina / Tienda de cada Tenant (ej. Dressly) */}
+              <Route path="/store/:tenant" element={<HomePage />} />
+              <Route path="/store/dressly" element={<HomePage />} />
+              <Route path="/dressly" element={<Navigate to="/store/dressly" replace />} />
+              <Route path="/home" element={<HomePage />} />
 
-            {/* Historial de Compras (CU22) */}
-            <Route
-              path="/mis-compras"
-              element={
-                <ProtectedRoute>
-                  <MyPurchasesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/purchases"
-              element={<Navigate to="/mis-compras" replace />}
-            />
+              <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/product/:id" element={<ProductDetailPage />} />
+              {/* Vestidor Virtual 3D / RA (CU25) */}
+              <Route path="/virtual-fitting/:productId" element={<VirtualFittingPage />} />
+              <Route path="/vestidor/:productId" element={<VirtualFittingPage />} />
+              {/* Carrito de Compras (CU20) */}
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/bolsa" element={<CartPage />} />
 
+              {/* Proceso de Compra Digital (CU21) */}
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route path="/sucursales" element={<BranchesPage />} />
-            <Route path="/branches" element={<BranchesPage />} />
-            <Route
-              path="/recommendations"
-              element={
-                <ProtectedRoute allowedRoles={['Cliente']}>
-                  <RecommendationsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/mis-reservas"
-              element={
-                <ProtectedRoute allowedRoles={['Cliente', 'Administrador']}>
-                  <MyReservationsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/reservations"
-              element={<Navigate to="/mis-reservas" replace />}
-            />
+              {/* Historial de Compras (CU22) */}
+              <Route
+                path="/mis-compras"
+                element={
+                  <ProtectedRoute>
+                    <MyPurchasesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/purchases"
+                element={<Navigate to="/mis-compras" replace />}
+              />
 
-            {/* Ruta pública: Login */}
-            <Route path="/login" element={<LoginPage />} />
+              <Route path="/sucursales" element={<BranchesPage />} />
+              <Route path="/branches" element={<BranchesPage />} />
+              <Route
+                path="/recommendations"
+                element={
+                  <ProtectedRoute allowedRoles={['Cliente']}>
+                    <RecommendationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/mis-reservas"
+                element={
+                  <ProtectedRoute allowedRoles={['Cliente', 'Administrador']}>
+                    <MyReservationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reservations"
+                element={<Navigate to="/mis-reservas" replace />}
+              />
 
-            {/* Rutas protegidas del Panel Interno: Cualquier empleado o administrador */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireStaff>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DashboardIndex />} />
-              <Route path="users" element={<ManageUsersPage />} />
-              <Route path="bitacora" element={<BitacoraPage />} />
-              <Route path="consultar-bitacora" element={<BitacoraPage />} />
-              <Route path="roles" element={<ManageRolesPage />} />
-              <Route path="gestionar-roles" element={<ManageRolesPage />} />
-              <Route path="empleados" element={<ManageEmployeesPage />} />
-              <Route path="employees" element={<ManageEmployeesPage />} />
-              <Route path="gestionar-empleados" element={<ManageEmployeesPage />} />
-              {/* Módulo 2 — Catálogo Comercial (CU12) */}
-              <Route path="catalog" element={<ManageCatalogPage />} />
-              <Route path="gestionar-productos" element={<ManageCatalogPage />} />
-              <Route path="gestionar-categorias" element={<ManageCatalogPage />} />
-              <Route path="gestionar-variantes" element={<ManageCatalogPage />} />
-              <Route path="productos" element={<ManageCatalogPage />} />
-              {/* Modulo 2 - Proveedores y ordenes de compra (CU13) */}
-              <Route path="proveedores" element={<ManageSuppliersPage />} />
-              <Route path="gestionar-proveedores" element={<ManageSuppliersPage />} />
-              {/* Módulo 3 — Sucursales e Inventario (CU08) */}
-              <Route path="sucursales" element={<ManageBranchesPage />} />
-              <Route path="gestionar-sucursales" element={<ManageBranchesPage />} />
-              <Route path="ciudades" element={<ManageBranchesPage />} />
-              <Route path="branches" element={<ManageBranchesPage />} />
-              <Route path="inventario" element={<ManageInventoryPage />} />
-              <Route path="gestionar-inventario" element={<ManageInventoryPage />} />
-              <Route path="consultar-inventario" element={<ManageInventoryPage />} />
-              <Route path="inventory" element={<ManageInventoryPage />} />
-              {/* Módulo 3 — Movimientos de Inventario (CU16) */}
-              <Route path="movimientos" element={<ManageMovementsPage />} />
-              <Route path="gestionar-movimientos" element={<ManageMovementsPage />} />
-              <Route path="movements" element={<ManageMovementsPage />} />
-              {/* Módulo 4 — Gestión de Reservas en Sucursal (CU19) */}
-              <Route path="reservas" element={<ManageBranchReservationsPage />} />
-              <Route path="gestionar-reservas" element={<ManageBranchReservationsPage />} />
-              {/* Módulo 7 — Reportes y Dashboard (CU27) */}
-              <Route path="reports" element={<ReportsDashboardPage />} />
-              <Route path="reportes" element={<ReportsDashboardPage />} />
-              {/* Módulo 5 — Ventas y Devoluciones (CU26) */}
-              <Route path="devoluciones" element={<ManageReturnsPage />} />
-              <Route path="gestionar-devoluciones" element={<ManageReturnsPage />} />
-              <Route path="returns" element={<ManageReturnsPage />} />
-              <Route path="*" element={<DashboardIndex />} />
-            </Route>
+              {/* Ruta pública: Login */}
+              <Route path="/login" element={<LoginPage />} />
 
-            {/* Rutas protegidas: Punto de Venta / Caja (CU23 & CU24) */}
-            <Route
-              path="/pos"
-              element={
-                <ProtectedRoute requireStaff>
-                  <POSPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ventas"
-              element={
-                <ProtectedRoute requireStaff>
-                  <POSPage />
-                </ProtectedRoute>
-              }
-            />
+              {/* Rutas protegidas del Panel Interno: Cualquier empleado o administrador */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireStaff>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<DashboardIndex />} />
+                <Route path="users" element={<ManageUsersPage />} />
+                <Route path="bitacora" element={<BitacoraPage />} />
+                <Route path="consultar-bitacora" element={<BitacoraPage />} />
+                <Route path="roles" element={<ManageRolesPage />} />
+                <Route path="gestionar-roles" element={<ManageRolesPage />} />
+                <Route path="empleados" element={<ManageEmployeesPage />} />
+                <Route path="employees" element={<ManageEmployeesPage />} />
+                <Route path="gestionar-empleados" element={<ManageEmployeesPage />} />
+                {/* Módulo 2 — Catálogo Comercial (CU12) */}
+                <Route path="catalog" element={<ManageCatalogPage />} />
+                <Route path="gestionar-productos" element={<ManageCatalogPage />} />
+                <Route path="gestionar-categorias" element={<ManageCatalogPage />} />
+                <Route path="gestionar-variantes" element={<ManageCatalogPage />} />
+                <Route path="productos" element={<ManageCatalogPage />} />
+                {/* Modulo 2 - Proveedores y ordenes de compra (CU13) */}
+                <Route path="proveedores" element={<ManageSuppliersPage />} />
+                <Route path="gestionar-proveedores" element={<ManageSuppliersPage />} />
+                {/* Módulo 3 — Sucursales e Inventario (CU08) */}
+                <Route path="sucursales" element={<ManageBranchesPage />} />
+                <Route path="gestionar-sucursales" element={<ManageBranchesPage />} />
+                <Route path="ciudades" element={<ManageBranchesPage />} />
+                <Route path="branches" element={<ManageBranchesPage />} />
+                <Route path="inventario" element={<ManageInventoryPage />} />
+                <Route path="gestionar-inventario" element={<ManageInventoryPage />} />
+                <Route path="consultar-inventario" element={<ManageInventoryPage />} />
+                <Route path="inventory" element={<ManageInventoryPage />} />
+                {/* Módulo 3 — Movimientos de Inventario (CU16) */}
+                <Route path="movimientos" element={<ManageMovementsPage />} />
+                <Route path="gestionar-movimientos" element={<ManageMovementsPage />} />
+                <Route path="movements" element={<ManageMovementsPage />} />
+                {/* Módulo 4 — Gestión de Reservas en Sucursal (CU19) */}
+                <Route path="reservas" element={<ManageBranchReservationsPage />} />
+                <Route path="gestionar-reservas" element={<ManageBranchReservationsPage />} />
+                {/* Módulo 7 — Reportes y Dashboard (CU27) */}
+                <Route path="reports" element={<ReportsDashboardPage />} />
+                <Route path="reportes" element={<ReportsDashboardPage />} />
+                {/* Módulo 5 — Ventas y Devoluciones (CU26) */}
+                <Route path="devoluciones" element={<ManageReturnsPage />} />
+                <Route path="gestionar-devoluciones" element={<ManageReturnsPage />} />
+                <Route path="returns" element={<ManageReturnsPage />} />
+                <Route path="*" element={<DashboardIndex />} />
+              </Route>
 
-            {/* Rutas de perfil, registro y recuperación */}
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
+              {/* Rutas protegidas: Punto de Venta / Caja (CU23 & CU24) */}
+              <Route
+                path="/pos"
+                element={
+                  <ProtectedRoute requireStaff>
+                    <POSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ventas"
+                element={
+                  <ProtectedRoute requireStaff>
+                    <POSPage />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch-all redirige a la tienda */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Rutas de perfil, registro y recuperación */}
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Catch-all redirige al home o tienda */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </ConfirmProvider>
         </ShopProvider>
       </AuthProvider>
