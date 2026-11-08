@@ -1,9 +1,18 @@
 -- ============================================================================
 -- PROYECTO: DRESSLY BOUTIQUE (SAAS MULTI-TENANT E-COMMERCE & POS)
--- ARCHIVO: Dressly_DB.sql
--- DESCRIPCION: Esquema DDL completo, configuración inicial y catálogo base.
---              (Sin tuplas transaccionales: Bitácora, Ventas, Reservas e IA se
---               generan dinámicamente con la actividad del sistema).
+-- ARCHIVO: EsquemaEcommerce.sql
+-- TIPO: PLANTILLA DDL / PROVISIÓN DE NUEVO TENANT (EMPRESA)
+-- DESCRIPCION:
+--   Esquema estructural DDL completo para inicializar un nuevo inquilino (Tenant).
+--   Crea la totalidad de tablas (44 entidades relacionales), índices, constraints,
+--   secuencias, funciones y triggers de consistencia física.
+--
+--   DATOS INICIALES (SEEDING):
+--   - ÚNICAMENTE se pueblan las tablas maestras MODULO (7 módulos) y FUNCION (33 CUs).
+--   - TODAS las demás tablas quedan 100% VACÍAS (productos, sucursales, usuarios,
+--     roles, inventarios, etc.).
+--   - El acceso efectivo a módulos/funciones para cada tenant se define dinámicamente
+--     en base al plan contratado (SaaS) y la parametrización interna desde el sistema.
 -- ============================================================================
 
 -- BLOQUE OPCIONAL DE LIMPIEZA EN CASCADA
@@ -507,7 +516,7 @@ CREATE TABLE INVENTARIO_SUCURSAL(
     STOCK_DISPONIBLE INT NOT NULL CHECK (STOCK_DISPONIBLE >= 0),
     STOCK_RESERVADO INT NOT NULL CHECK (STOCK_RESERVADO >= 0),
     STOCK_MINIMO INT NOT NULL CHECK (STOCK_MINIMO >= 0),
-    ULTIMA_ACTUALIZACION TIMESTAMPTZ NOT NULL,
+    ULTIMA_ACTUALIZACION TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ID_SUCURSAL INT NOT NULL,
     ID_PRODUCTO_VARIANTE INT NOT NULL,
     UNIQUE (ID_SUCURSAL, ID_PRODUCTO_VARIANTE),
@@ -709,15 +718,6 @@ CREATE TABLE DETALLE_DEVOLUCION(
         ON DELETE CASCADE
 );
 
---------------------------------------------------------------------------------------------------------------------
-
--- ==================================================================================================================
--- DATOS ACTUALIZADOS EXTRAÍDOS DE LA BASE DE DATOS ACTIVA DE PRODUCCIÓN
--- ==================================================================================================================
-
--- ============================================================
--- 1. CIUDAD (4 registros)
-
 -- ============================================================================
 -- FUNCIONES Y TRIGGERS DE BASE DE DATOS (INTEGRIDAD DE INVENTARIO)
 -- ============================================================================
@@ -738,63 +738,14 @@ FOR EACH ROW
 EXECUTE FUNCTION actualizar_timestamp_inventario();
 
 -- ============================================================================
--- 1. DATOS DE CONFIGURACION BASE Y USUARIOS (AUTENTICACION & ROLES)
+-- SEED DATA EXCLUSIVO PARA NUEVOS TENANTS
+-- (Únicamente Módulos y Funciones del Sistema / Casos de Uso CU01 a CU33)
+-- Todos los demás datos (Productos, Sucursales, Usuarios, Roles, Inventario)
+-- quedan completamente vacíos para ser registrados desde la aplicación
+-- y configurados según el Plan SaaS contratado.
 -- ============================================================================
 
--- CIUDAD
-INSERT INTO CIUDAD (ID_CIUDAD, NOMBRE, PAIS) VALUES
-(1, 'Santa Cruz de la Sierra', 'Bolivia'),
-(2, 'La Paz', 'Bolivia'),
-(3, 'Cochabamba', 'Bolivia'),
-(4, 'Sucre', 'Bolivia');
-
--- CATEGORIA
-INSERT INTO CATEGORIA (ID_CATEGORIA, NOMBRE, DESCRIPCION, ID_CATEGORIA_PADRE) VALUES
-(1, 'Ropa', 'Categoria principal de prendas de vestir', NULL),
-(2, 'Accesorios', 'Complementos y accesorios de moda', NULL),
-(3, 'Hombre', 'Prendas orientadas al segmento masculino', 1),
-(4, 'Mujer', 'Prendas orientadas al segmento femenino', 1),
-(5, 'Camisetas', 'Camisetas, polos y prendas superiores casuales', 3),
-(6, 'Pantalones', 'Jeans, chinos y pantalones para hombre', 3),
-(7, 'Vestidos', 'Vestidos casuales y de ocasion', 4),
-(8, 'Chaquetas', 'Chaquetas y prendas exteriores', 1),
-(9, 'Blusas', 'Blusas y prendas superiores para mujer', 4);
-
--- TEMPORADA
-INSERT INTO TEMPORADA (ID_TEMPORADA, NOMBRE, FECHA_INICIO, FECHA_FIN, ESTADO) VALUES
-(1, 'Primavera-Verano 2026', '2026-09-01', '2026-12-31', 'activo'),
-(2, 'Otono-Invierno 2026', '2026-03-01', '2026-08-31', 'cerrado'),
-(3, 'Temporada Escolar 2026', '2026-01-05', '2026-03-31', 'cerrado'),
-(4, 'Promociones Septiembre 2026', '2026-09-01', '2026-09-30', 'activo');
-
--- PROVEEDOR
-INSERT INTO PROVEEDOR (ID_PROVEEDOR, RAZON_SOCIAL, NIT, CONTACTO_NOMBRE, TELEFONO, EMAIL, DIRECCION) VALUES
-(1, 'Textiles Andinos SRL', '1020304050', 'Marco Salazar', '72110001', 'ventas@textilesandinos.bo', 'Av. Banzer 2450, Santa Cruz'),
-(2, 'Moda Urbana Bolivia SA', '2030405061', 'Carla Mendoza', '72020002', 'comercial@modaurbana.bo', 'Av. Arce 1800, La Paz'),
-(3, 'Denim Factory SRL', '3040506072', 'Luis Rojas', '70330003', 'pedidos@denimfactory.bo', 'Av. Blanco Galindo km 4, Cochabamba'),
-(4, 'Importadora Fashion Line SRL', '4050607083', 'Daniela Quiroga', '70440004', 'contacto@fashionline.bo', 'Av. Hernando Siles 760, Sucre');
-
--- TALLA
-INSERT INTO TALLA (ID_TALLA, CODIGO) VALUES
-(1, 'XS'),
-(2, 'S'),
-(3, 'M'),
-(4, 'L'),
-(5, 'XL');
-
--- COLOR
-INSERT INTO COLOR (ID_COLOR, NOMBRE, CODIGO_HEX) VALUES
-(1, 'Negro', '#000000'),
-(2, 'Blanco', '#FFFFFF'),
-(3, 'Azul Denim', '#315B7D'),
-(4, 'Rojo', '#C62828'),
-(5, 'Verde', '#2E7D32'),
-(6, 'Beige', '#D6C6A5'),
-(7, 'Rosa', '#E8A0BF'),
-(8, 'Marrón', '#6E4F42'),
-(10, 'Marrón con Rayas', '#7A5230');
-
--- MODULO
+-- 1. MODULOS DEL SISTEMA (7 MÓDULOS)
 INSERT INTO MODULO (ID_MODULO, NOMBRE, DESCRIPCION) VALUES
 (1, 'Usuarios y Seguridad', 'Autenticación multi-tenant, perfiles, control de acceso RBAC, gestión de empresas, apariencia, backups y auditoría'),
 (2, 'Catálogo, Proveedores y Recomendaciones', 'Catálogo de prendas, disponibilidad, fichas técnicas, gestión de fabricantes y recomendaciones con IA'),
@@ -802,51 +753,16 @@ INSERT INTO MODULO (ID_MODULO, NOMBRE, DESCRIPCION) VALUES
 (4, 'Reservas de Prendas', 'Apartado de prendas para prueba física en vestidores de sucursales'),
 (5, 'Ventas y Facturación', 'Comercio digital, caja rápida presencial POS, facturación, pasarela de pago y devoluciones'),
 (6, 'Experiencia Móvil Interactiva', 'Probador virtual interactivo y realidad aumentada sobre prendas con IA'),
-(7, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto');
+(7, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto')
+ON CONFLICT (ID_MODULO) DO UPDATE 
+SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION;
 
--- ROL
-INSERT INTO ROL (ID_ROL, NOMBRE, PERMISO) VALUES
-(1, 'Administrador', 'Gestion total'),
-(2, 'Cliente', 'Compras y catalogo'),
-(3, 'Encargado de sucursal', 'Operaciones de sucursal e inventario'),
-(4, 'Cajero', 'Venta presencial y caja');
+-- Sincronizar secuencia de autoincremento para MODULO
+SELECT setval(pg_get_serial_sequence('MODULO', 'id_modulo'), (SELECT COALESCE(MAX(id_modulo), 1) FROM MODULO));
 
--- PROMOCION
-INSERT INTO PROMOCION (ID_PROMOCION, NOMBRE, LIMITE_USOS, USOS_ACTUALES, TIPO_DESCUENTO, VALOR_DESCUENTO, FECHA_INICIO, FECHA_FIN, ESTADO) VALUES
-(1, 'Bienvenida 10%', 500, 34, 'porcentaje', 10.00, '2026-09-01T04:00:00.000Z', '2027-01-01T03:59:59.000Z', 'activo'),
-(2, 'Primavera 15%', 300, 72, 'porcentaje', 15.00, '2026-09-01T04:00:00.000Z', '2026-10-01T03:59:59.000Z', 'activo'),
-(3, 'Descuento Bs 50', 150, 41, 'monto_fijo', 50.00, '2026-09-05T04:00:00.000Z', '2026-09-21T03:59:59.000Z', 'activo'),
-(4, 'Outlet Invierno 25%', 200, 198, 'porcentaje', 25.00, '2026-08-01T04:00:00.000Z', '2026-09-01T03:59:59.000Z', 'finalizado');
-
--- SUCURSAL
-INSERT INTO SUCURSAL (ID_SUCURSAL, NOMBRE, DIRECCION, TELEFONO, HORA_APERTURA, HORA_CIERRE, ESTADO, ID_CIUDAD) VALUES
-(1, 'FashionStore Ventura', 'Av. San Martin 1700, Equipetrol', '33610001', '10:00:00', '22:00:00', 'activo', 1),
-(2, 'FashionStore Sopocachi', 'Av. 20 de Octubre 2140, Sopocachi', '22440002', '09:30:00', '21:00:00', 'activo', 2),
-(3, 'FashionStore Cochabamba Norte', 'Av. America Oeste 850', '44550003', '09:30:00', '21:00:00', 'activo', 3),
-(4, 'FashionStore Sucre Centro', 'Calle Nicolas Ortiz 55', '46460004', '09:00:00', '20:30:00', 'activo', 4);
-
--- COLECCION
-INSERT INTO COLECCION (ID_COLECCION, NOMBRE, DESCRIPCION, ID_TEMPORADA) VALUES
-(1, 'Primavera Urbana', 'Prendas ligeras y urbanas para primavera', 1),
-(2, 'Denim 2026', 'Coleccion centrada en prendas denim', 1),
-(3, 'Otono Esencial', 'Prendas exteriores y tonos neutros', 2),
-(4, 'Noche Especial', 'Prendas para eventos y ocasiones especiales', 4);
-
--- GUIA_TALLA
-INSERT INTO GUIA_TALLA (ID_GUIA_TALLA, PARTE_CUERPO, TALLA_ETIQUETA, MIN_CM, MAX_CM, ID_CATEGORIA) VALUES
-(1, 'Pecho', 'S', 86.00, 93.00, 5),
-(2, 'Pecho', 'M', 94.00, 101.00, 5),
-(3, 'Pecho', 'L', 102.00, 109.00, 5),
-(4, 'Cintura', 'S', 72.00, 79.00, 6),
-(5, 'Cintura', 'M', 80.00, 87.00, 6),
-(6, 'Cintura', 'L', 88.00, 95.00, 6),
-(7, 'Busto', 'S', 82.00, 89.00, 7),
-(8, 'Busto', 'M', 90.00, 97.00, 7),
-(9, 'Busto', 'L', 98.00, 105.00, 7),
-(10, 'Busto', 'M', 90.00, 97.00, 9);
-
--- FUNCION
+-- 2. FUNCIONES DEL SISTEMA / CASOS DE USO (33 CASOS DE USO)
 INSERT INTO FUNCION (ID_FUNCION, NOMBRE, DESCRIPCION, ID_MODULO) VALUES
+-- Módulo 1: Usuarios y Seguridad (CU01 al CU10)
 (1, 'Gestionar Acceso al Sistema', 'CU01 - Autenticación con JWT y control de acceso', 1),
 (2, 'Registrar y Gestionar Perfil de Cliente', 'CU02 - Gestión de cuenta y preferencias de clientes', 1),
 (3, 'Gestionar Contraseña', 'CU03 - Recuperación y cambio de credenciales de acceso', 1),
@@ -857,377 +773,47 @@ INSERT INTO FUNCION (ID_FUNCION, NOMBRE, DESCRIPCION, ID_MODULO) VALUES
 (8, 'Personalizar Apariencia', 'CU08 - Personalización de tema visual, logo y colores', 1),
 (9, 'Gestionar Backups y Restore', 'CU09 - Copias de seguridad y restauración del tenant', 1),
 (10, 'Consultar Bitácora', 'CU10 - Trazabilidad y auditoría de eventos del sistema', 1),
+
+-- Módulo 2: Catálogo, Proveedores y Recomendaciones (CU11 al CU15)
 (11, 'Consultar Catálogo de Productos', 'CU11 - Exploración pública con filtros combinados', 2),
 (12, 'Consultar Detalle y Disponibilidad de Producto', 'CU12 - Ficha de producto, fotos y stock por sucursal', 2),
 (13, 'Gestionar Catálogo de Productos', 'CU13 - Mantenimiento de productos, variantes y precios', 2),
 (14, 'Gestionar Proveedores', 'CU14 - Gestión de fabricantes y órdenes de compra', 2),
 (15, 'Obtener Recomendaciones de Prendas mediante IA', 'CU15 - Sugerencias personalizadas basadas en IA', 2),
+
+-- Módulo 3: Sucursales e Inventario (CU16 al CU19)
 (16, 'Gestionar Ciudades y Sucursales', 'CU16 - Administración de sedes físicas de la tienda', 3),
 (17, 'Consultar Sucursales', 'CU17 - Localización y datos de contacto de tiendas', 3),
 (18, 'Consultar Inventario', 'CU18 - Monitoreo de existencias en tiempo real por sede', 3),
 (19, 'Gestionar Movimientos de Inventario', 'CU19 - Entradas, salidas y ajustes de stock', 3),
+
+-- Módulo 4: Reservas de Prendas (CU20 al CU22)
 (20, 'Realizar Reserva de Prendas', 'CU20 - Apartado de prendas para prueba presencial', 4),
 (21, 'Consultar y Cancelar Reserva', 'CU21 - Seguimiento y cancelación de reservas activas', 4),
 (22, 'Gestionar Reserva en Sucursal', 'CU22 - Atención y conversión de reservas a venta en tienda', 4),
+
+-- Módulo 5: Ventas y Facturación (CU23 al CU28)
 (23, 'Gestionar Carrito de Compras', 'CU23 - Cesta de compras y cálculo de descuentos', 5),
 (24, 'Realizar Compra Digital', 'CU24 - Proceso de checkout digital y despacho', 5),
 (25, 'Consultar Historial de Compras', 'CU25 - Consulta de facturas y estado de pedidos', 5),
 (26, 'Procesar Pago Electrónico', 'CU26 - Pasarela de pago segura con Stripe', 5),
 (27, 'Registrar Venta Presencial', 'CU27 - Punto de venta POS en mostrador de tienda', 5),
 (28, 'Devolución de Productos', 'CU28 - Gestión de devoluciones y notas de crédito', 5),
+
+-- Módulo 6: Experiencia Móvil Interactiva (CU29)
 (29, 'Utilizar Vestidor Virtual', 'CU29 - Probador virtual y simulación AR de prendas con IA', 6),
+
+-- Módulo 7: Inteligencia de Negocios y Reportes (CU30 al CU33)
 (30, 'Consultar Dashboard', 'CU30 - Dashboard analítico de BI y Machine Learning probabilístico estilo Power BI', 7),
 (31, 'Gestionar Reportes Predefinidos', 'CU31 - Reportes estándar operacionales en PDF y Excel', 7),
 (32, 'Gestionar Reportes QBE', 'CU32 - Generador dinámico de reportes por consulta visual QBE', 7),
-(33, 'Gestionar Reportes por Voz', 'CU33 - Consultas analíticas en lenguaje natural por voz y texto con IA', 7);
+(33, 'Gestionar Reportes por Voz', 'CU33 - Consultas analíticas en lenguaje natural por voz y texto con IA', 7)
+ON CONFLICT (ID_FUNCION) DO UPDATE 
+SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION, ID_MODULO = EXCLUDED.ID_MODULO;
 
--- USUARIO
-INSERT INTO USUARIO (ID_USUARIO, EMAIL, PASSWORD_HASH, ESTADO, ID_ROL) VALUES
-(1, 'ana.rojas@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(2, 'carlos.mendez@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(3, 'lucia.fernandez@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(4, 'diego.suarez@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(5, 'sofia.vargas@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(6, 'admin@fashionstore.bo', '$2b$10$RBd15zLTuxfuUDZmB2LBCu6klaFx9kifY0LtrXpum4.w91RXqUs7q', 'activo', 1),
-(7, 'encargado.sc@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 3),
-(8, 'cajero.sc@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 4),
-(9, 'encargado.lp@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 3),
-(10, 'cajero.cbba@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 4),
-(11, 'flor.ia@gmail.com', '$2b$10$cybIsun8WlG1zcXSMi22l.qBZbAH4zd6RGpY1tkODOusEJWNgWkwC', 'activo', 2),
-(12, 'yevaraponcealessandro@gmail.com', '$2b$10$pfbh9DJQscl7jVKhobewSe58CVjerXXORn3FWKxBc2FKMV3.OeDdu', 'activo', 2),
-(13, 'test_1790036353477@gmail.com', '$2b$10$9Qf52E8J.KohyxLAuin9z.6iRNwsrN3V8WIxk6MxdyyDsiuRPyh8K', 'activo', 2),
-(14, 'jhancarla1011937@gmail.com', '$2b$10$nbzWjx0WrLoC9dZlUScoB.wSRKpINRMmDL6zxTd62CbHChuQNNMLW', 'activo', 2);
-
--- ROL_FUNCION
-INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
--- Rol 1: Administrador (Todas las 33 funciones)
-('Edicion', 1, 1),
-('Edicion', 1, 2),
-('Edicion', 1, 3),
-('Edicion', 1, 4),
-('Edicion', 1, 5),
-('Edicion', 1, 6),
-('Edicion', 1, 7),
-('Edicion', 1, 8),
-('Edicion', 1, 9),
-('Edicion', 1, 10),
-('Edicion', 1, 11),
-('Edicion', 1, 12),
-('Edicion', 1, 13),
-('Edicion', 1, 14),
-('Edicion', 1, 15),
-('Edicion', 1, 16),
-('Edicion', 1, 17),
-('Edicion', 1, 18),
-('Edicion', 1, 19),
-('Edicion', 1, 20),
-('Edicion', 1, 21),
-('Edicion', 1, 22),
-('Edicion', 1, 23),
-('Edicion', 1, 24),
-('Edicion', 1, 25),
-('Edicion', 1, 26),
-('Edicion', 1, 27),
-('Edicion', 1, 28),
-('Edicion', 1, 29),
-('Edicion', 1, 30),
-('Edicion', 1, 31),
-('Edicion', 1, 32),
-('Edicion', 1, 33),
--- Rol 2: Cliente
-('Edicion', 2, 1),
-('Edicion', 2, 2),
-('Edicion', 2, 3),
-('Edicion', 2, 11),
-('Edicion', 2, 12),
-('Edicion', 2, 15),
-('Edicion', 2, 17),
-('Edicion', 2, 20),
-('Edicion', 2, 21),
-('Edicion', 2, 23),
-('Edicion', 2, 24),
-('Edicion', 2, 25),
-('Edicion', 2, 26),
-('Edicion', 2, 29),
--- Rol 3: Encargado de sucursal
-('Edicion', 3, 1),
-('Edicion', 3, 3),
-('Edicion', 3, 11),
-('Edicion', 3, 12),
-('Edicion', 3, 14),
-('Edicion', 3, 16),
-('Edicion', 3, 17),
-('Edicion', 3, 18),
-('Edicion', 3, 19),
-('Edicion', 3, 20),
-('Edicion', 3, 21),
-('Edicion', 3, 22),
-('Edicion', 3, 27),
-('Edicion', 3, 28),
-('Edicion', 3, 30),
-('Edicion', 3, 31),
-('Edicion', 3, 32),
-('Edicion', 3, 33),
--- Rol 4: Cajero
-('Edicion', 4, 1),
-('Edicion', 4, 3),
-('Edicion', 4, 11),
-('Edicion', 4, 12),
-('Edicion', 4, 18),
-('Edicion', 4, 22),
-('Edicion', 4, 27),
-('Edicion', 4, 28);
-
--- CLIENTE
-INSERT INTO CLIENTE (ID_CLIENTE, CI, NOMBRE, APELLIDO, SEXO, FECHA_NACIMIENTO, PREFERENCIAS_ESTILO, PUNTOS_FIDELIDAD) VALUES
-(1, '9876541', 'Ana', 'Rojas', 'Femenino', '1998-04-12', 'Casual, colores neutros y prendas ligeras', 320),
-(2, '8765432', 'Carlos', 'Mendez', 'Masculino', '1995-11-03', 'Urbano, denim y prendas deportivas', 185),
-(3, '7654323', 'Lucia', 'Fernandez', 'Femenino', '2000-07-21', 'Vestidos, estilo elegante y colores vivos', 460),
-(4, '6543214', 'Diego', 'Suarez', 'Masculino', '1992-02-18', 'Clasico, tonos oscuros y chaquetas', 90),
-(5, '5432105', 'Sofia', 'Vargas', 'Femenino', '2001-09-09', 'Minimalista, casual y accesorios', 250),
-(6, NULL, 'admin', 'Fashion', NULL, NULL, NULL, 0),
-(8, NULL, 'cajero.sc', 'Fashion', NULL, NULL, NULL, 0),
-(11, NULL, 'Josefina Flor', 'Illanes Arteaga', 'Femenino', '2002-09-24', '', 0),
-(12, NULL, 'Alessandro', 'Yevara Ponce', 'Masculino', '2004-01-07', NULL, 0),
-(13, NULL, 'Test', 'User', NULL, NULL, NULL, 0),
-(14, NULL, 'Jhan Carla Anthonely ', 'Balceras Quispe', NULL, NULL, NULL, 0);
-
--- EMPLEADO
-INSERT INTO EMPLEADO (ID_EMPLEADO, CODIGO_EMPLEADO, CI, NOMBRE, APELLIDO, TELEFONO, FECHA_CONTRATACION, ESTADO) VALUES
-(6, 'ADM-001', '4567890', 'Alessandro', 'Yevara Ponce', '76023052', '2024-01-15', 'activo'),
-(7, 'ENC-SC-001', '4567891', 'Jorge', 'Rivero', '70010002', '2025-02-10', 'activo'),
-(8, 'CAJ-SC-001', '4567892', 'Paola', 'Vega', '70010003', '2025-05-20', 'activo'),
-(9, 'ENC-LP-001', '4567893', 'Andres', 'Flores', '70010004', '2025-03-12', 'activo'),
-(10, 'CAJ-CB-001', '4567894', 'Valeria', 'Molina', '70010005', '2025-06-02', 'activo');
-
--- EMPLEADO_SUCURSAL
-INSERT INTO EMPLEADO_SUCURSAL (ID_EMPLEADO, ID_SUCURSAL) VALUES
-(6, 1),
-(6, 2),
-(6, 3),
-(6, 4),
-(7, 1),
-(8, 1),
-(9, 2),
-(10, 3);
-
--- DIRECCION
-INSERT INTO DIRECCION (ID_DIRECCION, TIPO, DESTINATARIO, TELEFONO, CALLE, DETALLE, CODIGO_POSTAL, ES_PREDETERMINADA, ID_CLIENTE, ID_CIUDAD) VALUES
-(1, 'Casa', 'Ana Rojas', '72111111', 'Av. Beni 3100', 'Condominio Los Jardines, casa 8', '0000', TRUE, 1, 1),
-(2, 'Trabajo', 'Ana Rojas', '72111111', 'Av. San Martin 1200', 'Piso 4, oficina 402', '0000', FALSE, 1, 1),
-(3, 'Casa', 'Carlos Mendez', '72222222', 'Calle Belisario Salinas 480', 'Edificio Mirador, dpto. 5B', '0000', TRUE, 2, 2),
-(4, 'Casa', 'Lucia Fernandez', '72333333', 'Av. Melchor Perez 1450', 'Zona Norte', '0000', TRUE, 3, 3),
-(5, 'Casa', 'Diego Suarez', '72444444', 'Calle Junin 215', 'Entre Ravelo y Arenales', '0000', TRUE, 4, 4),
-(6, 'Casa', 'Sofia Vargas', '72555555', 'Av. Alemana 2250', 'Condominio Norte, bloque C', '0000', TRUE, 5, 1),
-(7, 'Entrega', 'Ana Rojas Test', '78912345', 'Av. Las Palmas #450, Equipetrol', 'Casa blanca de 2 pisos', NULL, FALSE, 1, 1),
-(8, 'Entrega', 'Josefina Flor Illanes Arteaga', '69237499', 'Av. San Martin #12, Calle Equipetrol', NULL, NULL, FALSE, 11, 1),
-(9, 'Entrega', 'Josefina Flor Illanes Arteaga', '76023052', 'Av. San Martín #450, Equipetrol, frente al hotel los tajibos', NULL, NULL, FALSE, 11, 1);
+-- Sincronizar secuencia de autoincremento para FUNCION
+SELECT setval(pg_get_serial_sequence('FUNCION', 'id_funcion'), (SELECT COALESCE(MAX(id_funcion), 1) FROM FUNCION));
 
 -- ============================================================================
--- 2. CATALOGO DE PRODUCTOS, VARIANTES E IMAGENES (20 PRODUCTOS / 105 VARIANTES)
+-- FIN DEL ESQUEMA DDL Y SEEDING BASE PARA NUEVO TENANT
 -- ============================================================================
-
--- PRODUCTO (20 Productos)
-INSERT INTO PRODUCTO (ID_PRODUCTO, NOMBRE, DESCRIPCION, PRECIO_BASE, GENERO, ESTADO, ID_CATEGORIA, ID_COLECCION) VALUES
-(1, 'Top Sweetra Escote Corazón Manga Acampanada', 'Top elegante de manga acampanada con favorecedor escote corazón y detalle fruncido en el pecho. Estilo versátil y cómodo.', 590.00, 'Mujer', 'activo', 8, 1),
-(2, 'Top de Punto Rayado Acanalado Moca & Crema', 'Top minimalista de tacto ultrasuave en punto acanalado de alta densidad en tonos moca y crema suave.', 240.00, 'Mujer', 'activo', 9, 1),
-(3, 'Pantalón Palazzo Wide Leg en Crepé Marfil', 'Pantalón de tiro alto con pinzas pronunciadas y caída fluida en tono marfil cálido con cinturón a tono.', 390.00, 'Mujer', 'activo', 6, 1),
-(4, 'Bolso Tote Bicolor Piel Grano & Oro', 'Bolso estructurado en combinación de piel marrón moca y negro profundo con acabados en metal dorado cepillado.', 680.00, 'Mujer', 'activo', 2, 3),
-(5, 'Vestido Slip Dress Seda Satinada Moca & Champagne', 'Vestido largo de fiesta en satén de seda fluido con caída al bies en tonos moca profundo y drapeado champagne.', 650.00, 'Mujer', 'activo', 7, 4),
-(6, 'Vestido Camisero Largo en Lino Lavado', 'Vestido largo en lino natural con cinturón a tono, abertura lateral y botones de nácar natural.', 520.00, 'Mujer', 'activo', 7, 1),
-(7, 'Chaleco Sastre Espalda Descubierta Crema', 'Chaleco de silueta entallada con botonadura delantera en carey y forro de satén suave.', 290.00, 'Mujer', 'activo', 8, 1),
-(8, 'Conjunto Lino Puro Camisero & Pantalón Arena', 'Conjunto artesanal de lino orgánico con textura natural en tonos marfil y tierra suave.', 490.00, 'Mujer', 'activo', 8, 1),
-(9, 'Sandalias de Tiras Minimalistas Tacón Moca & Negro', 'Diseño geométrico de tiras cruzadas en piel marrón moca y negra con hebilla dorada y plantilla acolchada.', 340.00, 'Mujer', 'activo', 2, 4),
-(10, 'Gafas de Sol Carey Oversized Estilo Italiano', 'Montura geométrica en acetato efecto concha de tortuga en tonos ámbar y chocolate con cristales polarizados UV400.', 180.00, 'Mujer', 'activo', 2, 3),
-(11, 'Abrigo Largo de Lana & Cashmere Moca', 'Abrigo estructurado de corte recto en mezcla de lana merino y cashmere con cinturón anudable.', 890.00, 'Mujer', 'activo', 8, 3),
-(12, 'Falda Midi Satinada Champagne Tostado', 'Falda midi de corte al bies con elástico oculto en cintura y caída fluida en satén de seda.', 320.00, 'Mujer', 'activo', 6, 4),
-(13, 'Blusa Camisera de Seda Marfil Botones Nácar', 'Blusa camisera elegante con cuello italiano clásico y textura sedosa suave en color marfil puro.', 280.00, 'Mujer', 'activo', 9, 1),
-(14, 'Vestido Halter Escote Espalda Negro Noche', 'Vestido largo de noche con cuello halter cruzado y espalda descubierta en crepé georgette.', 720.00, 'Mujer', 'activo', 7, 4),
-(15, 'Bolso Clutch Piel Texturizada Broche Dorado', 'Bolso de mano rígido en piel tostada con cierre metálico bañado en oro y cadena desmontable.', 450.00, 'Mujer', 'activo', 2, 4),
-(16, 'Mocasines de Piel Italiana Marrón Chocolate', 'Mocasines artesanales con detalle de antifaz dorado y suela de cuero cosida a mano.', 480.00, 'Mujer', 'activo', 2, 3),
-(17, 'Kimono de Lino Estructurado Arena & Canela', 'Chaqueta estilo kimono cruzado en lino pesado con solapas limpias y mangas tres cuartos.', 540.00, 'Mujer', 'activo', 8, 1),
-(18, 'Pantalón Culotte Lino & Algodón Taupe', 'Pantalón cropped de pernera ancha con bolsillos laterales y cintura alta entallada.', 360.00, 'Mujer', 'activo', 6, 1),
-(19, 'Cinturón de Becerro Hebilla Minimalista Oro', 'Cinturón fino de piel en color chocolate con hebilla geométrica de latón cepillado.', 160.00, 'Mujer', 'activo', 2, 1),
-(20, 'Vestido Camisero Midi Manga Abullonada Marfil', 'Vestido midi con silueta femenina, cuello camisero, cinturón en lazo y mangas francesas.', 580.00, 'Mujer', 'activo', 7, 1);
-
--- PROVEEDOR_PRODUCTO (12 Relaciones)
-INSERT INTO PROVEEDOR_PRODUCTO (COSTO_REFERENCIA, ESTADO, ID_PROVEEDOR, ID_PRODUCTO) VALUES
-(34.00, 'DISPONIBLE', 4, 10),
-(42.00, 'DISPONIBLE', 1, 1),
-(70.00, 'DISPONIBLE', 1, 2),
-(78.00, 'DISPONIBLE', 2, 9),
-(80.00, 'AGOTADO', 4, 9),
-(98.00, 'DISPONIBLE', 2, 4),
-(118.00, 'DISPONIBLE', 3, 3),
-(120.00, 'AGOTADO', 1, 3),
-(135.00, 'DISPONIBLE', 2, 5),
-(175.00, 'DISPONIBLE', 3, 7),
-(220.00, 'DISPONIBLE', 4, 6),
-(265.00, 'DISPONIBLE', 4, 8);
-
--- PRODUCTO_VARIANTE (105 Variantes con atributos de color, talla y fotos)
-INSERT INTO PRODUCTO_VARIANTE (ID_PRODUCTO_VARIANTE, SKU, PRECIO_ADICIONAL, MODELO_3D_URL, IMAGEN_URL, ESTADO, ID_PRODUCTO, ID_TALLA, ID_COLOR) VALUES
-(1, 'CBE-S-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_sweetra.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_sweetra_negro.png', 'activo', 1, 2, 1),
-(2, 'CBE-M-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_sweetra.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_sweetra_negro.png', 'activo', 1, 3, 1),
-(3, 'CBE-L-BLA', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_sweetra.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_sweetra_blanco.png', 'activo', 1, 4, 2),
-(4, 'PPU-M-MCR', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_punto.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_punto_moca_rayas.jpg', 'activo', 2, 3, 10),
-(5, 'PPU-L-MCR', 10.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_punto.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_punto_moca_rayas.jpg', 'activo', 2, 4, 10),
-(6, 'JSD-M-AZD', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/productos/pants.jpg', 'inactivo', 3, 3, 3),
-(7, 'JSD-L-AZD', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/productos/pants.jpg', 'inactivo', 3, 4, 3),
-(8, 'PCC-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_tote_beige.png', 'activo', 4, 3, 6),
-(9, 'PCC-L-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_tote_negro.png', 'activo', 4, 4, 1),
-(10, 'VFP-S-ROJ', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_slip_moca.jpg', 'inactivo', 5, 2, 4),
-(11, 'VFP-M-ROJ', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_slip_moca.jpg', 'inactivo', 5, 3, 4),
-(12, 'VFP-M-VER', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_slip_moca.jpg', 'inactivo', 5, 3, 5),
-(13, 'VNE-S-NEG', 0.00, 'https://cdn.fashionstore.bo/3d/vne-s-neg.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_lino_negro.png', 'activo', 6, 2, 1),
-(14, 'VNE-M-NEG', 0.00, 'https://cdn.fashionstore.bo/3d/vne-m-neg.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_lino_negro.png', 'activo', 6, 3, 1),
-(15, 'CDC-M-AZD', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'inactivo', 7, 3, 3),
-(16, 'CDC-L-AZD', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'inactivo', 7, 4, 3),
-(17, 'CIU-M-NEG', 0.00, 'https://cdn.fashionstore.bo/3d/ciu-m-neg.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/conjunto_limono_negro.png', 'activo', 8, 3, 1),
-(18, 'CIU-L-NEG', 0.00, 'https://cdn.fashionstore.bo/3d/ciu-l-neg.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/conjunto_limono_negro.png', 'activo', 8, 4, 1),
-(19, 'BCS-S-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/sandalia_tira_blanco.png', 'activo', 9, 2, 2),
-(20, 'BCS-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/sandalia_tira_blanco.png', 'activo', 9, 3, 2),
-(21, 'BCS-M-ROS', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/productos/shoes.jpg', 'inactivo', 9, 3, 7),
-(22, 'BTN-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/gafas_oversized_beige.png', 'activo', 10, 3, 6),
-(23, 'BTN-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/gafas_oversized_negro.png', 'activo', 10, 3, 1),
-(24, 'PPU-M-BLA', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_punto.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_punto_crema.jpg', 'activo', 2, 3, 2),
-(25, 'ALC-S-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/abrigo_lana_negro.png', 'activo', 11, 2, 1),
-(26, 'ALC-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/abrigo_lana_negro.png', 'activo', 11, 3, 1),
-(27, 'ALC-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/abrigo_lana_beige.png', 'activo', 11, 3, 6),
-(28, 'ALC-L-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/abrigo_lana_beige.png', 'activo', 11, 4, 6),
-(29, 'FMS-S-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/falda_midi_beige.png', 'activo', 12, 2, 6),
-(30, 'FMS-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/falda_midi_beige.png', 'activo', 12, 3, 6),
-(31, 'FMS-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/falda_midi_negro.png', 'activo', 12, 3, 1),
-(32, 'BCS-S-BLA2', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/blusa_satinada.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/blusa_satinada_marfil.jpg', 'activo', 13, 2, 2),
-(33, 'BCS-M-BLA2', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/blusa_satinada.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/blusa_satinada_marfil.jpg', 'activo', 13, 3, 2),
-(34, 'BCS-L-BLA2', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/blusa_satinada.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/blusa_satinada_marfil.jpg', 'activo', 13, 4, 2),
-(35, 'BCS-M-MAR2', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/blusa_satinada.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/blusa_satinada_mocha.jpg', 'activo', 13, 3, 8),
-(36, 'VHE-XS-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_noche.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_noche_negro.jpg', 'activo', 14, 1, 1),
-(37, 'VHE-S-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_noche.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_noche_negro.jpg', 'activo', 14, 2, 1),
-(38, 'VHE-M-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_noche.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_noche_negro.jpg', 'activo', 14, 3, 1),
-(39, 'VHE-L-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_noche.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_noche_negro.jpg', 'activo', 14, 4, 1),
-(40, 'BCP-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_clutch_beige.png', 'activo', 15, 3, 6),
-(41, 'BCP-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_clutch_negro.png', 'activo', 15, 3, 1),
-(42, 'MPI-S-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/mocasines_italiano_beige.png', 'activo', 16, 2, 6),
-(43, 'MPI-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/mocasines_italiano_beige.png', 'activo', 16, 3, 6),
-(44, 'MPI-L-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/mocasines_italiano_negro.png', 'activo', 16, 4, 1),
-(45, 'KLE-S-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/kimono_beige.png', 'activo', 17, 2, 6),
-(46, 'KLE-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/kimono_beige.png', 'activo', 17, 3, 6),
-(47, 'KLE-L-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/kimono_lino.png', 'activo', 17, 4, 2),
-(48, 'PCL-S-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_culotte_lino_beige.png', 'activo', 18, 2, 6),
-(49, 'PCL-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_culotte_lino_beige.png', 'activo', 18, 3, 6),
-(50, 'PCL-L-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_culotte_lino_blanco.png', 'activo', 18, 4, 2),
-(51, 'CBH-S-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/cinturon_becerro_negro.png', 'activo', 19, 2, 1),
-(52, 'CBH-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/cinturon_becerro_negro.png', 'activo', 19, 3, 1),
-(53, 'CBH-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/cinturon_becerro_beige.png', 'activo', 19, 3, 6),
-(54, 'VCM-S-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_blanco.png', 'activo', 20, 2, 2),
-(55, 'VCM-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_blanco.png', 'activo', 20, 3, 2),
-(56, 'VCM-L-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_blanco.png', 'activo', 20, 4, 2),
-(57, 'VCM-S-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_beige.png', 'activo', 20, 2, 6),
-(58, 'VCM-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_beige.png', 'activo', 20, 3, 6),
-(59, 'BCS-M-NEG2', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/blusa_satinada.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/blusa_satinada_negro.jpg', 'activo', 13, 3, 1),
-(60, 'PPU-M-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_punto.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_punto_negro.jpg', 'activo', 2, 3, 1),
-(61, 'VHE-M-ROJ', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_noche_burdeos.jpg', 'activo', 14, 3, 4),
-(62, 'VFP-M-NEG', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_slip.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_sleep_negro.png', 'activo', 5, 3, 1),
-(63, 'CBE-M-ROJ', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/top_sweetra_borgona.jpg', 'inactivo', 1, 3, 4),
-(79, 'ALC-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/abrigo_lana_blanco.png', 'activo', 11, 3, 2),
-(80, 'ALC-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/abrigo_lana_marron.png', 'activo', 11, 3, 8),
-(81, 'CDC-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/chaleco_sastre_beige.png', 'activo', 7, 3, 6),
-(82, 'CDC-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/chaleco_sastre_blanco.png', 'activo', 7, 3, 2),
-(83, 'CDC-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/chaleco_sastre_marron.png', 'activo', 7, 3, 8),
-(84, 'CDC-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/chaleco_sastre_negro.png', 'activo', 7, 3, 1),
-(85, 'CIU-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/conjunto_limono_beige.png', 'activo', 8, 3, 6),
-(86, 'CIU-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/conjunto_limono_blanco.png', 'activo', 8, 3, 2),
-(87, 'CIU-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/conjunto_limono_marron.png', 'activo', 8, 3, 8),
-(88, 'FMS-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/falda_midi_blanco.png', 'activo', 12, 3, 2),
-(89, 'FMS-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/falda_midi_marron.png', 'activo', 12, 3, 8),
-(90, 'KLE-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/kimono_marron.png', 'activo', 17, 3, 8),
-(91, 'KLE-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/kimono_negro.png', 'activo', 17, 3, 1),
-(92, 'PCL-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_culotte_lino_marron.png', 'activo', 18, 3, 8),
-(93, 'PCL-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_culotte_lino_negro.png', 'activo', 18, 3, 1),
-(94, 'TSE-M-BEI', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_sweetra.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_sweetra_beige.png', 'activo', 1, 3, 6),
-(95, 'TSE-M-MAR', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/top_sweetra.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/top_sweetra_marron.png', 'activo', 1, 3, 8),
-(96, 'PPW-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_palazo_beige.png', 'activo', 3, 3, 6),
-(97, 'PPW-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_palazo_blanco.png', 'activo', 3, 3, 2),
-(98, 'PPW-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_palazo_marron.png', 'activo', 3, 3, 8),
-(99, 'PPW-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_palazo_negro.png', 'activo', 3, 3, 1),
-(100, 'VSD-M-BEI', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_slip.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_sleep_beige.png', 'activo', 5, 3, 6),
-(101, 'VSD-M-BLA', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_slip.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_sleep_blanco.png', 'activo', 5, 3, 2),
-(102, 'VSD-M-MAR', 0.00, 'https://fashionstorestorages.blob.core.windows.net/modelo3d/vestido_slip.glb', 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_sleep_marron.png', 'activo', 5, 3, 8),
-(103, 'VCL-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_lino_beige.png', 'activo', 6, 3, 6),
-(104, 'VCL-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_lino_blanco.png', 'activo', 6, 3, 2),
-(105, 'VCL-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_lino_marron.png', 'activo', 6, 3, 8),
-(106, 'BTB-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_tote_blanco.png', 'activo', 4, 3, 2),
-(107, 'BTB-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_tote_marron.png', 'activo', 4, 3, 8),
-(108, 'STM-M-BEI', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/sandalia_tira_beige.png', 'activo', 9, 3, 6),
-(109, 'STM-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/sandalia_tira_marron.png', 'activo', 9, 3, 8),
-(110, 'STM-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/sandalia_tira_negro.png', 'activo', 9, 3, 1),
-(111, 'GSC-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/gafas_oversized_blanco.png', 'activo', 10, 3, 2),
-(112, 'GSC-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/gafas_oversized_marron.png', 'activo', 10, 3, 8),
-(113, 'BCP-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_clutch_blanco.png', 'activo', 15, 3, 2),
-(114, 'BCP-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/bolso_clutch_marron.png', 'activo', 15, 3, 8),
-(115, 'MPI-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/mocasines_italiano_blanco.png', 'activo', 16, 3, 2);
-
-INSERT INTO PRODUCTO_VARIANTE (ID_PRODUCTO_VARIANTE, SKU, PRECIO_ADICIONAL, MODELO_3D_URL, IMAGEN_URL, ESTADO, ID_PRODUCTO, ID_TALLA, ID_COLOR) VALUES
-(116, 'MPI-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/mocasines_italiano_marron.png', 'activo', 16, 3, 8),
-(117, 'CBH-M-BLA', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/cinturon_becerro_blanco.png', 'activo', 19, 3, 2),
-(118, 'CBH-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/cinturon_becerro_marron.png', 'activo', 19, 3, 8),
-(119, 'VCM-M-MAR', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_marron.png', 'activo', 20, 3, 8),
-(120, 'VCM-M-NEG', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_camisero_negro.png', 'activo', 20, 3, 1);
-
--- IMAGEN_PRODUCTO (20 Portadas principales en Azure Blob Storage)
-INSERT INTO IMAGEN_PRODUCTO (ID_IMAGEN_PRODUCTO, URL, TEXTO_ALTERNATIVO, ES_PRINCIPAL, ORDEN, ID_PRODUCTO) VALUES
-(1, 'https://fashionstorestorages.blob.core.windows.net/productos/top_sweetra.png', 'Blazer de Mezcla de Lino Marfil & Tostado', TRUE, 0, 1),
-(2, 'https://fashionstorestorages.blob.core.windows.net/productos/top_punto.jpg', 'Top de Punto Rayado Acanalado Moca & Crema', TRUE, 0, 2),
-(3, 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_palazo.png', 'Pantalón Palazzo Wide Leg en Crepé Marfil', TRUE, 0, 3),
-(4, 'https://fashionstorestorages.blob.core.windows.net/productos/bolso_tote.png', 'Bolso Tote Bicolor Piel Grano & Oro', TRUE, 0, 4),
-(5, 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_sleep.jpg', 'Vestido Slip Dress Seda Satinada Moca & Champagne', TRUE, 0, 5),
-(6, 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_lino.png', 'Vestido Camisero Largo en Lino Lavado', TRUE, 0, 6),
-(7, 'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png', 'Chaleco Sastre Espalda Descubierta Crema', TRUE, 0, 7),
-(8, 'https://fashionstorestorages.blob.core.windows.net/productos/conjunto_limono.png', 'Conjunto Lino Puro Camisero & Pantalón Arena', TRUE, 0, 8),
-(9, 'https://fashionstorestorages.blob.core.windows.net/productos/sandalia_tira.jpg', 'Sandalias de Tiras Minimalistas Tacón Moca & Negro', TRUE, 0, 9),
-(10, 'https://fashionstorestorages.blob.core.windows.net/productos/gafas_oversized.png', 'Gafas de Sol Carey Oversized Estilo Italiano', TRUE, 0, 10),
-(11, 'https://fashionstorestorages.blob.core.windows.net/productos/abrigo_lana.jpg', 'Abrigo Largo de Lana & Cashmere Moca', TRUE, 0, 11),
-(12, 'https://fashionstorestorages.blob.core.windows.net/productos/falda_midi.jpg', 'Falda Midi Satinada Champagne Tostado', TRUE, 0, 12),
-(13, 'https://fashionstorestorages.blob.core.windows.net/productos/blusa_satinada.jpg', 'Blusa Camisera de Seda Marfil Botones Nácar', TRUE, 0, 13),
-(14, 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_noche.jpg', 'Vestido Halter Escote Espalda Negro Noche', TRUE, 0, 14),
-(15, 'https://fashionstorestorages.blob.core.windows.net/productos/bolso_clutch.png', 'Bolso Clutch Piel Texturizada Broche Dorado', TRUE, 0, 15),
-(16, 'https://fashionstorestorages.blob.core.windows.net/productos/mocasines_italiano.png', 'Mocasines de Piel Italiana Marrón Chocolate', TRUE, 0, 16),
-(17, 'https://fashionstorestorages.blob.core.windows.net/productos/kimono.png', 'Kimono de Lino Estructurado Arena & Canela', TRUE, 0, 17),
-(18, 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_culotte_lino.jpg', 'Pantalón Culotte Lino & Algodón Taupe', TRUE, 0, 18),
-(19, 'https://fashionstorestorages.blob.core.windows.net/productos/cinturon_becerro.png', 'Cinturón de Becerro Hebilla Minimalista Oro', TRUE, 0, 19),
-(20, 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_camisero.png', 'Vestido Camisero Midi Manga Abullonada Marfil', TRUE, 0, 20);
-
--- PROMOCION_PRODUCTO (13 Promociones aplicadas)
-INSERT INTO PROMOCION_PRODUCTO (ID_PROMOCION, ID_PRODUCTO) VALUES
-(1, 1),
-(1, 2),
-(1, 5),
-(1, 9),
-(2, 1),
-(2, 4),
-(2, 5),
-(2, 9),
-(3, 6),
-(3, 8),
-(4, 7),
-(4, 8),
-(4, 10);
-
--- ============================================================================
--- 3. STOCK INICIAL DE INVENTARIO POR SUCURSAL (CONCURRENCIA & VENTAS)
--- Generación automática limpia cruzando sucursales con variantes activas
--- ============================================================================
-INSERT INTO INVENTARIO_SUCURSAL (STOCK_DISPONIBLE, STOCK_RESERVADO, STOCK_MINIMO, ID_SUCURSAL, ID_PRODUCTO_VARIANTE)
-SELECT 
-    25 AS STOCK_DISPONIBLE,
-    0  AS STOCK_RESERVADO,
-    5  AS STOCK_MINIMO,
-    s.ID_SUCURSAL,
-    pv.ID_PRODUCTO_VARIANTE
-FROM SUCURSAL s
-CROSS JOIN PRODUCTO_VARIANTE pv
-WHERE pv.ESTADO = 'activo'
-ON CONFLICT (ID_SUCURSAL, ID_PRODUCTO_VARIANTE) DO NOTHING;
-
--- FIN DEL SCRIPT
