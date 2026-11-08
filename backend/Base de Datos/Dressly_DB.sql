@@ -801,8 +801,7 @@ INSERT INTO MODULO (ID_MODULO, NOMBRE, DESCRIPCION) VALUES
 (3, 'Sucursales e Inventario', 'Red de sucursales físicas, inventarios por tienda, transferencias y control de existencias'),
 (4, 'Reservas de Prendas', 'Apartado de prendas para prueba física en vestidores de sucursales'),
 (5, 'Ventas y Facturación', 'Comercio digital, caja rápida presencial POS, facturación, pasarela de pago y devoluciones'),
-(6, 'Experiencia Móvil Interactiva', 'Probador virtual interactivo y realidad aumentada sobre prendas con IA'),
-(7, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto');
+(6, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto');
 
 -- ROL
 INSERT INTO ROL (ID_ROL, NOMBRE, PERMISO) VALUES
@@ -875,11 +874,10 @@ INSERT INTO FUNCION (ID_FUNCION, NOMBRE, DESCRIPCION, ID_MODULO) VALUES
 (26, 'Procesar Pago Electrónico', 'CU26 - Pasarela de pago segura con Stripe', 5),
 (27, 'Registrar Venta Presencial', 'CU27 - Punto de venta POS en mostrador de tienda', 5),
 (28, 'Devolución de Productos', 'CU28 - Gestión de devoluciones y notas de crédito', 5),
-(29, 'Utilizar Vestidor Virtual', 'CU29 - Probador virtual y simulación AR de prendas con IA', 6),
-(30, 'Consultar Dashboard', 'CU30 - Dashboard analítico de BI y Machine Learning probabilístico estilo Power BI', 7),
-(31, 'Gestionar Reportes Predefinidos', 'CU31 - Reportes estándar operacionales en PDF y Excel', 7),
-(32, 'Gestionar Reportes QBE', 'CU32 - Generador dinámico de reportes por consulta visual QBE', 7),
-(33, 'Gestionar Reportes por Voz', 'CU33 - Consultas analíticas en lenguaje natural por voz y texto con IA', 7);
+(29, 'Consultar Dashboard', 'CU29', 6),
+(30, 'Gestionar Reportes Predefinidos', 'CU30', 6),
+(31, 'Gestionar Reportes QBE', 'CU31', 6),
+(32, 'Gestionar Reportes por Voz', 'CU32', 6);
 
 -- USUARIO
 INSERT INTO USUARIO (ID_USUARIO, EMAIL, PASSWORD_HASH, ESTADO, ID_ROL) VALUES
@@ -933,7 +931,6 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 1, 30),
 ('Edicion', 1, 31),
 ('Edicion', 1, 32),
-('Edicion', 1, 33),
 -- Rol 2: Cliente
 ('Edicion', 2, 1),
 ('Edicion', 2, 2),
@@ -948,7 +945,6 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 2, 24),
 ('Edicion', 2, 25),
 ('Edicion', 2, 26),
-('Edicion', 2, 29),
 -- Rol 3: Encargado de sucursal
 ('Edicion', 3, 1),
 ('Edicion', 3, 3),
@@ -967,7 +963,6 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 3, 30),
 ('Edicion', 3, 31),
 ('Edicion', 3, 32),
-('Edicion', 3, 33),
 -- Rol 4: Cajero
 ('Edicion', 4, 1),
 ('Edicion', 4, 3),

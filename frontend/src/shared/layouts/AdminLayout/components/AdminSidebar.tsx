@@ -13,7 +13,6 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
-  Sparkles,
   RotateCcw,
   X,
 } from 'lucide-react';
@@ -27,16 +26,14 @@ const normalize = (value: string) =>
 // Módulo 3: 16, 18, 19
 // Módulo 4: 22
 // Módulo 5: 27, 28
-// Módulo 6: 29
-// Módulo 7: 30, 31, 32, 33
+// Módulo 6: 29, 30, 31, 32 (Inteligencia de Negocios y Reportes)
 const webPanelUseCaseIds = new Set([
   4, 5, 6, 7, 8, 9, 10,
   11, 13, 14, 15,
   16, 18, 19,
   22,
   27, 28,
-  29,
-  30, 31, 32, 33
+  29, 30, 31, 32
 ]);
 
 const getModuleIcon = (modulo: string) => {
@@ -47,7 +44,6 @@ const getModuleIcon = (modulo: string) => {
   if (norm.includes('reserva')) return <Calendar size={20} />;
   if (norm.includes('devolucion') || norm.includes('retorno')) return <RotateCcw size={20} />;
   if (norm.includes('venta') || norm.includes('pago') || norm.includes('factura')) return <ShoppingCart size={20} />;
-  if (norm.includes('movil') || norm.includes('interactiva') || norm.includes('vestidor') || norm.includes('ia')) return <Sparkles size={20} />;
   if (norm.includes('reporte') || norm.includes('dashboard') || norm.includes('inteligencia') || norm.includes('negocio')) return <FileText size={20} />;
   return <LayoutDashboard size={20} />;
 };
@@ -67,8 +63,7 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (idFuncion === 6) return '/admin/empleados';
   if (idFuncion === 5) return '/admin/roles';
   if (idFuncion === 4) return '/admin/users';
-  if (idFuncion === 29) return '/virtual-fitting/1';
-  if (idFuncion === 30 || idFuncion === 31 || idFuncion === 32 || idFuncion === 33) return '/admin/reports';
+  if (idFuncion === 29 || idFuncion === 30 || idFuncion === 31 || idFuncion === 32 || idFuncion === 33) return '/admin/reports';
 
   const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
   if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
@@ -85,7 +80,6 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (norm.includes('movimiento')) return '/admin/movimientos';
   if (norm.includes('inventario')) return '/admin/inventario';
   if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
-  if (norm.includes('vestidor') || norm.includes('movil')) return '/virtual-fitting/1';
   if (norm.includes('dashboard') || norm.includes('reporte') || norm.includes('inteligencia') || norm.includes('negocio') || norm.includes('qbe') || norm.includes('voz')) return '/admin/reports';
   return '/admin';
 };

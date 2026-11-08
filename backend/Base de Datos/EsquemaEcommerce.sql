@@ -739,28 +739,28 @@ EXECUTE FUNCTION actualizar_timestamp_inventario();
 
 -- ============================================================================
 -- SEED DATA EXCLUSIVO PARA NUEVOS TENANTS
--- (Únicamente Módulos y Funciones del Sistema / Casos de Uso CU01 a CU33)
+-- (Únicamente Módulos y Funciones del Sistema Web / Casos de Uso CU01 a CU32)
 -- Todos los demás datos (Productos, Sucursales, Usuarios, Roles, Inventario)
 -- quedan completamente vacíos para ser registrados desde la aplicación
 -- y configurados según el Plan SaaS contratado.
+-- (El módulo móvil de Probador Virtual pertenece a la app móvil, no al panel web).
 -- ============================================================================
 
--- 1. MODULOS DEL SISTEMA (7 MÓDULOS)
+-- 1. MODULOS DEL SISTEMA (6 MÓDULOS WEB)
 INSERT INTO MODULO (ID_MODULO, NOMBRE, DESCRIPCION) VALUES
 (1, 'Usuarios y Seguridad', 'Autenticación multi-tenant, perfiles, control de acceso RBAC, gestión de empresas, apariencia, backups y auditoría'),
 (2, 'Catálogo, Proveedores y Recomendaciones', 'Catálogo de prendas, disponibilidad, fichas técnicas, gestión de fabricantes y recomendaciones con IA'),
 (3, 'Sucursales e Inventario', 'Red de sucursales físicas, inventarios por tienda, transferencias y control de existencias'),
 (4, 'Reservas de Prendas', 'Apartado de prendas para prueba física en vestidores de sucursales'),
 (5, 'Ventas y Facturación', 'Comercio digital, caja rápida presencial POS, facturación, pasarela de pago y devoluciones'),
-(6, 'Experiencia Móvil Interactiva', 'Probador virtual interactivo y realidad aumentada sobre prendas con IA'),
-(7, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto')
+(6, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto')
 ON CONFLICT (ID_MODULO) DO UPDATE 
 SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION;
 
 -- Sincronizar secuencia de autoincremento para MODULO
 SELECT setval(pg_get_serial_sequence('MODULO', 'id_modulo'), (SELECT COALESCE(MAX(id_modulo), 1) FROM MODULO));
 
--- 2. FUNCIONES DEL SISTEMA / CASOS DE USO (33 CASOS DE USO)
+-- 2. FUNCIONES DEL SISTEMA / CASOS DE USO (32 CASOS DE USO WEB)
 INSERT INTO FUNCION (ID_FUNCION, NOMBRE, DESCRIPCION, ID_MODULO) VALUES
 -- Módulo 1: Usuarios y Seguridad (CU01 al CU10)
 (1, 'Gestionar Acceso al Sistema', 'CU01 - Autenticación con JWT y control de acceso', 1),
@@ -800,14 +800,11 @@ INSERT INTO FUNCION (ID_FUNCION, NOMBRE, DESCRIPCION, ID_MODULO) VALUES
 (27, 'Registrar Venta Presencial', 'CU27 - Punto de venta POS en mostrador de tienda', 5),
 (28, 'Devolución de Productos', 'CU28 - Gestión de devoluciones y notas de crédito', 5),
 
--- Módulo 6: Experiencia Móvil Interactiva (CU29)
-(29, 'Utilizar Vestidor Virtual', 'CU29 - Probador virtual y simulación AR de prendas con IA', 6),
-
--- Módulo 7: Inteligencia de Negocios y Reportes (CU30 al CU33)
-(30, 'Consultar Dashboard', 'CU30 - Dashboard analítico de BI y Machine Learning probabilístico estilo Power BI', 7),
-(31, 'Gestionar Reportes Predefinidos', 'CU31 - Reportes estándar operacionales en PDF y Excel', 7),
-(32, 'Gestionar Reportes QBE', 'CU32 - Generador dinámico de reportes por consulta visual QBE', 7),
-(33, 'Gestionar Reportes por Voz', 'CU33 - Consultas analíticas en lenguaje natural por voz y texto con IA', 7)
+-- Módulo 6: Inteligencia de Negocios y Reportes (CU29 al CU32)
+(29, 'Consultar Dashboard', 'CU29 - Dashboard analítico de BI y Machine Learning probabilístico estilo Power BI', 6),
+(30, 'Gestionar Reportes Predefinidos', 'CU30 - Reportes estándar operacionales en PDF y Excel', 6),
+(31, 'Gestionar Reportes QBE', 'CU31 - Generador dinámico de reportes por consulta visual QBE', 6),
+(32, 'Gestionar Reportes por Voz', 'CU32 - Consultas analíticas en lenguaje natural por voz y texto con IA', 6)
 ON CONFLICT (ID_FUNCION) DO UPDATE 
 SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION, ID_MODULO = EXCLUDED.ID_MODULO;
 

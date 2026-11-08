@@ -6,7 +6,7 @@
 
 ## 1. Estructura Modular del Sistema
 
-El sistema se estructura en **7 Módulos de Dominio** para la gestión integral de cada tienda (tenant) y plataforma SaaS, con un total de **33 Casos de Uso nucleares**:
+El sistema se estructura en **6 Módulos de Dominio** para la gestión integral de cada tienda (tenant) y plataforma SaaS, con un total de **32 Casos de Uso nucleares**:
 
 ```
 FASHIONSTORE SAAS — ARQUITECTURA DE DOMINIO ICONIX
@@ -15,9 +15,10 @@ FASHIONSTORE SAAS — ARQUITECTURA DE DOMINIO ICONIX
 ├── Módulo 3: Sucursales e Inventario (CU16 al CU19)
 ├── Módulo 4: Reservas de Prendas (CU20 al CU22)
 ├── Módulo 5: Ventas y Facturación (CU23 al CU28)
-├── Módulo 6: Experiencia Móvil Interactiva (CU29)
-└── Módulo 7: Inteligencia de Negocios y Reportes (CU30 al CU33)
+└── Módulo 6: Inteligencia de Negocios y Reportes (CU29 al CU32)
 ```
+
+*(Nota: Las capacidades móviles interactivas de probador virtual corresponden a la aplicación móvil Expo / React Native y no forman parte del sistema web).*
 
 ---
 
@@ -71,21 +72,16 @@ FASHIONSTORE SAAS — ARQUITECTURA DE DOMINIO ICONIX
 
 ---
 
-### Módulo 6 — Experiencia Móvil Interactiva
-* **CU29 - Utilizar Vestidor Virtual**: Probador virtual interactivo y realidad aumentada mediante integración con API externa de Inteligencia Artificial (Try-On AI) para superposición realista de prendas sobre la silueta del cliente, optimizado para web y móvil.
-
----
-
-### Módulo 7 — Inteligencia de Negocios y Reportes
-* **CU30 - Consultar Dashboard (Business Intelligence & Machine Learning)**:
+### Módulo 6 — Inteligencia de Negocios y Reportes
+* **CU29 - Consultar Dashboard (Business Intelligence & Machine Learning)**:
   * **Dashboard Ejecutivo estilo Power BI**: Visualización dinámica de KPIs de rendimiento comercial (ingresos netos, ticket promedio, margen bruto, rotación de inventario y conversión).
   * **Analítica Predictiva con Machine Learning (ML Supervisado)**: Modelo de regresión entrenado sobre series de tiempo y datasets de ventas para predecir la demanda de las próximas 4 semanas y recomendar sugerencias de abastecimiento por sucursal.
   * **Segmentación de Clientes RFM con K-Means (ML No Supervisado)**: Algoritmo de agrupamiento que clasifica la base de clientes según su *Recencia* (última compra), *Frecuencia* (visitas) y valor *Monetario* en cuadrantes accionables: Clientes VIP, Clientes Potenciales, Clientes Ocasionales y Clientes en Riesgo de Abandono.
   * **Simulación Probabilística con Datasets Estadísticos**: Calibración de modelos analíticos mediante distribuciones de Poisson (frecuencia de arribo de clientes y transacciones) y distribuciones Normales (valores de canasta de compra) para proyecciones de escenarios optimistas y conservadores.
-* **CU31 - Gestionar Reportes Predefinidos**:
+* **CU30 - Gestionar Reportes Predefinidos**:
   * Emisión de reportes estándar operacionales: Resumen de Ventas por Período, Rotación y Existencias de Inventario por Sucursal, Arqueo de Caja y Rendimiento por Empleado.
   * Exportación con renderizado nativo vectorial a **PDF** estructurado (`pdfkit`) y hojas de cálculo **Excel** multi-pestaña (`exceljs`).
-* **CU32 - Gestionar Reportes QBE (Query by Example)**:
+* **CU31 - Gestionar Reportes QBE (Query by Example)**:
   * Generador visual interactivo de consultas analíticas ad-hoc sin necesidad de escribir código SQL.
   * El usuario selecciona dinámicamente:
     1. Entidad principal (Ventas, Clientes, Inventario, Productos).
@@ -93,7 +89,7 @@ FASHIONSTORE SAAS — ARQUITECTURA DE DOMINIO ICONIX
     3. Criterios de filtrado mediante operadores visuales (`igual a`, `contiene`, `mayor que`, `entre fechas`).
     4. Funciones de agregación (`SUM`, `AVG`, `COUNT`, `MAX`, `MIN`) y ordenamiento multi-columna.
   * Previsualización instantánea en tabla interactiva con filtros locales y exportación inmediata a CSV y Excel.
-* **CU33 - Gestionar Reportes por Voz y Lenguaje Natural con IA**:
+* **CU32 - Gestionar Reportes por Voz y Lenguaje Natural con IA**:
   * Motor de consulta guiado por voz (Web Speech API) o texto libre en lenguaje natural para directivos y gerentes.
   * Flujo de ejecución seguro:
     1. El usuario expresa la consulta por micrófono o texto (ej.: *"Muéstrame las 5 prendas más vendidas en Santa Cruz el último mes"*).
@@ -112,5 +108,4 @@ FASHIONSTORE SAAS — ARQUITECTURA DE DOMINIO ICONIX
 | **M3: Inventario** | CU16 - CU19 | Total (Edición) | CU17 | CU16, CU17, CU18, CU19 | CU18 |
 | **M4: Reservas** | CU20 - CU22 | Total (Edición) | CU20, CU21 | CU20, CU21, CU22 | CU22 |
 | **M5: Ventas** | CU23 - CU28 | Total (Edición) | CU23, CU24, CU25, CU26 | CU27, CU28 | CU27, CU28 |
-| **M6: Móvil/AR** | CU29 | Total (Edición) | CU29 | - | - |
-| **M7: BI & Reportes** | CU30 - CU33 | Total (Edición) | - | CU30, CU31, CU32, CU33 | - |
+| **M6: BI & Reportes** | CU29 - CU32 | Total (Edición) | - | CU29, CU30, CU31, CU32 | - |
