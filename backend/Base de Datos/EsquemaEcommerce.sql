@@ -811,6 +811,21 @@ SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION, ID_MODULO = EX
 -- Sincronizar secuencia de autoincremento para FUNCION
 SELECT setval(pg_get_serial_sequence('FUNCION', 'id_funcion'), (SELECT COALESCE(MAX(id_funcion), 1) FROM FUNCION));
 
+-- 3. ROL ADMINISTRADOR INICIAL DEL TENANT
+INSERT INTO ROL (ID_ROL, NOMBRE, PERMISO) VALUES
+(1, 'Administrador', 'Control total y administración del negocio')
+ON CONFLICT (ID_ROL) DO UPDATE 
+SET NOMBRE = EXCLUDED.NOMBRE, PERMISO = EXCLUDED.PERMISO;
+
+-- Sincronizar secuencia de autoincremento para ROL
+SELECT setval(pg_get_serial_sequence('ROL', 'id_rol'), (SELECT COALESCE(MAX(id_rol), 1) FROM ROL));
+
+-- 4. ASIGNACIÓN DE PERMISOS TOTALES AL ROL ADMINISTRADOR (CU01 AL CU32)
+INSERT INTO ROL_FUNCION (ID_ROL, ID_FUNCION, DESCRIPCION)
+SELECT 1, f.ID_FUNCION, 'Acceso administrativo total concedido al inicializar el tenant'
+FROM FUNCION f
+ON CONFLICT (ID_ROL, ID_FUNCION) DO NOTHING;
+
 -- ============================================================================
 -- FIN DEL ESQUEMA DDL Y SEEDING BASE PARA NUEVO TENANT
 -- ============================================================================

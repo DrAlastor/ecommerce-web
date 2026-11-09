@@ -58,6 +58,19 @@ export class ProfileService {
       nivel_acceso: rf.descripcion ?? 'Lectura',
     }));
 
+    // Garantizar compatibilidad con CU32 (Gestionar Reportes por Voz)
+    if (usuario.id_rol === 1 || funciones.some((f) => f.id_funcion === 29 || f.id_funcion === 30 || f.id_funcion === 31)) {
+      if (!funciones.some((f) => f.id_funcion === 32)) {
+        const repMod = funciones.find((f) => f.id_funcion === 29 || f.id_funcion === 30 || f.id_funcion === 31)?.modulo || 'Inteligencia de Negocios y Reportes';
+        funciones.push({
+          id_funcion: 32,
+          nombre: 'Gestionar Reportes por Voz',
+          modulo: repMod,
+          nivel_acceso: 'Edición',
+        });
+      }
+    }
+
     return {
       user: userWithoutPassword,
       rol: { id_rol: usuario.rol.id_rol, nombre: usuario.rol.nombre },

@@ -59,6 +59,12 @@ export class RolesService {
    */
   async getModulesTree() {
     const modulos = await this.prisma.modulo.findMany({
+      where: {
+        NOT: [
+          { nombre: { contains: 'Móvil', mode: 'insensitive' } },
+          { nombre: { contains: 'Movil', mode: 'insensitive' } },
+        ],
+      },
       include: {
         funcion: {
           orderBy: { id_funcion: 'asc' },

@@ -1,0 +1,48 @@
+{
+  "dressly": {
+    "codigo_empresa": "dressly",
+    "primary_color": "#1A1A1A",
+    "secondary_color": "#C4956A",
+    "accent_color": "#c5a059",
+    "font_family": "Playfair Display, serif",
+    "hero_headline": "Eleva Tu",
+    "hero_subheadline": "Estilo Cotidiano",
+    "badge": "NUEVA COLECCIÓN 2026",
+    "css_variables": ":root { --color-primary: #1A1A1A; --color-secondary: #C4956A; --color-accent: #c5a059; --font-display: 'Playfair Display', serif; }",
+    "fecha_modificacion": "2026-11-09T03:40:34.412Z",
+    "cta_primary_text": "Comprar Ahora",
+    "cta_secondary_text": "Ver Lookbook",
+    "admin_sidebar_color": "#FFFFFF",
+    "admin_accent_color": "#C4956A"
+  },
+  "aura-sport": {
+    "codigo_empresa": "aura-sport",
+    "primary_color": "#0D0D0D",
+    "secondary_color": "#CCFF00",
+    "accent_color": "#00F0FF",
+    "font_family": "Oswald, sans-serif",
+    "tagline": "PERFORMANCE & SPORTSWEAR",
+    "hero_headline": "PERFORMANCE",
+    "hero_subheadline": "MEETS STYLE.",
+    "hero_description": "Ropa técnica de alto impacto diseñada para maximizar tu rendimiento físico y estilo diario.",
+    "hero_banner_url": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1600&auto=format&fit=crop",
+    "badge": "PRO SERIES 2026",
+    "css_variables": "--color-primary: #0D0D0D; --color-secondary: #CCFF00; --color-accent: #00F0FF;",
+    "fecha_modificacion": "2026-11-09T01:02:10.218Z"
+  },
+  "urbanly": {
+    "codigo_empresa": "urbanly",
+    "primary_color": "#1A1918",
+    "secondary_color": "#8C7E72",
+    "accent_color": "#4D5645",
+    "font_family": "Inter, sans-serif",
+    "tagline": "STREETWEAR & OVERSIZE",
+    "hero_headline": "AESTHETIC T-SHIRTS &",
+    "hero_subheadline": "OVERSIZED ESSENTIALS",
+    "hero_description": "Siluetas holgadas, tonos tierra neutros y algodón pesado 300 GSM diseñados para el movimiento de la ciudad.",
+    "hero_banner_url": "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1600&auto=format&fit=crop",
+    "badge": "NEUTRAL TONES DROP",
+    "css_variables": "--color-primary: #1A1918; --color-secondary: #8C7E72; --color-accent: #4D5645;",
+    "fecha_modificacion": "2026-11-09T01:02:10.218Z"
+  }
+}

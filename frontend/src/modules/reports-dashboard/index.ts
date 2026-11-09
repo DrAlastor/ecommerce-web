@@ -1,1 +1,1 @@
-export * from './use-cases/CU27-consultar-dashboard-reportes';
+export * from './use-cases/CU29-consultar-dashboard-reportes';

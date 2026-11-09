@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../../modules/users-security/shared/components/AuthContext';
 import { useShop } from '../../context/ShopContext';
 import './Navbar.css';
@@ -23,6 +23,16 @@ export const Navbar: React.FC = () => {
     return sessionStorage.getItem('dressly_announcement_dismissed') !== 'true';
   });
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams<{ tenant?: string }>();
+  const currentTenant = params.tenant || (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 'dressly');
+
+  const tenantBranding = currentTenant === 'aura-sport'
+    ? { name: 'AURA SPORT', tagline: 'ATHLETICS & GEAR', storePath: '/store/aura-sport', club: 'Aura Athlete Club' }
+    : currentTenant === 'subversive-urban'
+    ? { name: 'SUBVERSIVE', tagline: 'STUDIO ARCHIVE', storePath: '/store/subversive-urban', club: 'Subversive Club' }
+    : { name: 'DRESSLY', tagline: 'FASHION STORE', storePath: '/store/dressly', club: 'Dressly Club' };
+
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);
@@ -119,9 +129,9 @@ export const Navbar: React.FC = () => {
           </button>
 
           {/* Logo */}
-          <Link to="/" className="brand-logo">
-            <span className="brand-name">DRESSLY</span>
-            <span className="brand-tagline">FASHION STORE</span>
+          <Link to={tenantBranding.storePath} className="brand-logo">
+            <span className="brand-name">{tenantBranding.name}</span>
+            <span className="brand-tagline">{tenantBranding.tagline}</span>
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -232,7 +242,7 @@ export const Navbar: React.FC = () => {
                       </div>
                       {roleName === 'Cliente' && (
                         <div className="user-points-badge">
-                          ⭐ 0 Puntos Dressly Club
+                          ⭐ 0 Puntos {tenantBranding.club}
                         </div>
                       )}
                     </div>
