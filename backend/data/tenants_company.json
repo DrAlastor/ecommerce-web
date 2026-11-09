@@ -1,0 +1,50 @@
+{
+  "dressly": {
+    "codigo_empresa": "dressly",
+    "razon_social": "Dressly Fashion Store S.R.L.",
+    "nombre_comercial": "Dressly Fashion Store",
+    "nit": "1029384756",
+    "pais": "Bolivia",
+    "moneda_principal": "BOB",
+    "moneda_secundaria": "USD",
+    "email": "contacto@dressly.com",
+    "telefono": "+591 3 3456789",
+    "ciudad_nombre": "Santa Cruz de la Sierra",
+    "direccion": "Av. San Martín #450, Equipetrol",
+    "estado": "ACTIVO",
+    "logo_url": "/logo.jpg",
+    "fecha_modificacion": "2026-11-09T01:01:25.516Z"
+  },
+  "aura-sport": {
+    "codigo_empresa": "aura-sport",
+    "razon_social": "Aura Athletics & Sportswear S.A.",
+    "nombre_comercial": "Aura Athletics",
+    "nit": "9876543210",
+    "pais": "Bolivia",
+    "moneda_principal": "BOB",
+    "moneda_secundaria": "USD",
+    "email": "info@auraathletics.com",
+    "telefono": "+591 3 3887766",
+    "ciudad_nombre": "Santa Cruz de la Sierra",
+    "direccion": "Centro Comercial Las Brisas, Piso 2, Local 210",
+    "estado": "ACTIVO",
+    "logo_url": "/logo-aura.jpg",
+    "fecha_modificacion": "2026-11-09T01:01:25.517Z"
+  },
+  "urbanly": {
+    "codigo_empresa": "urbanly",
+    "razon_social": "Urbanly Fashion Store S.R.L.",
+    "nombre_comercial": "Urbanly Fashion Store",
+    "nit": "5647382910",
+    "pais": "Bolivia",
+    "moneda_principal": "BOB",
+    "moneda_secundaria": "USD",
+    "email": "crew@urbanly.com",
+    "telefono": "+591 3 3112233",
+    "ciudad_nombre": "Santa Cruz de la Sierra",
+    "direccion": "Calle 21 de Calacoto, San Miguel",
+    "estado": "ACTIVO",
+    "logo_url": "/logo-urbanly.jpg",
+    "fecha_modificacion": "2026-11-09T01:01:25.517Z"
+  }
+}

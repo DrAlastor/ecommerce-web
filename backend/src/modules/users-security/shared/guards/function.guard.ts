@@ -57,8 +57,8 @@ export class FunctionGuard implements CanActivate {
       throw new ForbiddenException('Usuario no encontrado');
     }
 
-    // Administrador (id_rol === 1) tiene acceso total a todas las funciones
-    if (dbUser.id_rol === 1) {
+    // Administrador (id_rol === 1) tiene acceso total inmediato a todas las funciones
+    if (dbUser.id_rol === 1 || user.id_rol === 1 || user.rol === 'Administrador') {
       return true;
     }
 
@@ -73,42 +73,47 @@ export class FunctionGuard implements CanActivate {
     const reqModuloNorm = normalize(requiredFunc.modulo);
     const reqPermisoNorm = normalize(requiredFunc.permiso);
     const aliases: Record<string, string[]> = {
-      'consultar bitacora': ['consultar bitacora', 'cu07 — consultar bitacora'],
+      'consultar bitacora': ['consultar bitacora', 'cu10 — consultar bitacora', 'cu07 — consultar bitacora'],
       'gestionar usuarios': ['gestionar usuarios', 'cu04 — gestionar usuarios'],
       'gestionar roles': ['gestionar roles', 'gestionar roles y permisos', 'cu05 — gestionar roles y permisos'],
       'gestionar roles y permisos': ['gestionar roles y permisos', 'gestionar roles', 'cu05 — gestionar roles y permisos'],
       'gestionar empleados': ['gestionar empleados', 'cu06 — gestionar empleados'],
-      'consultar catalogo': ['consultar catalogo', 'consultar catalogo de productos', 'cu08 — consultar catalogo de productos'],
-      'consultar catalogo de productos': ['consultar catalogo de productos', 'consultar catalogo', 'cu08 — consultar catalogo de productos'],
-      'consultar detalle y disponibilidad de producto': ['consultar detalle y disponibilidad de producto', 'cu09 — consultar detalle y disponibilidad de producto'],
-      'gestionar productos': ['gestionar productos', 'gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
-      'gestionar categorias': ['gestionar categorias', 'gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
-      'gestionar variantes': ['gestionar variantes', 'gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
-      'gestionar catalogo de productos': ['gestionar catalogo de productos', 'gestionar productos', 'gestionar categorias', 'gestionar variantes', 'cu10 — gestionar catalogo de productos'],
-      'gestionar proveedores': ['gestionar proveedores', 'cu11 — gestionar proveedores'],
-      'obtener recomendaciones de prendas mediante ia': ['obtener recomendaciones de prendas mediante ia', 'cu12 — obtener recomendaciones de prendas mediante ia'],
-      'gestionar sucursales': ['gestionar sucursales', 'gestionar ciudades y sucursales', 'cu13 — gestionar ciudades y sucursales'],
-      'gestionar ciudades y sucursales': ['gestionar ciudades y sucursales', 'gestionar sucursales', 'cu13 — gestionar ciudades y sucursales'],
-      'consultar sucursales': ['consultar sucursales', 'cu14 — consultar sucursales'],
-      'gestionar inventario': ['gestionar inventario', 'consultar inventario', 'cu15 — consultar inventario'],
-      'consultar inventario': ['consultar inventario', 'gestionar inventario', 'cu15 — consultar inventario'],
-      'registrar movimientos': ['registrar movimientos', 'gestionar movimientos de inventario', 'cu16 — gestionar movimientos de inventario'],
-      'gestionar movimientos de inventario': ['gestionar movimientos de inventario', 'registrar movimientos', 'cu16 — gestionar movimientos de inventario'],
-      'realizar reserva de prendas': ['realizar reserva de prendas', 'realizar reserva', 'reservar prendas', 'reservar prenda', 'cu17 — realizar reserva de prendas'],
-      'realizar reserva': ['realizar reserva de prendas', 'realizar reserva', 'reservar prendas', 'reservar prenda', 'cu17 — realizar reserva de prendas'],
-      'consultar y cancelar reserva': ['consultar y cancelar reserva', 'consultar reserva', 'cancelar reserva', 'cu18 — consultar y cancelar reserva'],
-      'gestionar reservas': ['gestionar reservas', 'gestionar reserva en sucursal', 'cu19 — gestionar reserva en sucursal'],
-      'gestionar reserva en sucursal': ['gestionar reserva en sucursal', 'gestionar reservas', 'cu19 — gestionar reserva en sucursal'],
-      'registrar venta': ['registrar venta', 'registrar venta presencial', 'cu24 — registrar venta presencial'],
-      'registrar venta presencial': ['registrar venta presencial', 'registrar venta', 'cu24 — registrar venta presencial'],
-      'procesar pago': ['procesar pago', 'procesar pago electronico', 'cu23 — procesar pago electronico', 'cu24 — registrar venta presencial', 'registrar venta presencial'],
-      'procesar pago electronico': ['procesar pago electronico', 'procesar pago', 'cu23 — procesar pago electronico'],
-      'consultar dashboard y reportes': ['consultar dashboard y reportes', 'consultar dashboard', 'generar reportes', 'reportes', 'dashboard', 'gestionar reportes predefinidos', 'gestionar reportes qbe'],
-      'consultar dashboard': ['consultar dashboard y reportes', 'consultar dashboard'],
-      'generar reportes': ['consultar dashboard y reportes', 'generar reportes', 'reportes', 'gestionar reportes predefinidos'],
-      'gestionar reportes predefinidos': ['gestionar reportes predefinidos', 'reportes predefinidos', 'consultar dashboard y reportes', 'generar reportes'],
-      'gestionar reportes qbe': ['gestionar reportes qbe', 'reportes qbe', 'qbe', 'consultar dashboard y reportes'],
-      'gestionar reportes por voz': ['gestionar reportes por voz', 'reportes por voz', 'consultar dashboard y reportes'],
+      'gestionar empresas': ['gestionar empresas', 'cu07 — gestionar empresas', 'configuracion empresa'],
+      'personalizar apariencia': ['personalizar apariencia', 'cu08 — personalizar apariencia', 'tema tienda'],
+      'gestionar backups y restore': ['gestionar backups y restore', 'gestionar backups', 'cu09 — gestionar backups y restore', 'backups'],
+      'consultar catalogo': ['consultar catalogo', 'consultar catalogo de productos', 'cu11 — consultar catalogo de productos', 'cu08 — consultar catalogo de productos'],
+      'consultar catalogo de productos': ['consultar catalogo de productos', 'consultar catalogo', 'cu11 — consultar catalogo de productos', 'cu08 — consultar catalogo de productos'],
+      'consultar detalle y disponibilidad de producto': ['consultar detalle y disponibilidad de producto', 'cu12 — consultar detalle y disponibilidad de producto', 'cu09 — consultar detalle y disponibilidad de producto'],
+      'gestionar productos': ['gestionar productos', 'gestionar catalogo de productos', 'cu13 — gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
+      'gestionar categorias': ['gestionar categorias', 'gestionar catalogo de productos', 'cu13 — gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
+      'gestionar variantes': ['gestionar variantes', 'gestionar catalogo de productos', 'cu13 — gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
+      'gestionar catalogo de productos': ['gestionar catalogo de productos', 'gestionar productos', 'gestionar categorias', 'gestionar variantes', 'cu13 — gestionar catalogo de productos', 'cu10 — gestionar catalogo de productos'],
+      'gestionar proveedores': ['gestionar proveedores', 'cu14 — gestionar proveedores', 'cu11 — gestionar proveedores'],
+      'obtener recomendaciones de prendas mediante ia': ['obtener recomendaciones de prendas mediante ia', 'cu15 — obtener recomendaciones de prendas mediante ia', 'cu12 — obtener recomendaciones de prendas mediante ia'],
+      'gestionar sucursales': ['gestionar sucursales', 'gestionar ciudades y sucursales', 'cu16 — gestionar ciudades y sucursales', 'cu13 — gestionar ciudades y sucursales'],
+      'gestionar ciudades y sucursales': ['gestionar ciudades y sucursales', 'gestionar sucursales', 'cu16 — gestionar ciudades y sucursales', 'cu13 — gestionar ciudades y sucursales'],
+      'consultar sucursales': ['consultar sucursales', 'cu17 — consultar sucursales', 'cu14 — consultar sucursales'],
+      'gestionar inventario': ['gestionar inventario', 'consultar inventario', 'cu18 — consultar inventario', 'cu15 — consultar inventario'],
+      'consultar inventario': ['consultar inventario', 'gestionar inventario', 'cu18 — consultar inventario', 'cu15 — consultar inventario'],
+      'registrar movimientos': ['registrar movimientos', 'gestionar movimientos de inventario', 'cu19 — gestionar movimientos de inventario', 'cu16 — gestionar movimientos de inventario'],
+      'gestionar movimientos de inventario': ['gestionar movimientos de inventario', 'registrar movimientos', 'cu19 — gestionar movimientos de inventario', 'cu16 — gestionar movimientos de inventario'],
+      'realizar reserva de prendas': ['realizar reserva de prendas', 'realizar reserva', 'reservar prendas', 'reservar prenda', 'cu20 — realizar reserva de prendas', 'cu17 — realizar reserva de prendas'],
+      'realizar reserva': ['realizar reserva de prendas', 'realizar reserva', 'reservar prendas', 'reservar prenda', 'cu20 — realizar reserva de prendas', 'cu17 — realizar reserva de prendas'],
+      'consultar y cancelar reserva': ['consultar y cancelar reserva', 'consultar reserva', 'cancelar reserva', 'cu21 — consultar y cancelar reserva', 'cu18 — consultar y cancelar reserva'],
+      'gestionar reservas': ['gestionar reservas', 'gestionar reserva en sucursal', 'cu22 — gestionar reserva en sucursal', 'cu19 — gestionar reserva en sucursal'],
+      'gestionar reserva en sucursal': ['gestionar reserva en sucursal', 'gestionar reservas', 'cu22 — gestionar reserva en sucursal', 'cu19 — gestionar reserva en sucursal'],
+      'registrar venta': ['registrar venta', 'registrar venta presencial', 'cu27 — registrar venta presencial', 'cu24 — registrar venta presencial'],
+      'registrar venta presencial': ['registrar venta presencial', 'registrar venta', 'cu27 — registrar venta presencial', 'cu24 — registrar venta presencial'],
+      'procesar pago': ['procesar pago', 'procesar pago electronico', 'cu26 — procesar pago electronico', 'cu23 — procesar pago electronico', 'cu27 — registrar venta presencial', 'registrar venta presencial'],
+      'procesar pago electronico': ['procesar pago electronico', 'procesar pago', 'cu26 — procesar pago electronico', 'cu23 — procesar pago electronico'],
+      'devolucion de productos': ['devolucion de productos', 'gestionar devoluciones', 'cu28 — devolucion de productos', 'cu26 — gestionar devoluciones'],
+      'gestionar devoluciones': ['gestionar devoluciones', 'devolucion de productos', 'cu28 — devolucion de productos', 'cu26 — gestionar devoluciones'],
+      'consultar dashboard y reportes': ['consultar dashboard y reportes', 'consultar dashboard', 'generar reportes', 'reportes', 'dashboard', 'cu29 — consultar dashboard', 'cu27 — consultar dashboard-reportes'],
+      'consultar dashboard': ['consultar dashboard y reportes', 'consultar dashboard', 'cu29 — consultar dashboard'],
+      'generar reportes': ['consultar dashboard y reportes', 'generar reportes', 'reportes', 'cu30 — gestionar reportes predefinidos'],
+      'gestionar reportes predefinidos': ['gestionar reportes predefinidos', 'consultar dashboard y reportes', 'reportes predefinidos', 'cu30 — gestionar reportes predefinidos'],
+      'gestionar reportes qbe': ['gestionar reportes qbe', 'reportes qbe', 'qbe', 'consultar dashboard y reportes', 'cu31 — gestionar reportes qbe'],
+      'gestionar reportes por voz': ['gestionar reportes por voz', 'reportes por voz', 'consultar dashboard y reportes', 'cu32 — gestionar reportes por voz'],
     };
     const acceptedFunctionNames = new Set([reqModuloNorm, ...(aliases[reqModuloNorm] ?? [])]);
 

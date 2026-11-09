@@ -46,8 +46,12 @@ export function useRolePermissions() {
         rolesService.getRoles(),
         rolesService.getModulesTree(),
       ]);
+      const filteredTree = treeData.filter((m) => {
+        const norm = m.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return !norm.includes('movil') && !norm.includes('mobile') && !norm.includes('interactiva');
+      });
       setRoles(rolesData);
-      setModulesTree(treeData);
+      setModulesTree(filteredTree);
 
       // Por defecto seleccionar el primer rol si no hay uno seleccionado
       if (rolesData.length > 0 && selectedRoleId === null) {
@@ -55,9 +59,10 @@ export function useRolePermissions() {
       }
     } catch (err: any) {
       console.error('Error al cargar datos iniciales de roles:', err);
+      const errMsg = err.response?.data?.message || err.message;
       setFeedback({
         type: 'error',
-        message: 'No se pudieron cargar los roles y módulos del sistema.',
+        message: typeof errMsg === 'string' ? errMsg : 'No se pudieron cargar los roles y módulos del sistema.',
       });
     } finally {
       setLoadingRoles(false);

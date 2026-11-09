@@ -801,15 +801,16 @@ INSERT INTO MODULO (ID_MODULO, NOMBRE, DESCRIPCION) VALUES
 (3, 'Sucursales e Inventario', 'Red de sucursales físicas, inventarios por tienda, transferencias y control de existencias'),
 (4, 'Reservas de Prendas', 'Apartado de prendas para prueba física en vestidores de sucursales'),
 (5, 'Ventas y Facturación', 'Comercio digital, caja rápida presencial POS, facturación, pasarela de pago y devoluciones'),
-(6, 'Experiencia Móvil Interactiva', 'Probador virtual interactivo y realidad aumentada sobre prendas con IA'),
-(7, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto');
+(6, 'Inteligencia de Negocios y Reportes', 'Dashboard analítico con Machine Learning probabilístico estilo Power BI, reportes predefinidos, generador QBE y reportes por voz/texto')
+ON CONFLICT (ID_MODULO) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION;
 
 -- ROL
 INSERT INTO ROL (ID_ROL, NOMBRE, PERMISO) VALUES
 (1, 'Administrador', 'Gestion total'),
 (2, 'Cliente', 'Compras y catalogo'),
 (3, 'Encargado de sucursal', 'Operaciones de sucursal e inventario'),
-(4, 'Cajero', 'Venta presencial y caja');
+(4, 'Cajero', 'Venta presencial y caja')
+ON CONFLICT (ID_ROL) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, PERMISO = EXCLUDED.PERMISO;
 
 -- PROMOCION
 INSERT INTO PROMOCION (ID_PROMOCION, NOMBRE, LIMITE_USOS, USOS_ACTUALES, TIPO_DESCUENTO, VALOR_DESCUENTO, FECHA_INICIO, FECHA_FIN, ESTADO) VALUES
@@ -875,28 +876,48 @@ INSERT INTO FUNCION (ID_FUNCION, NOMBRE, DESCRIPCION, ID_MODULO) VALUES
 (26, 'Procesar Pago Electrónico', 'CU26 - Pasarela de pago segura con Stripe', 5),
 (27, 'Registrar Venta Presencial', 'CU27 - Punto de venta POS en mostrador de tienda', 5),
 (28, 'Devolución de Productos', 'CU28 - Gestión de devoluciones y notas de crédito', 5),
-(29, 'Utilizar Vestidor Virtual', 'CU29 - Probador virtual y simulación AR de prendas con IA', 6),
-(30, 'Consultar Dashboard', 'CU30 - Dashboard analítico de BI y Machine Learning probabilístico estilo Power BI', 7),
-(31, 'Gestionar Reportes Predefinidos', 'CU31 - Reportes estándar operacionales en PDF y Excel', 7),
-(32, 'Gestionar Reportes QBE', 'CU32 - Generador dinámico de reportes por consulta visual QBE', 7),
-(33, 'Gestionar Reportes por Voz', 'CU33 - Consultas analíticas en lenguaje natural por voz y texto con IA', 7);
+(29, 'Consultar Dashboard', 'CU29', 6),
+(30, 'Gestionar Reportes Predefinidos', 'CU30', 6),
+(31, 'Gestionar Reportes QBE', 'CU31', 6),
+(32, 'Gestionar Reportes por Voz', 'CU32', 6)
+ON CONFLICT (ID_FUNCION) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = EXCLUDED.DESCRIPCION, ID_MODULO = EXCLUDED.ID_MODULO;
 
 -- USUARIO
+-- ============================================================================
+-- USUARIO — CREDENCIALES DE ACCESO EN TEXTO PLANO (PARA INGRESO AL SISTEMA)
+-- ============================================================================
+-- | ROL           | EMAIL                           | CONTRASEÑA (TEXTO PLANO) |
+-- |---------------|---------------------------------|--------------------------|
+-- | Administrador | admin@fashionstore.bo           | Admin123*                |
+-- | Encargado     | encargado.sc@fashionstore.bo    | Encargado123*            |
+-- | Encargado     | encargado.lp@fashionstore.bo    | Encargado123*            |
+-- | Cajero        | cajero.sc@fashionstore.bo       | Cajero123*               |
+-- | Cajero        | cajero.cbba@fashionstore.bo     | Cajero123*               |
+-- | Cliente       | ana.rojas@example.com           | Cliente123*              |
+-- | Cliente       | carlos.mendez@example.com       | Cliente123*              |
+-- | Cliente       | lucia.fernandez@example.com     | Cliente123*              |
+-- | Cliente       | diego.suarez@example.com        | Cliente123*              |
+-- | Cliente       | sofia.vargas@example.com        | Cliente123*              |
+-- | Cliente       | flor.ia@gmail.com               | Cliente123*              |
+-- | Cliente       | yevaraponcealessandro@gmail.com | Cliente123*              |
+-- | Cliente       | jhancarla1011937@gmail.com      | Cliente123*              |
+-- ============================================================================
 INSERT INTO USUARIO (ID_USUARIO, EMAIL, PASSWORD_HASH, ESTADO, ID_ROL) VALUES
-(1, 'ana.rojas@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(2, 'carlos.mendez@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(3, 'lucia.fernandez@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(4, 'diego.suarez@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(5, 'sofia.vargas@example.com', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 2),
-(6, 'admin@fashionstore.bo', '$2b$10$RBd15zLTuxfuUDZmB2LBCu6klaFx9kifY0LtrXpum4.w91RXqUs7q', 'activo', 1),
-(7, 'encargado.sc@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 3),
-(8, 'cajero.sc@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 4),
-(9, 'encargado.lp@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 3),
-(10, 'cajero.cbba@fashionstore.bo', '$2b$10$/bkGuZ9F36zw69KOQ8B4cedu.1EQvL1aV7M7ogltN2WRDbF5ObrCG', 'activo', 4),
-(11, 'flor.ia@gmail.com', '$2b$10$cybIsun8WlG1zcXSMi22l.qBZbAH4zd6RGpY1tkODOusEJWNgWkwC', 'activo', 2),
-(12, 'yevaraponcealessandro@gmail.com', '$2b$10$pfbh9DJQscl7jVKhobewSe58CVjerXXORn3FWKxBc2FKMV3.OeDdu', 'activo', 2),
-(13, 'test_1790036353477@gmail.com', '$2b$10$9Qf52E8J.KohyxLAuin9z.6iRNwsrN3V8WIxk6MxdyyDsiuRPyh8K', 'activo', 2),
-(14, 'jhancarla1011937@gmail.com', '$2b$10$nbzWjx0WrLoC9dZlUScoB.wSRKpINRMmDL6zxTd62CbHChuQNNMLW', 'activo', 2);
+(1, 'ana.rojas@example.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(2, 'carlos.mendez@example.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(3, 'lucia.fernandez@example.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(4, 'diego.suarez@example.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(5, 'sofia.vargas@example.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(6, 'admin@fashionstore.bo', '$2b$10$dncfzXeXm93/Ze23m.0H2e7c31fP4.CsYkJ0zQeY2BbdfPu9OEj4O', 'activo', 1),
+(7, 'encargado.sc@fashionstore.bo', '$2b$10$oHSA7rzwZOjuZv8eArglNeAC9R1akU4Kd2c5LHJyCOXuCwfbA89NW', 'activo', 3),
+(8, 'cajero.sc@fashionstore.bo', '$2b$10$gBXqnYQ7dNrxU9RK1daGLeZ4UdECuu/7hd6mnvMJp8vU5CHFMUUfO', 'activo', 4),
+(9, 'encargado.lp@fashionstore.bo', '$2b$10$oHSA7rzwZOjuZv8eArglNeAC9R1akU4Kd2c5LHJyCOXuCwfbA89NW', 'activo', 3),
+(10, 'cajero.cbba@fashionstore.bo', '$2b$10$gBXqnYQ7dNrxU9RK1daGLeZ4UdECuu/7hd6mnvMJp8vU5CHFMUUfO', 'activo', 4),
+(11, 'flor.ia@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(12, 'yevaraponcealessandro@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(13, 'test_1790036353477@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(14, 'jhancarla1011937@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2)
+ON CONFLICT (ID_USUARIO) DO NOTHING;
 
 -- ROL_FUNCION
 INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
@@ -933,7 +954,6 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 1, 30),
 ('Edicion', 1, 31),
 ('Edicion', 1, 32),
-('Edicion', 1, 33),
 -- Rol 2: Cliente
 ('Edicion', 2, 1),
 ('Edicion', 2, 2),
@@ -948,7 +968,6 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 2, 24),
 ('Edicion', 2, 25),
 ('Edicion', 2, 26),
-('Edicion', 2, 29),
 -- Rol 3: Encargado de sucursal
 ('Edicion', 3, 1),
 ('Edicion', 3, 3),
@@ -967,7 +986,6 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 3, 30),
 ('Edicion', 3, 31),
 ('Edicion', 3, 32),
-('Edicion', 3, 33),
 -- Rol 4: Cajero
 ('Edicion', 4, 1),
 ('Edicion', 4, 3),
@@ -976,7 +994,8 @@ INSERT INTO ROL_FUNCION (DESCRIPCION, ID_ROL, ID_FUNCION) VALUES
 ('Edicion', 4, 18),
 ('Edicion', 4, 22),
 ('Edicion', 4, 27),
-('Edicion', 4, 28);
+('Edicion', 4, 28)
+ON CONFLICT (ID_ROL, ID_FUNCION) DO NOTHING;
 
 -- CLIENTE
 INSERT INTO CLIENTE (ID_CLIENTE, CI, NOMBRE, APELLIDO, SEXO, FECHA_NACIMIENTO, PREFERENCIAS_ESTILO, PUNTOS_FIDELIDAD) VALUES

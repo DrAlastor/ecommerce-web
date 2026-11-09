@@ -5,8 +5,8 @@ import { ShopProvider } from './context/ShopContext';
 import LoginPage from './modules/users-security/use-cases/CU01-gestionar-acceso/pages/LoginPage';
 import { HomePage } from './pages/HomePage';
 import { SaasLandingPage } from './pages/SaasLandingPage';
-import { CatalogPage } from './modules/catalog/use-cases/CU08-consultar-catalogo-productos/pages/CatalogPage';
-import { ProductDetailPage } from './modules/catalog/use-cases/CU09-consultar-detalle-disponibilidad/pages/ProductDetailPage';
+import { CatalogPage } from './modules/catalog/use-cases/CU11-consultar-catalogo-productos/pages/CatalogPage';
+import { ProductDetailPage } from './modules/catalog/use-cases/CU12-consultar-detalle-disponibilidad/pages/ProductDetailPage';
 import RegisterPage from './modules/users-security/use-cases/CU02-gestionar-perfil/pages/RegisterPage';
 import ProfilePage from './modules/users-security/use-cases/CU02-gestionar-perfil/pages/ProfilePage';
 import ForgotPasswordPage from './modules/users-security/use-cases/CU03-gestionar-contrasena/pages/ForgotPasswordPage';
@@ -14,25 +14,28 @@ import ResetPasswordPage from './modules/users-security/use-cases/CU03-gestionar
 import { AdminLayout } from './shared/layouts/AdminLayout/AdminLayout';
 import DashboardIndex from './pages/admin/DashboardIndex';
 import { ManageUsersPage } from './modules/users-security/use-cases/CU04-gestionar-usuarios/pages/ManageUsersPage';
-import { BitacoraPage } from './modules/users-security/use-cases/CU07-consultar-bitacora/pages/BitacoraPage';
+import { BitacoraPage } from './modules/users-security/use-cases/CU10-consultar-bitacora/pages/BitacoraPage';
 import { ManageRolesPage } from './modules/users-security/use-cases/CU05-gestionar-roles-permisos/pages/ManageRolesPage';
 import { ManageEmployeesPage } from './modules/users-security/use-cases/CU06-gestionar-empleados/pages/ManageEmployeesPage';
-import { ManageCatalogPage } from './modules/catalog/use-cases/CU10-gestionar-catalogo-productos/pages/ManageCatalogPage';
-import { ManageSuppliersPage } from './modules/catalog/use-cases/CU11-gestionar-proveedores/pages/ManageSuppliersPage';
-import { RecommendationsPage } from './modules/catalog/use-cases/CU12-obtener-recomendaciones-ia/pages/RecommendationsPage';
-import { ManageBranchesPage } from './modules/branches-inventory/use-cases/CU13-gestionar-ciudades-sucursales/pages/ManageBranchesPage';
-import { BranchesPage } from './modules/branches-inventory/use-cases/CU14-consultar-sucursales/pages/BranchesPage';
-import { ManageInventoryPage } from './modules/branches-inventory/use-cases/CU15-consultar-inventario/pages/ManageInventoryPage';
-import { ManageMovementsPage } from './modules/branches-inventory/use-cases/CU16-gestionar-movimientos-inventario/pages/ManageMovementsPage';
-import { MyReservationsPage } from './modules/reservations/use-cases/CU18-consultar-cancelar-reserva';
-import { ManageBranchReservationsPage } from './modules/reservations/use-cases/CU19-gestionar-reserva-sucursal';
-import { CartPage } from './modules/sales-billing/use-cases/CU20-gestionar-carrito-compras/pages/CartPage';
-import { CheckoutPage } from './modules/sales-billing/use-cases/CU21-realizar-compra-digital/pages/CheckoutPage';
-import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU22-consultar-historial-compras/pages/MyPurchasesPage';
-import POSPage from './modules/sales-billing/use-cases/CU23-procesar-pagos-facturacion/pages/POSPage';
-import { ReportsDashboardPage } from './modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/pages/ReportsDashboardPage';
-import { VirtualFittingPage } from './modules/mobile-experience/use-cases/CU25-utilizar-vestidor-virtual';
-import { ManageReturnsPage } from './modules/sales-billing/use-cases/CU26-gestionar-devoluciones';
+import { ManageCompanyPage } from './modules/users-security/use-cases/CU07-gestionar-empresas/pages/ManageCompanyPage';
+import { ManageAppearancePage } from './modules/users-security/use-cases/CU08-personalizar-apariencia/pages/ManageAppearancePage';
+import { ManageBackupsPage } from './modules/users-security/use-cases/CU09-gestionar-backups-restore/pages/ManageBackupsPage';
+import { ManageCatalogPage } from './modules/catalog/use-cases/CU13-gestionar-catalogo-productos/pages/ManageCatalogPage';
+import { ManageSuppliersPage } from './modules/catalog/use-cases/CU14-gestionar-proveedores/pages/ManageSuppliersPage';
+import { RecommendationsPage } from './modules/catalog/use-cases/CU15-obtener-recomendaciones-ia/pages/RecommendationsPage';
+import { ManageBranchesPage } from './modules/branches-inventory/use-cases/CU16-gestionar-ciudades-sucursales/pages/ManageBranchesPage';
+import { BranchesPage } from './modules/branches-inventory/use-cases/CU17-consultar-sucursales/pages/BranchesPage';
+import { ManageInventoryPage } from './modules/branches-inventory/use-cases/CU18-consultar-inventario/pages/ManageInventoryPage';
+import { ManageMovementsPage } from './modules/branches-inventory/use-cases/CU19-gestionar-movimientos-inventario/pages/ManageMovementsPage';
+import { MyReservationsPage } from './modules/reservations/use-cases/CU21-consultar-cancelar-reserva';
+import { ManageBranchReservationsPage } from './modules/reservations/use-cases/CU22-gestionar-reserva-sucursal';
+import { CartPage } from './modules/sales-billing/use-cases/CU23-gestionar-carrito-compras/pages/CartPage';
+import { CheckoutPage } from './modules/sales-billing/use-cases/CU24-realizar-compra-digital/pages/CheckoutPage';
+import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU25-consultar-historial-compras/pages/MyPurchasesPage';
+import POSPage from './modules/sales-billing/use-cases/CU26-procesar-pagos-facturacion/pages/POSPage';
+import { ReportsDashboardPage } from './modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/pages/ReportsDashboardPage';
+import { VirtualFittingPage } from './modules/mobile-experience/use-cases/CU33-utilizar-vestidor-virtual';
+import { ManageReturnsPage } from './modules/sales-billing/use-cases/CU28-gestionar-devoluciones';
 import { ConfirmProvider } from './shared/components/ConfirmModal';
 
 function App() {
@@ -128,6 +131,14 @@ function App() {
                 <Route path="empleados" element={<ManageEmployeesPage />} />
                 <Route path="employees" element={<ManageEmployeesPage />} />
                 <Route path="gestionar-empleados" element={<ManageEmployeesPage />} />
+                {/* Módulo 1 — Configuración SaaS (CU07, CU08, CU09) con rutas independientes */}
+                <Route path="settings" element={<Navigate to="/admin/empresa" replace />} />
+                <Route path="empresa" element={<ManageCompanyPage />} />
+                <Route path="gestionar-empresa" element={<ManageCompanyPage />} />
+                <Route path="apariencia" element={<ManageAppearancePage />} />
+                <Route path="personalizar-apariencia" element={<ManageAppearancePage />} />
+                <Route path="backups" element={<ManageBackupsPage />} />
+                <Route path="gestionar-backups" element={<ManageBackupsPage />} />
                 {/* Módulo 2 — Catálogo Comercial (CU12) */}
                 <Route path="catalog" element={<ManageCatalogPage />} />
                 <Route path="gestionar-productos" element={<ManageCatalogPage />} />
@@ -153,9 +164,13 @@ function App() {
                 {/* Módulo 4 — Gestión de Reservas en Sucursal (CU19) */}
                 <Route path="reservas" element={<ManageBranchReservationsPage />} />
                 <Route path="gestionar-reservas" element={<ManageBranchReservationsPage />} />
-                {/* Módulo 7 — Reportes y Dashboard (CU27) */}
-                <Route path="reports" element={<ReportsDashboardPage />} />
-                <Route path="reportes" element={<ReportsDashboardPage />} />
+                {/* Módulo 6 — Inteligencia de Negocios y Reportes (CU29 al CU32) */}
+                <Route path="dashboard" element={<ReportsDashboardPage defaultTab="dashboard" />} />
+                <Route path="reports" element={<ReportsDashboardPage defaultTab="dashboard" />} />
+                <Route path="reportes" element={<ReportsDashboardPage defaultTab="reports" />} />
+                <Route path="reportes-predefinidos" element={<ReportsDashboardPage defaultTab="reports" />} />
+                <Route path="reportes-qbe" element={<ReportsDashboardPage defaultTab="qbe" />} />
+                <Route path="reportes-voz" element={<ReportsDashboardPage defaultTab="voz" />} />
                 {/* Módulo 5 — Ventas y Devoluciones (CU26) */}
                 <Route path="devoluciones" element={<ManageReturnsPage />} />
                 <Route path="gestionar-devoluciones" element={<ManageReturnsPage />} />

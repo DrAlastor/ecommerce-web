@@ -280,7 +280,7 @@ export const SaasLandingPage: React.FC = () => {
               <a href="#ventajas" className="saas-menu-link">Ventajas</a>
               <a href="#vestidor-virtual" className="saas-menu-link">Probador 3D</a>
               <a href="#planes" className="saas-menu-link">Planes y Precios</a>
-              <a href="#tienda-demo" className="saas-menu-link">Tiendas Demo</a>
+              <a href="#tiendas-activas" className="saas-menu-link">Tiendas Activas</a>
             </div>
 
             <div className="saas-nav-actions">
@@ -288,7 +288,7 @@ export const SaasLandingPage: React.FC = () => {
                 onClick={() => navigate('/store/dressly')}
                 className="saas-btn-text"
               >
-                Ver Tienda Demo
+                Ver Tienda Dressly
               </button>
               <button 
                 onClick={() => {
@@ -335,7 +335,7 @@ export const SaasLandingPage: React.FC = () => {
               className="saas-btn-hero-secondary"
             >
               <ShoppingBag className="w-4 h-4 text-amber-700" />
-              Ver Demostración en Vivo (Dressly)
+              Ver Tienda Dressly
             </button>
           </div>
 
@@ -624,67 +624,81 @@ export const SaasLandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. TIENDAS DEMO ACTIVAS */}
-      <section id="tienda-demo" className="saas-section saas-section-alt">
+      {/* 6. TIENDAS DE CLIENTES ACTIVAS */}
+      <section id="tiendas-activas" className="saas-section saas-section-alt">
         <div className="saas-container">
           <div className="saas-section-header">
-            <span className="saas-section-eyebrow">Demostración en Tiempo Real</span>
-            <h2 className="saas-section-title">Comprueba cómo verán tus clientes su tienda</h2>
+            <span className="saas-section-eyebrow">Casos de Éxito &amp; Inquilinos Activos</span>
+            <h2 className="saas-section-title">Marcas y Clientes que impulsan su negocio con Fashion Store</h2>
             <p className="saas-section-desc">
-              Cada marca que contrata nuestro sistema obtiene su propia tienda exclusiva, catálogo personalizado y vitrina interactiva.
+              Cada marca que contrata nuestro sistema obtiene su propia tienda exclusiva, catálogo personalizado, sucursales independientes y vitrina interactiva con su propia identidad de marca.
             </p>
           </div>
 
           <div className="saas-grid-3">
-            <div className="saas-card-feature" style={{ borderColor: '#C4956A' }}>
-              <div className="saas-feature-icon-box">
+            {/* Tenant 1: Dressly */}
+            <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
+              <div className="saas-feature-icon-box" style={{ background: '#F8EFE6', color: '#9C6B40' }}>
                 <ShoppingBag className="w-6 h-6" />
+              </div>
+              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
+                ROPA FEMENINA &amp; MASCULINA
               </div>
               <h3 className="saas-feature-title">Dressly Fashion Store</h3>
               <p className="saas-feature-text">
-                Boutique de ropa femenina y masculina con vestidor virtual 3D, múltiples sucursales y stock en vivo.
+                Tienda de moda femenina y masculina con vestidor virtual 3D, colecciones completas para hombre y mujer, múltiples sucursales y stock en vivo.
               </p>
               <button 
                 onClick={() => navigate('/store/dressly')}
                 className="saas-btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center' }}
+                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#9C6B40', borderColor: '#9C6B40' }}
               >
-                Abrir Tienda Dressly
+                Visitar Tienda Dressly
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="saas-card-feature">
-              <div className="saas-feature-icon-box">
-                <Layers className="w-6 h-6" />
+            {/* Tenant 2: Aura Athletics */}
+            <div className="saas-card-feature" style={{ borderColor: '#00F2FE', background: '#F8FCFF' }}>
+              <div className="saas-feature-icon-box" style={{ background: '#E0F7FA', color: '#00838F' }}>
+                <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="saas-feature-title">UrbanStyle Casual</h3>
+              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#E0F2FE', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#0369A1', marginBottom: '0.5rem' }}>
+                DEPORTIVO HOMBRE &amp; MUJER
+              </div>
+              <h3 className="saas-feature-title">Aura Athletics &amp; Sportswear</h3>
               <p className="saas-feature-text">
-                Moda urbana contemporánea, calzado y accesorios con soporte de punto de venta rápido.
+                Indumentaria técnica para hombre y mujer: compresión Dry-Fit, calzado de running, tops, shorts y accesorios de alto rendimiento.
               </p>
               <button 
-                onClick={() => navigate('/catalog')}
-                className="saas-btn-text"
-                style={{ marginTop: '1.5rem', width: '100%', textAlign: 'center', border: '1px solid #ddd' }}
+                onClick={() => navigate('/store/aura-sport')}
+                className="saas-btn-primary"
+                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#0284C7', borderColor: '#0284C7' }}
               >
-                Ver Catálogo Demo
+                Visitar Tienda Aura
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="saas-card-feature">
-              <div className="saas-feature-icon-box">
-                <Sparkles className="w-6 h-6" />
+            {/* Tenant 3: Urbanly Fashion Store */}
+            <div className="saas-card-feature" style={{ borderColor: '#F59E0B', background: '#FFFCF5' }}>
+              <div className="saas-feature-icon-box" style={{ background: '#FEF3C7', color: '#D97706' }}>
+                <Layers className="w-6 h-6" />
               </div>
-              <h3 className="saas-feature-title">NovaFit Activewear</h3>
+              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#FEF3C7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#B45309', marginBottom: '0.5rem' }}>
+                OVERSIZE HOMBRE &amp; MUJER
+              </div>
+              <h3 className="saas-feature-title">Urbanly Fashion Store</h3>
               <p className="saas-feature-text">
-                Prendas deportivas y técnicas con reserva en sucursal y gestión de inventario por almacén.
+                Moda urbana y streetwear contemporáneo para hombre y mujer: hoodies boxy-fit de 500 GSM, pantalones cargo tácticos, poleras oversize en tonos neutros y accesorios.
               </p>
               <button 
-                onClick={() => navigate('/catalog')}
-                className="saas-btn-text"
-                style={{ marginTop: '1.5rem', width: '100%', textAlign: 'center', border: '1px solid #ddd' }}
+                onClick={() => navigate('/store/urbanly')}
+                className="saas-btn-primary"
+                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#D97706', borderColor: '#D97706' }}
               >
-                Ver Catálogo Demo
+                Visitar Tienda Urbanly
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

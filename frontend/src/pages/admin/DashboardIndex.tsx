@@ -22,12 +22,12 @@ import {
   Store,
   UserCheck,
 } from 'lucide-react';
-import { reportsService } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/services/reports.service';
-import type { DashboardMetrics } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/types/reports.types';
-import { AdminDashboardView } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/components/AdminDashboardView';
-import { ManagerDashboardView } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/components/ManagerDashboardView';
-import { CashierDashboardView } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/components/CashierDashboardView';
-import { CustomerDashboardView } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/components/CustomerDashboardView';
+import { reportsService } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/services/reports.service';
+import type { DashboardMetrics } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/types/reports.types';
+import { AdminDashboardView } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/components/AdminDashboardView';
+import { ManagerDashboardView } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/components/ManagerDashboardView';
+import { CashierDashboardView } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/components/CashierDashboardView';
+import { CustomerDashboardView } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/components/CustomerDashboardView';
 import './DashboardIndex.css';
 
 export default function DashboardIndex() {

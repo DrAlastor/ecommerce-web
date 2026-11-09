@@ -13,7 +13,6 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
-  Sparkles,
   RotateCcw,
   X,
 } from 'lucide-react';
@@ -27,16 +26,14 @@ const normalize = (value: string) =>
 // Módulo 3: 16, 18, 19
 // Módulo 4: 22
 // Módulo 5: 27, 28
-// Módulo 6: 29
-// Módulo 7: 30, 31, 32, 33
+// Módulo 7: 30 (Dashboard), 31 (Predefinidos), 32 (QBE), 33 (Voz) o en catálogos de 32: 29-32
 const webPanelUseCaseIds = new Set([
   4, 5, 6, 7, 8, 9, 10,
   11, 13, 14, 15,
   16, 18, 19,
   22,
   27, 28,
-  29,
-  30, 31, 32, 33
+  29, 30, 31, 32, 33
 ]);
 
 const getModuleIcon = (modulo: string) => {
@@ -47,12 +44,36 @@ const getModuleIcon = (modulo: string) => {
   if (norm.includes('reserva')) return <Calendar size={20} />;
   if (norm.includes('devolucion') || norm.includes('retorno')) return <RotateCcw size={20} />;
   if (norm.includes('venta') || norm.includes('pago') || norm.includes('factura')) return <ShoppingCart size={20} />;
-  if (norm.includes('movil') || norm.includes('interactiva') || norm.includes('vestidor') || norm.includes('ia')) return <Sparkles size={20} />;
   if (norm.includes('reporte') || norm.includes('dashboard') || norm.includes('inteligencia') || norm.includes('negocio')) return <FileText size={20} />;
   return <LayoutDashboard size={20} />;
 };
 
 const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
+  const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+
+  if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
+  if (norm.includes('usuario')) return '/admin/users';
+  if (norm.includes('rol') || norm.includes('permiso')) return '/admin/roles';
+  if (norm.includes('empleado')) return '/admin/empleados';
+  if (norm.includes('apariencia')) return '/admin/apariencia';
+  if (norm.includes('backup') || norm.includes('restore')) return '/admin/backups';
+  if (norm.includes('empresa')) return '/admin/empresa';
+  if (norm.includes('bitacora')) return '/admin/bitacora';
+  if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
+  if (norm.includes('proveedor')) return '/admin/proveedores';
+  if (norm.includes('recomendacion') || norm.includes('ia')) return '/recommendations';
+  if (norm.includes('reserva')) return '/admin/reservas';
+  if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
+  if (norm.includes('movimiento')) return '/admin/movimientos';
+  if (norm.includes('inventario')) return '/admin/inventario';
+  if (norm.includes('pos') || norm.includes('venta presencial') || norm.includes('caja')) return '/pos';
+  if (norm.includes('voz')) return '/admin/reportes-voz';
+  if (norm.includes('qbe')) return '/admin/reportes-qbe';
+  if (norm.includes('predefinido')) return '/admin/reportes-predefinidos';
+  if (norm.includes('dashboard')) return '/admin/dashboard';
+  if (norm.includes('reporte')) return '/admin/reportes-predefinidos';
+
+  // Respaldo por ID exacto
   if (idFuncion === 27) return '/pos';
   if (idFuncion === 28) return '/admin/devoluciones';
   if (idFuncion === 22) return '/admin/reservas';
@@ -63,36 +84,17 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (idFuncion === 13) return '/admin/catalog?tab=products';
   if (idFuncion === 11) return '/catalog';
   if (idFuncion === 10) return '/admin/bitacora';
-  if (idFuncion === 7 || idFuncion === 8 || idFuncion === 9) return '/admin/settings';
+  if (idFuncion === 9) return '/admin/backups';
+  if (idFuncion === 8) return '/admin/apariencia';
+  if (idFuncion === 7) return '/admin/empresa';
   if (idFuncion === 6) return '/admin/empleados';
   if (idFuncion === 5) return '/admin/roles';
   if (idFuncion === 4) return '/admin/users';
-  if (idFuncion === 29) return '/virtual-fitting/1';
-  if (idFuncion === 30) return '/admin';
-  if (idFuncion === 31) return '/admin/reports';
-  if (idFuncion === 32) return '/admin/reports?tab=qbe';
-  if (idFuncion === 33) return '/admin/reports?tab=qbe';
-
-  const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
-  if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
-  if (norm.includes('usuario')) return '/admin/users';
-  if (norm.includes('rol')) return '/admin/roles';
-  if (norm.includes('empleado')) return '/admin/empleados';
-  if (norm.includes('empresa') || norm.includes('apariencia') || norm.includes('backup')) return '/admin/settings';
-  if (norm.includes('bitacora')) return '/admin/bitacora';
-  if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
-  if (norm.includes('proveedor')) return '/admin/proveedores';
-  if (norm.includes('recomendacion') || norm.includes('ia')) return '/recommendations';
-  if (norm.includes('reserva')) return '/admin/reservas';
-  if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
-  if (norm.includes('movimiento')) return '/admin/movimientos';
-  if (norm.includes('inventario')) return '/admin/inventario';
-  if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
-  if (norm.includes('vestidor') || norm.includes('movil')) return '/virtual-fitting/1';
-  if (norm.includes('qbe') || norm.includes('dinamico') || norm.includes('ejemplo')) return '/admin/reports?tab=qbe';
-  if (norm.includes('predefinido') || norm.includes('avanzado') || norm.includes('centro')) return '/admin/reports';
-  if (norm.includes('dashboard')) return '/admin';
-  if (norm.includes('reporte') || norm.includes('inteligencia') || norm.includes('negocio') || norm.includes('voz')) return '/admin/reports';
+  if (idFuncion === 33) return '/admin/reportes-voz';
+  if (idFuncion === 32) return '/admin/reportes-qbe';
+  if (idFuncion === 31) return '/admin/reportes-predefinidos';
+  if (idFuncion === 30) return '/admin/dashboard';
+  if (idFuncion === 29) return '/admin/dashboard';
   return '/admin';
 };
 
@@ -126,12 +128,39 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
 
     allowedFunciones.forEach((funcion) => {
       if (!funcion.modulo || !funcion.nombre) return;
+      const normMod = normalize(funcion.modulo);
+      // Filtrar y excluir expresamente el módulo de Experiencia Móvil de la versión web
+      if (
+        normMod.includes('movil') ||
+        normMod.includes('mobile') ||
+        normMod.includes('experiencia') ||
+        normMod.includes('interactiva')
+      ) {
+        return;
+      }
+
       if (!map.has(funcion.modulo)) map.set(funcion.modulo, []);
       const list = map.get(funcion.modulo)!;
       if (!list.some((item) => normalize(item.nombre) === normalize(funcion.nombre))) {
         list.push(funcion);
       }
     });
+
+    // Garantizar que en el módulo de reportes siempre figure "Gestionar Reportes por Voz"
+    for (const [modulo, list] of map.entries()) {
+      const normMod = normalize(modulo);
+      if (normMod.includes('reporte') || normMod.includes('inteligencia') || normMod.includes('negocio')) {
+        const hasVoz = list.some((item) => normalize(item.nombre).includes('voz'));
+        if (!hasVoz) {
+          list.push({
+            id_funcion: 33,
+            nombre: 'Gestionar Reportes por Voz',
+            modulo: modulo,
+            nivel_acceso: 'Edición',
+          });
+        }
+      }
+    }
 
     for (const list of map.values()) {
       list.sort((a, b) => a.id_funcion - b.id_funcion);
@@ -196,6 +225,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
                     <NavLink
                       key={funcion.id_funcion}
                       to={getUseCaseRoute(funcion.nombre, funcion.id_funcion)}
+                      end
                       onClick={handleNavClick}
                       className={({ isActive }) => `admin-nav-subitem ${isActive ? 'active' : ''}`}
                     >
@@ -213,7 +243,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
         <span className="admin-sidebar-label">SISTEMA</span>
         <nav>
           <NavLink
-            to="/admin/settings"
+            to="/admin/empresa"
+            end
             onClick={handleNavClick}
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
@@ -229,4 +260,3 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     </aside>
   );
 };
-

@@ -11,8 +11,8 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module.js';
 import { AuthModule } from '../users-security/auth/auth.module.js';
 import { UsersSecurityModule } from '../users-security/users-security.module.js';
-import { ReservationsController } from './use-cases/CU17-realizar-reserva-prendas/reservations.controller.js';
-import { ReservationsService } from './use-cases/CU17-realizar-reserva-prendas/reservations.service.js';
+import { ReservationsController } from './use-cases/CU20-realizar-reserva-prendas/reservations.controller.js';
+import { ReservationsService } from './use-cases/CU20-realizar-reserva-prendas/reservations.service.js';
 
 /**
  * Módulo para la orquestación integral de reservas omnicanal entre e-commerce y tiendas físicas.

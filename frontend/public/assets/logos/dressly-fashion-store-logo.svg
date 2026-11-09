@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="100%" height="100%" fill="none">
+  <!-- Minimalist Monogram: Elegant D Emblem -->
+  <g transform="translate(15, 20)">
+    <circle cx="40" cy="40" r="38" stroke="#A08266" stroke-width="1.8" fill="none" />
+    <circle cx="40" cy="40" r="34" stroke="#D6C6A5" stroke-width="1" stroke-dasharray="2 3" fill="none" />
+    <text x="27" y="52" font-family="'Playfair Display', Georgia, serif" font-weight="700" font-size="34" fill="#1A1A1A">
+      D
+    </text>
+  </g>
+
+  <!-- Typography: Pure Luxury Editorial Minimalist -->
+  <text x="115" y="58" font-family="'Playfair Display', Georgia, serif" font-weight="700" font-size="36" fill="#1A1A1A" letter-spacing="6">
+    DRESSLY
+  </text>
+  
+  <text x="117" y="86" font-family="'Inter', -apple-system, sans-serif" font-weight="600" font-size="11.5" fill="#A08266" letter-spacing="7">
+    FASHION STORE
+  </text>
+</svg>
+

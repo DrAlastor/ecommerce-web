@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { appearanceService } from '../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
+import type { AppearanceData } from '../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { CartDrawer } from '../components/shop/CartDrawer';
 import { WishlistDrawer } from '../components/shop/WishlistDrawer';
@@ -7,6 +9,63 @@ import { useShop } from '../context/ShopContext';
 import { CATEGORIES, FEATURED_COLLECTIONS, PRODUCTS } from '../data/mockProducts';
 import type { Product } from '../types/shop.types';
 import './HomePage.css';
+
+
+interface TenantTheme {
+  name: string;
+  badge: string;
+  headline: string;
+  subheadline: string;
+  description: string;
+  heroImage: string;
+  accentColor: string;
+  trust1: { icon: string; title: string; desc: string };
+  trust2: { icon: string; title: string; desc: string };
+  trust3: { icon: string; title: string; desc: string };
+  lookbookTitle: string;
+}
+
+const TENANTS_THEME: Record<string, TenantTheme> = {
+  'aura-sport': {
+    name: 'Aura Athletics & Sportswear',
+    badge: 'HIGH PERFORMANCE 2026',
+    headline: 'Supera Tus Límites',
+    subheadline: 'Alto Rendimiento',
+    description: 'Descubre prendas de compresión Seamless, calzado técnico de running y accesorios diseñados para optimizar cada entrenamiento.',
+    heroImage: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
+    accentColor: '#00F2FE',
+    trust1: { icon: '⚡', title: 'Envío Atleta', desc: 'En compras más de 300 Bs' },
+    trust2: { icon: '🛡️', title: 'Garantía Pro', desc: '30 días de prueba activa' },
+    trust3: { icon: '💳', title: 'Pago Seguro', desc: 'QR, Tarjeta & Bancos' },
+    lookbookTitle: 'Aura Speed Series Lookbook',
+  },
+  'urbanly': {
+    name: 'Urbanly Fashion Store',
+    badge: 'OVERSIZED & STREETWEAR 2026',
+    headline: 'Estilo Urbano',
+    subheadline: 'Corte Oversize',
+    description: 'Streetwear contemporáneo para hombre y mujer: hoodies boxy-fit de 500 GSM, pantalones cargo tácticos, siluetas amplias y estética neutral tones.',
+    heroImage: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
+    accentColor: '#F59E0B',
+    trust1: { icon: '📦', title: 'Drop Nacional', desc: 'Despacho rápido express' },
+    trust2: { icon: '⚡', title: '500 GSM Heavy', desc: 'Calidad superior de algodón' },
+    trust3: { icon: '🛡️', title: 'Pago Seguro', desc: 'QR, Tarjeta & Bancos' },
+    lookbookTitle: 'Urbanly Streetwear Lookbook',
+  },
+  'dressly': {
+    name: 'Dressly Fashion Store',
+    badge: 'NUEVA COLECCIÓN 2026',
+    headline: 'Eleva Tu',
+    subheadline: 'Estilo Cotidiano',
+    description: 'Descubre prendas atemporales diseñadas para el máximo confort y la más pura elegancia. Confeccionadas pensando en ti.',
+    heroImage: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
+    accentColor: '#C4956A',
+    trust1: { icon: '🚚', title: 'Envío Gratis', desc: 'En compras más de 350 Bs' },
+    trust2: { icon: '🔄', title: 'Devolución Fácil', desc: '30 días sin costo' },
+    trust3: { icon: '🛡️', title: 'Pago 100% Seguro', desc: 'QR, Tarjeta & Bancos' },
+    lookbookTitle: 'Dressly Elegance Lookbook',
+  },
+};
 
 export const HomePage: React.FC = () => {
   const {
@@ -24,6 +83,35 @@ export const HomePage: React.FC = () => {
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [showLookbookModal, setShowLookbookModal] = useState(false);
   const navigate = useNavigate();
+  const { tenant } = useParams<{ tenant?: string }>();
+  const resolvedTenant = tenant === 'subversive-urban' ? 'urbanly' : tenant;
+  const activeTenantKey = (resolvedTenant && TENANTS_THEME[resolvedTenant]) ? resolvedTenant : 'dressly';
+  const currentTheme = TENANTS_THEME[activeTenantKey];
+
+  const [appearance, setAppearance] = useState<AppearanceData | null>(null);
+
+  useEffect(() => {
+    appearanceService.getPublicAppearance(activeTenantKey).then((data) => {
+      if (data) {
+        setAppearance(data);
+        if (data.primary_color) {
+          document.documentElement.style.setProperty('--color-primary', data.primary_color);
+        }
+        if (data.secondary_color) {
+          document.documentElement.style.setProperty('--color-secondary', data.secondary_color);
+        }
+        if (data.accent_color) {
+          document.documentElement.style.setProperty('--color-accent', data.accent_color);
+        }
+        if (data.font_family) {
+          document.documentElement.style.setProperty('--font-display', data.font_family);
+        }
+        if (data.storefront_bg_color) {
+          document.documentElement.style.setProperty('--storefront-hero-bg', data.storefront_bg_color);
+        }
+      }
+    }).catch((err) => console.warn('Usando tema predeterminado para vitrina:', err));
+  }, [activeTenantKey]);
 
   // Filtrar productos para la portada (solo novedades o aleatorios, máximo 10)
   const homeProducts = PRODUCTS.slice(0, 10);
@@ -65,25 +153,41 @@ export const HomePage: React.FC = () => {
       <WishlistDrawer />
 
       {/* HERO SECTION */}
-      <section id="hero-section" className="hero-section">
+      <section
+        id="hero-section"
+        className="hero-section"
+        style={{ backgroundColor: appearance?.storefront_bg_color || undefined }}
+      >
         <div className="hero-grid">
           {/* Left Hero Content */}
           <div className="hero-content">
-            <span className="hero-subtitle-tag">NUEVA COLECCIÓN 2026</span>
-            <h1 className="hero-headline">
-              Eleva Tu <br />
-              Estilo Cotidiano
+            <span
+              className="hero-subtitle-tag"
+              style={{ color: appearance?.secondary_color || undefined }}
+            >
+              {appearance?.badge || currentTheme.badge}
+            </span>
+            <h1
+              className="hero-headline"
+              style={{
+                fontFamily: appearance?.font_family || undefined,
+                color: appearance?.primary_color || undefined,
+              }}
+            >
+              {appearance?.hero_headline || currentTheme.headline} <br />
+              {appearance?.hero_subheadline || currentTheme.subheadline}
             </h1>
             <p className="hero-description">
-              Descubre prendas atemporales diseñadas para el máximo confort y la más pura elegancia. Confeccionadas pensando en ti.
+              {appearance?.hero_description || currentTheme.description}
             </p>
 
             <div className="hero-actions">
               <button
                 className="hero-cta-btn"
+                style={{ backgroundColor: appearance?.primary_color || undefined }}
                 onClick={() => navigate('/catalog')}
               >
-                <span>Comprar Ahora</span>
+                <span>{appearance?.cta_primary_text || 'Comprar Ahora'}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                   <polyline points="12 5 19 12 12 19"></polyline>
@@ -99,31 +203,31 @@ export const HomePage: React.FC = () => {
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
                 </div>
-                <span>Ver Lookbook</span>
+                <span>{appearance?.cta_secondary_text || 'Ver Lookbook'}</span>
               </button>
             </div>
 
             {/* Hero Trust Micro-Badges */}
             <div className="hero-trust-row">
               <div className="trust-item">
-                <span className="trust-icon">🚚</span>
+                <span className="trust-icon">{currentTheme.trust1.icon}</span>
                 <div>
-                  <strong>Envío Gratis</strong>
-                  <p>En compras más de 350 Bs</p>
+                  <strong>{appearance?.trust1_title || currentTheme.trust1.title}</strong>
+                  <p>{appearance?.trust1_desc || currentTheme.trust1.desc}</p>
                 </div>
               </div>
               <div className="trust-item">
-                <span className="trust-icon">🔄</span>
+                <span className="trust-icon">{currentTheme.trust2.icon}</span>
                 <div>
-                  <strong>Devolución Fácil</strong>
-                  <p>30 días sin costo</p>
+                  <strong>{appearance?.trust2_title || currentTheme.trust2.title}</strong>
+                  <p>{appearance?.trust2_desc || currentTheme.trust2.desc}</p>
                 </div>
               </div>
               <div className="trust-item">
-                <span className="trust-icon">🛡️</span>
+                <span className="trust-icon">{currentTheme.trust3.icon}</span>
                 <div>
-                  <strong>Pago 100% Seguro</strong>
-                  <p>QR, Tarjeta & Bancos</p>
+                  <strong>{appearance?.trust3_title || currentTheme.trust3.title}</strong>
+                  <p>{appearance?.trust3_desc || currentTheme.trust3.desc}</p>
                 </div>
               </div>
             </div>
@@ -133,8 +237,8 @@ export const HomePage: React.FC = () => {
           <div className="hero-image-wrapper">
             <div className="hero-image-container">
               <img
-                src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg"
-                alt="Dressly Colección Exclusiva de Lino Femenino"
+                src={appearance?.hero_banner_url || currentTheme.heroImage}
+                alt={currentTheme.name}
                 className="hero-main-img"
               />
               <div className="hero-slide-indicators">

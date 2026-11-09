@@ -15,9 +15,7 @@ describe('AppController', () => {
         {
           provide: PrismaService,
           useValue: {
-            ciudad: {
-              count: vi.fn().mockResolvedValue(4),
-            },
+            ciudad: { count: vi.fn().mockResolvedValue(5) },
           },
         },
       ],
@@ -27,7 +25,7 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return welcome message', () => {
+    it('should return API status message', () => {
       expect(appController.getHello()).toBe('Dressly Store Backend API - Online & Healthy');
     });
   });

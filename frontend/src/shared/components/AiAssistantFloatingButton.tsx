@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
-import { ReportsAiChatDrawer } from '../../modules/reports-dashboard/use-cases/CU27-consultar-dashboard-reportes/components/ReportsAiChatDrawer';
+import { ReportsAiChatDrawer } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/components/ReportsAiChatDrawer';
 
 export const AiAssistantFloatingButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
