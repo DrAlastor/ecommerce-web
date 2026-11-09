@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   X,
   Send,
@@ -8,8 +7,6 @@ import {
   Sparkles,
   Bot,
   User,
-  ArrowRight,
-  Database,
 } from 'lucide-react';
 import { reportsService } from '../services/reports.service';
 import type { AiChatMessage, QbeQueryPayload } from '../types/reports.types';
@@ -23,9 +20,7 @@ interface ReportsAiChatDrawerProps {
 export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
   isOpen,
   onClose,
-  onApplyQueryPayload,
 }) => {
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<AiChatMessage[]>([
     {
       id: 'welcome',
@@ -65,16 +60,6 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
     };
   }, []);
 
-  const handleExecuteActionInQbe = (payload: QbeQueryPayload) => {
-    sessionStorage.setItem('dressly_pending_qbe', JSON.stringify(payload));
-    window.dispatchEvent(new CustomEvent('dressly:execute-qbe', { detail: payload }));
-    if (onApplyQueryPayload) {
-      onApplyQueryPayload(payload);
-    }
-    navigate('/admin/reports?tab=qbe');
-    onClose();
-  };
-
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend ?? inputText).trim();
     if (!text || isSending) return;
@@ -108,8 +93,6 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
         content: res.reply,
         timestamp: new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
         keyMetrics: res.keyMetrics,
-        queryResult: res.queryResult,
-        suggestedAction: res.suggestedAction,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -242,13 +225,15 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
       <div
         style={{
           width: '100%',
-          maxWidth: '460px',
+          maxWidth: '470px',
           height: '100%',
           backgroundColor: '#FFFFFF',
           boxShadow: '-4px 0 24px rgba(0,0,0,0.18)',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
+          overflowX: 'hidden',
+          boxSizing: 'border-box',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -261,9 +246,13 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexShrink: 0,
+            boxSizing: 'border-box',
+            width: '100%',
+            overflowX: 'hidden',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
             <div
               style={{
                 width: '36px',
@@ -274,12 +263,13 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#FFFFFF',
+                flexShrink: 0,
               }}
             >
               <Sparkles size={18} color="#C4956A" />
             </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                 <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: '#1C1510' }}>
                   Asistente Analítico IA
                 </h3>
@@ -291,13 +281,14 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                     fontWeight: 700,
                     padding: '0.15rem 0.45rem',
                     borderRadius: '5px',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  Gemini 3.5 Flash
+                  Gemini 3.5 Flash Lite
                 </span>
               </div>
-              <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.78rem', color: '#736B63' }}>
-                Consultas analíticas por voz o chat (CU33)
+              <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.78rem', color: '#736B63', overflowWrap: 'anywhere' }}>
+                Reportes explicados por voz o chat (CU33)
               </p>
             </div>
           </div>
@@ -312,6 +303,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
               cursor: 'pointer',
               padding: '0.35rem',
               borderRadius: '6px',
+              flexShrink: 0,
             }}
             aria-label="Cerrar chat"
           >
@@ -331,13 +323,15 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxSizing: 'border-box',
+              width: '100%',
             }}
           >
-            <span>{voiceNotice}</span>
+            <span style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{voiceNotice}</span>
             <button
               type="button"
               onClick={() => setVoiceNotice(null)}
-              style={{ background: 'none', border: 'none', color: '#92400E', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', color: '#92400E', cursor: 'pointer', flexShrink: 0 }}
             >
               <X size={13} />
             </button>
@@ -349,11 +343,15 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
           style={{
             flex: 1,
             overflowY: 'auto',
+            overflowX: 'hidden',
             padding: '1.25rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
             backgroundColor: '#FCFBFA',
+            boxSizing: 'border-box',
+            width: '100%',
+            minWidth: 0,
           }}
         >
           {messages.map((msg) => (
@@ -363,6 +361,9 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                width: '100%',
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -370,8 +371,10 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: '0.5rem',
-                  maxWidth: '88%',
+                  maxWidth: '92%',
+                  minWidth: 0,
                   flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                  boxSizing: 'border-box',
                 }}
               >
                 <div
@@ -395,152 +398,93 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                   style={{
                     backgroundColor: msg.role === 'user' ? '#1C1510' : '#FFFFFF',
                     color: msg.role === 'user' ? '#FFFFFF' : '#1C1510',
-                    padding: '0.75rem 0.95rem',
+                    padding: '0.85rem 1rem',
                     borderRadius:
                       msg.role === 'user'
                         ? '12px 12px 2px 12px'
                         : '12px 12px 12px 2px',
                     border: msg.role === 'user' ? 'none' : '1px solid #EAE6DF',
                     fontSize: '0.86rem',
-                    lineHeight: '1.45',
+                    lineHeight: '1.55',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    overflowWrap: 'anywhere',
+                    wordBreak: 'break-word',
+                    overflowX: 'hidden',
                   }}
                 >
-                  <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</p>
+                  <p
+                    style={{
+                      margin: 0,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      minWidth: 0,
+                      maxWidth: '100%',
+                    }}
+                  >
+                    {msg.content}
+                  </p>
 
-                  {/* Tarjetas de Métricas sugeridas */}
+                  {/* Tarjetas de Métricas consolidadas del reporte */}
                   {msg.keyMetrics && msg.keyMetrics.length > 0 && (
                     <div
                       style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(2, 1fr)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
                         gap: '0.45rem',
-                        marginTop: '0.65rem',
-                        paddingTop: '0.65rem',
-                        borderTop: '1px solid #F0ECE4',
+                        marginTop: '0.75rem',
+                        paddingTop: '0.75rem',
+                        borderTop: msg.role === 'user' ? '1px solid rgba(255,255,255,0.15)' : '1px solid #F0ECE4',
+                        minWidth: 0,
+                        maxWidth: '100%',
+                        boxSizing: 'border-box',
                       }}
                     >
                       {msg.keyMetrics.map((kpi, kIdx) => (
                         <div
                           key={kIdx}
                           style={{
-                            backgroundColor: '#FAF8F5',
-                            padding: '0.4rem 0.55rem',
+                            flex: '1 1 calc(50% - 0.45rem)',
+                            minWidth: '120px',
+                            maxWidth: '100%',
+                            backgroundColor: msg.role === 'user' ? '#2A2018' : '#FAF8F5',
+                            padding: '0.45rem 0.6rem',
                             borderRadius: '6px',
-                            border: '1px solid #EAE6DF',
+                            border: msg.role === 'user' ? '1px solid #3E3125' : '1px solid #EAE6DF',
+                            boxSizing: 'border-box',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
                           }}
                         >
-                          <div style={{ fontSize: '0.7rem', color: '#736B63', fontWeight: 600 }}>
+                          <div
+                            style={{
+                              fontSize: '0.68rem',
+                              color: msg.role === 'user' ? '#C4956A' : '#736B63',
+                              fontWeight: 600,
+                              overflowWrap: 'anywhere',
+                              wordBreak: 'break-word',
+                            }}
+                          >
                             {kpi.label}
                           </div>
-                          <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1C1510' }}>
+                          <div
+                            style={{
+                              fontSize: '0.88rem',
+                              fontWeight: 700,
+                              color: msg.role === 'user' ? '#FFFFFF' : '#1C1510',
+                              marginTop: '0.15rem',
+                              overflowWrap: 'anywhere',
+                              wordBreak: 'break-word',
+                            }}
+                          >
                             {kpi.value}
                           </div>
                         </div>
                       ))}
                     </div>
-                  )}
-
-                  {/* Previsualización de Datos Reales en Vivo de la Base de Datos */}
-                  {msg.queryResult && (
-                    <div
-                      style={{
-                        marginTop: '0.65rem',
-                        backgroundColor: '#FAF8F5',
-                        borderRadius: '8px',
-                        border: '1px solid #EAE6DF',
-                        padding: '0.5rem 0.65rem',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '0.35rem',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <Database size={13} color="#8C5E35" />
-                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#8C5E35' }}>
-                            {msg.queryResult.entityName || msg.queryResult.entity}
-                          </span>
-                        </div>
-                        <span style={{ fontSize: '0.68rem', color: '#736B63' }}>
-                          {msg.queryResult.totalCount} registros encontrados
-                        </span>
-                      </div>
-
-                      <div style={{ overflowX: 'auto', maxHeight: '135px', fontSize: '0.72rem' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                          <thead>
-                            <tr style={{ borderBottom: '1px solid #D1C9BE' }}>
-                              {msg.queryResult.columns.map((col) => (
-                                <th
-                                  key={col.key}
-                                  style={{
-                                    padding: '0.2rem 0.4rem',
-                                    color: '#736B63',
-                                    fontWeight: 600,
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {col.label}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {msg.queryResult.rows.map((row, rIdx) => (
-                              <tr key={rIdx} style={{ borderBottom: '1px solid #F0ECE4' }}>
-                                {msg.queryResult!.columns.map((col) => (
-                                  <td
-                                    key={col.key}
-                                    style={{
-                                      padding: '0.25rem 0.4rem',
-                                      color: '#2E2722',
-                                      whiteSpace: 'nowrap',
-                                    }}
-                                  >
-                                    {String(row[col.key] ?? '')}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Botón de Acción para Cargar y Ejecutar en QBE */}
-                  {msg.suggestedAction && msg.suggestedAction.payload && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (msg.suggestedAction?.payload) {
-                          handleExecuteActionInQbe(msg.suggestedAction.payload);
-                        }
-                      }}
-                      style={{
-                        marginTop: '0.65rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        backgroundColor: '#8C5E35',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        padding: '0.4rem 0.85rem',
-                        borderRadius: '6px',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span>{msg.suggestedAction.label || 'Ver consulta completa en QBE'}</span>
-                      <ArrowRight size={12} />
-                    </button>
                   )}
                 </div>
               </div>
@@ -561,7 +505,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#8C5E35' }}>
               <Bot size={16} />
               <span style={{ fontSize: '0.82rem', fontStyle: 'italic' }}>
-                Gemini está analizando los datos del negocio...
+                Gemini está analizando los datos y redactando el informe ejecutivo...
               </span>
             </div>
           )}
@@ -578,6 +522,8 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
             gap: '0.4rem',
             overflowX: 'auto',
             whiteSpace: 'nowrap',
+            boxSizing: 'border-box',
+            maxWidth: '100%',
           }}
         >
           {quickPrompts.map((p, idx) => (
@@ -608,6 +554,9 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
             padding: '0.85rem 1.25rem 1.15rem 1.25rem',
             borderTop: '1px solid #EAE6DF',
             backgroundColor: '#FFFFFF',
+            boxSizing: 'border-box',
+            width: '100%',
+            overflowX: 'hidden',
           }}
         >
           <div
@@ -619,6 +568,9 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
               border: isListening ? '2px solid #DC2626' : '1px solid #D1C9BE',
               borderRadius: '9px',
               padding: '0.35rem 0.5rem 0.35rem 0.85rem',
+              boxSizing: 'border-box',
+              width: '100%',
+              minWidth: 0,
             }}
           >
             <input
@@ -635,6 +587,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
               disabled={isSending}
               style={{
                 flex: 1,
+                minWidth: 0,
                 border: 'none',
                 outline: 'none',
                 backgroundColor: 'transparent',

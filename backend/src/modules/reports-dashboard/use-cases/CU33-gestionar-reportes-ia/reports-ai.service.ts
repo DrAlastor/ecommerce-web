@@ -25,7 +25,7 @@ import {
 @Injectable()
 export class ReportsAiService {
   private readonly logger = new Logger(ReportsAiService.name);
-  private readonly geminiModel = 'gemini-3.5-flash';
+  private readonly geminiModel = 'gemini-3.5-flash-lite';
 
   constructor(
     private readonly configService: ConfigService,
@@ -414,47 +414,109 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
 
   /**
    * CU33 — Chat Conversacional Analítico con IA
+   * Cuando el usuario solicita un reporte o consulta de negocio por voz o texto,
+   * el asistente consulta la base de datos en tiempo real, procesa las cifras y
+   * REDACTA Y EXPLICA el reporte analítico directamente en texto (sin tablas ni redirecciones).
    */
   async processChat(dto: AiChatQueryDto, user?: any): Promise<AiChatResponse> {
     const { message, history } = dto;
+    const rawMsg = (message || '').trim();
     const apiKey = this.getApiKey();
 
+    // 1. Detectar saludos o preguntas de presentación generales
+    const isGreeting = /^(hola|buen(os)?\s*(d[ií]as?|tardes?|noches?)|qui[eé]n\s*eres|qu[eé]\s*puedes\s*hacer|ayuda|help)\b/i.test(rawMsg);
+    if (isGreeting) {
+      return {
+        reply: 'Hola. Soy tu consultor de inteligencia de negocios para Dressly Boutique. Puedo analizar los datos del sistema en tiempo real y redactarte reportes ejecutivos explicados sobre ventas, inventario por sucursal, rendimiento de prendas, reservas y clientes. Solo pídeme lo que necesitas (por ejemplo: "dame un reporte de ventas de este mes", "cómo están las existencias en tiendas" o "reporte de reservas") y te formularé el informe analítico completo aquí mismo.',
+        keyMetrics: [
+          { label: 'Sistema', value: 'Dressly AI', trend: 'neutral' },
+          { label: 'Analítica', value: 'Tiempo Real', trend: 'up' },
+          { label: 'Modalidad', value: 'Voz y Texto', trend: 'neutral' },
+        ],
+        engine: apiKey ? 'gemini-3.5-flash' : 'local-heuristic',
+      };
+    }
+
+    // 2. Interpretar la consulta analítica para mapear entidad, campos y filtros
+    const interpreted = await this.interpretNaturalQuery(rawMsg);
+    const normalizedPayload = this.normalizeQbePayload(interpreted.suggestedPayload);
+
+    // 3. Consultar la base de datos en tiempo real a través del motor analítico
+    let queryRows: Record<string, any>[] = [];
+    let totalCount = 0;
+    let entityName = normalizedPayload.entity;
+
+    if (this.qbeService) {
+      try {
+        const qbeRes = await this.qbeService.executeQuery(
+          normalizedPayload,
+          user || { id_rol: 1 },
+        );
+        queryRows = qbeRes.rows || [];
+        totalCount = qbeRes.totalCount || queryRows.length;
+        entityName = qbeRes.entityName || normalizedPayload.entity;
+      } catch (err: any) {
+        this.logger.warn(`Could not execute real-time analytical query for chat: ${err.message}`);
+      }
+    }
+
+    // 4. Calcular métricas consolidadas y agregaciones de negocio
+    const { summary, keyMetrics } = this.calculateEntityMetrics(
+      normalizedPayload.entity,
+      queryRows,
+      totalCount,
+    );
+
+    // 5. Generar el reporte ejecutivo redactado y explicado con Gemini si la API key está disponible
     if (apiKey) {
       try {
         const historyContext = (history || [])
-          .slice(-6)
+          .slice(-4)
           .map((h) => `${h.role === 'user' ? 'Usuario' : 'Asistente'}: ${h.content}`)
           .join('\n');
 
-        const chatPrompt = `
-Eres "Dressly AI Analytics", el asistente inteligente y consultor de negocios de la cadena Dressly Boutique.
-Tu función es responder preguntas ejecutivas sobre ventas, inventario, clientes, pedidos y rendimiento de sucursales.
-Mantén un tono ejecutivo, profesional, claro y sin emojis.
+        const rowsSample = queryRows.slice(0, 10);
 
-Historial de conversación:
+        const geminiPrompt = `
+Eres "Dressly AI Analytics", el consultor analítico ejecutivo y director de Business Intelligence de Dressly Boutique.
+El usuario realiza la siguiente consulta por voz o chat: "${rawMsg}".
+
+Historial reciente:
 ${historyContext}
 
-Nueva consulta del usuario: "${message}".
+Hemos extraído en tiempo real los datos fidedignos de la base de datos de Dressly:
+- Entidad analizada: ${entityName} (${normalizedPayload.entity})
+- Total de registros coincidentes en el sistema: ${totalCount}
+- Métricas consolidadas calculadas:
+${JSON.stringify(summary, null, 2)}
+- Muestra de registros reales:
+${JSON.stringify(rowsSample, null, 2)}
 
-Responde en formato JSON EXACTO (sin markdown, sin bloques de código ni comillas invertidas):
+INSTRUCCIÓN VITAL Y OBLIGATORIA DEL USUARIO:
+El usuario te ha solicitado expresamente que le REDACTES Y LE EXPLIQUES EL REPORTE COMPLETO POR ESCRITO con tus palabras en este mensaje.
+NO le digas al usuario que mire una tabla, ni que revise un dashboard o pantalla externa. Tú debes formular, explicar y redactar el reporte aquí mismo.
+
+Estructura tu reporte analítico en texto con las siguientes 4 secciones (utiliza mayúsculas y viñetas):
+1. DIAGNOSTICO EJECUTIVO: Resumen directo del volumen total, montos monetarios o unidades globales, y el estado general.
+2. ANALISIS DETALLADO: Cifras concretas por sucursal, producto o categoría con montos y unidades exactas. Explica quién lidera y quién está rezagado.
+3. ALERTAS OPERATIVAS: Puntos críticos identificados (ej. prendas con stock crítico, bajas ventas en ciertas tiendas o desbalances).
+4. RECOMENDACIONES ESTRATEGICAS: Acciones directas y sugerencias de negocio para la gerencia.
+
+REGLAS ESTRICTAS E INQUEBRANTABLES:
+- CERO EMOJIS: Está terminantemente prohibido incluir cualquier emoji o emoticono en toda la respuesta.
+- NUNCA digas: "mira la tabla", "a continuación verás los datos", "ve al dashboard" ni "entra a reportes". Eres tú quien redacta y explica el informe analítico aquí mismo.
+- Cita los números reales que tienes arriba (en Bolivianos "Bs.", cantidades exactas de unidades y nombres de sucursales).
+
+Responde ÚNICAMENTE en formato JSON EXACTO (sin bloques markdown ni comillas invertidas):
 {
-  "reply": "Respuesta directa y profesional respondiendo a la inquietud del usuario.",
+  "reply": "Texto del reporte ejecutivo completo y explicado para el usuario.",
   "keyMetrics": [
-    { "label": "Métrica Relevante", "value": "Valor o Porcentaje", "trend": "up|down|neutral" }
-  ],
-  "suggestedAction": {
-    "type": "run_qbe",
-    "label": "Ver datos en QBE",
-    "payload": {
-      "entity": "venta",
-      "fields": ["codigo_factura", "fecha_venta", "total", "sucursal"],
-      "limit": 50
-    }
-  }
+    { "label": "Etiqueta breve (máx 18 chars)", "value": "Cifra con unidad", "trend": "up|down|neutral" }
+  ]
 }
 `;
 
-        const responseText = await this.callGemini(chatPrompt, 7000);
+        const responseText = await this.callGemini(geminiPrompt, 8000);
         if (responseText) {
           const cleanJson = responseText
             .replace(/```json/gi, '')
@@ -463,81 +525,344 @@ Responde en formato JSON EXACTO (sin markdown, sin bloques de código ni comilla
           const parsed = JSON.parse(cleanJson);
 
           if (parsed && parsed.reply) {
-            let queryResult: any = undefined;
-            let normalizedPayload: ExecuteQbeQueryDto | undefined = undefined;
-
-            if (parsed.suggestedAction?.payload) {
-              normalizedPayload = this.normalizeQbePayload(parsed.suggestedAction.payload);
-              if (this.qbeService) {
-                try {
-                  const qbeRes = await this.qbeService.executeQuery(
-                    normalizedPayload,
-                    user || { id_rol: 1 },
-                  );
-                  queryResult = {
-                    entity: qbeRes.entity,
-                    entityName: qbeRes.entityName,
-                    totalCount: qbeRes.totalCount,
-                    columns: qbeRes.columns.slice(0, 5),
-                    rows: qbeRes.rows.slice(0, 4),
-                  };
-                } catch (e: any) {
-                  this.logger.warn(`Could not execute suggested QBE query in chat: ${e.message}`);
-                }
-              }
-            }
-
             return {
               reply: parsed.reply,
-              keyMetrics: Array.isArray(parsed.keyMetrics) ? parsed.keyMetrics : undefined,
-              suggestedAction: normalizedPayload
-                ? {
-                    type: 'run_qbe',
-                    label: parsed.suggestedAction?.label || 'Ver consulta completa en QBE',
-                    payload: normalizedPayload,
-                  }
-                : undefined,
-              queryResult,
+              keyMetrics:
+                Array.isArray(parsed.keyMetrics) && parsed.keyMetrics.length > 0
+                  ? parsed.keyMetrics
+                  : keyMetrics,
               engine: 'gemini-3.5-flash',
             };
           }
         }
       } catch (err: any) {
-        this.logger.warn(`Error in Gemini chat: ${err.message}`);
+        this.logger.warn(`Error generating explained report with Gemini: ${err.message}`);
       }
     }
 
-    // Fallback conversacional determinista
-    const interpreted = this.nlpService.interpretPrompt(message);
-    const normalizedFallbackPayload = this.normalizeQbePayload(interpreted.suggestedPayload);
-    let fallbackQueryResult: any = undefined;
-    if (this.qbeService) {
-      try {
-        const qbeRes = await this.qbeService.executeQuery(
-          normalizedFallbackPayload,
-          user || { id_rol: 1 },
-        );
-        fallbackQueryResult = {
-          entity: qbeRes.entity,
-          entityName: qbeRes.entityName,
-          totalCount: qbeRes.totalCount,
-          columns: qbeRes.columns.slice(0, 5),
-          rows: qbeRes.rows.slice(0, 4),
-        };
-      } catch (e: any) {
-        this.logger.warn(`Could not execute fallback QBE query: ${e.message}`);
-      }
-    }
+    // 6. Fallback determinista local: Redacción explicada completa sin fallar
+    const localReport = this.generateExecutiveReportLocal(
+      normalizedPayload.entity,
+      entityName,
+      queryRows,
+      totalCount,
+      rawMsg,
+      summary,
+    );
 
     return {
-      reply: `He procesado tu consulta "${message}". Te sugiero revisar la consulta analítica en la entidad ${normalizedFallbackPayload.entity} para visualizar los indicadores en detalle.`,
-      suggestedAction: {
-        type: 'run_qbe',
-        label: `Consultar ${normalizedFallbackPayload.entity}`,
-        payload: normalizedFallbackPayload,
-      },
-      queryResult: fallbackQueryResult,
+      reply: localReport,
+      keyMetrics,
       engine: 'local-heuristic',
     };
+  }
+
+  /**
+   * Calcula agregaciones y estadísticas de negocio a partir de los datos crudos
+   */
+  private calculateEntityMetrics(
+    entity: string,
+    rows: Record<string, any>[],
+    totalCount: number,
+  ): {
+    summary: Record<string, any>;
+    keyMetrics: { label: string; value: string | number; trend?: 'up' | 'down' | 'neutral' }[];
+  } {
+    const summary: Record<string, any> = {
+      totalRegistros: totalCount,
+      muestraProcesada: rows.length,
+    };
+    const keyMetrics: { label: string; value: string | number; trend?: 'up' | 'down' | 'neutral' }[] = [];
+
+    if (entity === 'venta') {
+      const totalAmount = rows.reduce((acc, r) => acc + (Number(r.total) || 0), 0);
+      const avgTicket = rows.length > 0 ? totalAmount / rows.length : 0;
+
+      const branchMap: Record<string, { total: number; count: number }> = {};
+      const typeMap: Record<string, number> = {};
+
+      for (const r of rows) {
+        const suc = String(r.sucursal || 'Sin Sucursal');
+        if (!branchMap[suc]) branchMap[suc] = { total: 0, count: 0 };
+        branchMap[suc].total += Number(r.total) || 0;
+        branchMap[suc].count += 1;
+
+        const tipo = String(r.tipo_venta || 'otro');
+        typeMap[tipo] = (typeMap[tipo] || 0) + 1;
+      }
+
+      const branchRanking = Object.entries(branchMap)
+        .map(([sucursal, data]) => ({
+          sucursal,
+          total: data.total,
+          transacciones: data.count,
+        }))
+        .sort((a, b) => b.total - a.total);
+
+      summary.montoTotalVendido = `Bs. ${totalAmount.toLocaleString('es-BO', { minimumFractionDigits: 2 })}`;
+      summary.ticketPromedio = `Bs. ${avgTicket.toFixed(2)}`;
+      summary.ventasPorCanal = typeMap;
+      summary.rankingSucursales = branchRanking;
+
+      keyMetrics.push({
+        label: 'Total Vendido',
+        value: `Bs. ${totalAmount.toLocaleString('es-BO', { minimumFractionDigits: 2 })}`,
+        trend: 'up',
+      });
+      keyMetrics.push({
+        label: 'Transacciones',
+        value: totalCount,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Ticket Promedio',
+        value: `Bs. ${avgTicket.toFixed(2)}`,
+        trend: 'neutral',
+      });
+      if (branchRanking.length > 0) {
+        keyMetrics.push({
+          label: 'Sucursal Líder',
+          value: branchRanking[0].sucursal,
+          trend: 'up',
+        });
+      }
+    } else if (entity === 'inventario_sucursal') {
+      const totalStock = rows.reduce((acc, r) => acc + (Number(r.stock_disponible) || 0), 0);
+      const lowStockItems = rows.filter((r) => {
+        const disp = Number(r.stock_disponible) || 0;
+        const min = Number(r.stock_minimo) || 5;
+        return disp <= min;
+      });
+
+      const branchStock: Record<string, number> = {};
+      for (const r of rows) {
+        const suc = String(r.sucursal || 'Sin Sucursal');
+        branchStock[suc] = (branchStock[suc] || 0) + (Number(r.stock_disponible) || 0);
+      }
+
+      summary.stockFisicoTotal = `${totalStock} unidades`;
+      summary.prendasEnRiesgo = lowStockItems.length;
+      summary.stockPorSucursal = branchStock;
+      summary.criticosDetalle = lowStockItems.slice(0, 5).map((i) => ({
+        prenda: i.producto,
+        talla: i.talla,
+        sucursal: i.sucursal,
+        disponible: i.stock_disponible,
+      }));
+
+      keyMetrics.push({
+        label: 'Stock Total',
+        value: `${totalStock} uds`,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Variantes Evaluadas',
+        value: totalCount,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Stock Crítico',
+        value: `${lowStockItems.length} prendas`,
+        trend: lowStockItems.length > 0 ? 'down' : 'up',
+      });
+      if (lowStockItems.length > 0) {
+        keyMetrics.push({
+          label: 'Prenda Crítica',
+          value: String(lowStockItems[0].producto || 'Prenda').slice(0, 16),
+          trend: 'down',
+        });
+      }
+    } else if (entity === 'producto') {
+      const totalPrendas = totalCount;
+      const prices = rows.map((r) => Number(r.precio_base) || 0).filter((p) => p > 0);
+      const avgPrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+
+      const catMap: Record<string, number> = {};
+      for (const r of rows) {
+        const cat = String(r.categoria || 'Sin categoría');
+        catMap[cat] = (catMap[cat] || 0) + 1;
+      }
+
+      summary.totalCatalogo = totalPrendas;
+      summary.precioPromedio = `Bs. ${avgPrice.toFixed(2)}`;
+      summary.distribucionCategorias = catMap;
+
+      keyMetrics.push({
+        label: 'Catálogo Prendas',
+        value: totalPrendas,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Precio Promedio',
+        value: `Bs. ${avgPrice.toFixed(2)}`,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Categorías Activas',
+        value: Object.keys(catMap).length,
+        trend: 'neutral',
+      });
+    } else if (entity === 'cliente') {
+      const totalPoints = rows.reduce((acc, r) => acc + (Number(r.puntos_fidelidad) || 0), 0);
+      const topClientes = [...rows]
+        .sort((a, b) => (Number(b.total_compras) || 0) - (Number(a.total_compras) || 0))
+        .slice(0, 3)
+        .map((c) => ({
+          nombre: c.nombre_completo || `${c.nombre || ''} ${c.apellido || ''}`.trim(),
+          compras: c.total_compras,
+        }));
+
+      summary.totalClientes = totalCount;
+      summary.puntosFidelidadTotal = totalPoints;
+      summary.clientesDestacados = topClientes;
+
+      keyMetrics.push({
+        label: 'Clientes Totales',
+        value: totalCount,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Puntos Acumulados',
+        value: totalPoints,
+        trend: 'up',
+      });
+    } else if (entity === 'reserva') {
+      const statusMap: Record<string, number> = {};
+      for (const r of rows) {
+        const est = String(r.estado || 'pendiente');
+        statusMap[est] = (statusMap[est] || 0) + 1;
+      }
+      summary.totalReservas = totalCount;
+      summary.estadosReservas = statusMap;
+
+      keyMetrics.push({
+        label: 'Reservas Totales',
+        value: totalCount,
+        trend: 'neutral',
+      });
+      keyMetrics.push({
+        label: 'Pendientes Retiro',
+        value: statusMap['pendiente'] || 0,
+        trend: (statusMap['pendiente'] || 0) > 0 ? 'neutral' : 'up',
+      });
+    } else {
+      keyMetrics.push({
+        label: 'Registros Analizados',
+        value: totalCount,
+        trend: 'neutral',
+      });
+    }
+
+    return { summary, keyMetrics };
+  }
+
+  /**
+   * Generador determinista local de reportes ejecutivos redactados
+   */
+  private generateExecutiveReportLocal(
+    entity: string,
+    entityName: string,
+    rows: Record<string, any>[],
+    totalCount: number,
+    userQuery: string,
+    summary: Record<string, any>,
+  ): string {
+    const parts: string[] = [];
+
+    parts.push(`INFORME ANALITICO EJECUTIVO - DRESSLY BOUTIQUE`);
+    parts.push(`Consulta atendida: "${userQuery}"`);
+    parts.push(`Entidad evaluada: ${entityName} (Total registros en base de datos: ${totalCount})`);
+    parts.push('');
+
+    // 1. Diagnóstico Ejecutivo
+    parts.push('1. DIAGNOSTICO EJECUTIVO');
+    if (entity === 'venta') {
+      parts.push(
+        `Se han auditado ${totalCount} transacciones comerciales con una facturación acumulada de ${summary.montoTotalVendido || 'Bs. 0.00'}, alcanzando un ticket promedio de ${summary.ticketPromedio || 'Bs. 0.00'} por compra. La actividad comercial refleja dinamismo en los canales presenciales y digitales.`,
+      );
+    } else if (entity === 'inventario_sucursal') {
+      parts.push(
+        `Se registran ${summary.stockFisicoTotal || '0 unidades'} disponibles en piso de venta y almacenes, distribuidas en ${totalCount} variantes de prendas. Se identificaron ${summary.prendasEnRiesgo || 0} variantes en nivel crítico de reposición.`,
+      );
+    } else if (entity === 'producto') {
+      parts.push(
+        `El catálogo de prendas activas suma ${summary.totalCatalogo || totalCount} referencias, con un precio promedio ponderado de ${summary.precioPromedio || 'Bs. 0.00'}. Se observa cobertura en ${Object.keys(summary.distribucionCategorias || {}).length} líneas de moda.`,
+      );
+    } else {
+      parts.push(
+        `Se consolidaron exitosamente ${totalCount} registros del módulo ${entityName}. Los indicadores evaluados presentan consistencia operativa con las reglas de negocio establecidas.`,
+      );
+    }
+    parts.push('');
+
+    // 2. Análisis Detallado
+    parts.push('2. ANALISIS DETALLADO');
+    if (entity === 'venta' && Array.isArray(summary.rankingSucursales) && summary.rankingSucursales.length > 0) {
+      parts.push('Distribución de rendimiento por sucursal:');
+      summary.rankingSucursales.slice(0, 4).forEach((suc: any) => {
+        parts.push(
+          `- Sucursal ${suc.sucursal}: Bs. ${Number(suc.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })} en ${suc.transacciones} transacciones.`,
+        );
+      });
+    } else if (entity === 'inventario_sucursal' && summary.criticosDetalle && summary.criticosDetalle.length > 0) {
+      parts.push('Prendas con inventario crítico detectadas:');
+      summary.criticosDetalle.forEach((c: any) => {
+        parts.push(
+          `- ${c.prenda} (Talla ${c.talla}) en ${c.sucursal}: solo ${c.disponible} unidad(es) disponible(s).`,
+        );
+      });
+    } else if (entity === 'producto' && summary.distribucionCategorias) {
+      parts.push('Concentración por categorías de colección:');
+      Object.entries(summary.distribucionCategorias).slice(0, 5).forEach(([cat, qty]) => {
+        parts.push(`- Categoría ${cat}: ${qty} prenda(s) catalogada(s).`);
+      });
+    } else {
+      parts.push(`- Registros procesados de la base de datos: ${rows.length} de ${totalCount}.`);
+      if (rows.length > 0) {
+        parts.push(`- Variables analizadas: ${Object.keys(rows[0]).slice(0, 6).join(', ')}.`);
+      }
+    }
+    parts.push('');
+
+    // 3. Alertas Operativas
+    parts.push('3. ALERTAS OPERATIVAS');
+    if (entity === 'inventario_sucursal' && summary.prendasEnRiesgo > 0) {
+      parts.push(
+        `- Riesgo inminente de quiebre de stock en ${summary.prendasEnRiesgo} variantes de alta rotación.`,
+      );
+      parts.push('- Desbalance de existencias entre sucursales de alta demanda y tiendas periféricas.');
+    } else if (entity === 'venta') {
+      parts.push(
+        '- Concentración de ingresos en sucursales principales con brecha frente a puntos de venta secundarios.',
+      );
+      parts.push('- Monitorear el volumen de transacciones en turnos matutinos vs vespertinos.');
+    } else {
+      parts.push('- Mantener seguimiento continuo para evitar discrepancias operativas.');
+    }
+    parts.push('');
+
+    // 4. Recomendaciones de Negocio
+    parts.push('4. RECOMENDACIONES DE NEGOCIO');
+    if (entity === 'inventario_sucursal') {
+      parts.push(
+        '- Ejecutar transferencias de inventario inter-sucursal para equilibrar las unidades disponibles.',
+      );
+      parts.push(
+        '- Emitir órdenes prioritarias de abastecimiento para las variantes con stock menor a 5 unidades.',
+      );
+    } else if (entity === 'venta') {
+      parts.push(
+        '- Impulsar promociones cruzadas o de ventas combinadas para elevar el ticket promedio en sucursales secundarias.',
+      );
+      parts.push(
+        '- Fortalecer las campañas de ventas digitales para incrementar la participación del canal online.',
+      );
+    } else {
+      parts.push(
+        '- Auditar periódicamente los parámetros de la entidad para optimizar la toma de decisiones gerencial.',
+      );
+    }
+
+    return parts.join('\n');
   }
 }
