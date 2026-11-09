@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { ReportExporterService, ReportIndicator, ReportPayload } from '../../shared/services/report-exporter.service.js';
-import { ReportsDashboardService } from '../CU27-consultar-dashboard-reportes/reports-dashboard.service.js';
+import { ReportsDashboardService } from '../CU29-consultar-dashboard-reportes/reports-dashboard.service.js';
 import {
   ExecuteQbeQueryDto,
   ExportQbeQueryDto,

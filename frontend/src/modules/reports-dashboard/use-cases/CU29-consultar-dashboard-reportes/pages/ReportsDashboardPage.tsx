@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -9,10 +9,6 @@ import {
   AlertTriangle,
   TableProperties,
   Mic,
-  Volume2,
-  Sparkles,
-  Search,
-  Download,
 } from 'lucide-react';
 import { useReportsDashboard } from '../hooks/useReportsDashboard';
 import { DashboardMetricsGrid } from '../components/DashboardMetricsGrid';
