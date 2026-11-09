@@ -8,6 +8,7 @@
 import React from 'react';
 import { Search, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import type { ReportData } from '../types/reports.types';
+import { ReportChartPreview } from './ReportChartPreview';
 
 interface ReportPreviewTableProps {
   reportData: ReportData;
@@ -151,6 +152,11 @@ export const ReportPreviewTable: React.FC<ReportPreviewTableProps> = ({
             </div>
           ))}
         </div>
+      )}
+
+      {/* Visualización Gráfica Integrada */}
+      {reportData.chartData && (
+        <ReportChartPreview chartData={reportData.chartData} title={reportData.title} />
       )}
 
       {/* Barra de Búsqueda y Paginación Superior */}

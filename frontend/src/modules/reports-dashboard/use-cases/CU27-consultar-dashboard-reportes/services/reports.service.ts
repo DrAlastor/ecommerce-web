@@ -7,7 +7,13 @@
  */
 import api from '../../../../../services/api/api';
 import type {
+  AiChatResponse,
+  AiReportAnalysis,
   DashboardMetrics,
+  InterpretedQbeResponse,
+  QbeMetadata,
+  QbeQueryPayload,
+  QbeQueryResult,
   ReportData,
   ReportFilters,
 } from '../types/reports.types';
@@ -23,10 +29,11 @@ export const reportsService = {
       fecha_inicio?: string;
       fecha_fin?: string;
       id_sucursal?: number | string;
+      role_view?: string;
     },
     forceRefresh = false,
   ): Promise<DashboardMetrics> {
-    const key = `dash_${params?.id_sucursal || 'all'}_${params?.fecha_inicio || ''}_${params?.fecha_fin || ''}`;
+    const key = `dash_${params?.role_view || 'default'}_${params?.id_sucursal || 'all'}_${params?.fecha_inicio || ''}_${params?.fecha_fin || ''}`;
     const cached = dashboardCache.get(key);
     if (!forceRefresh && cached && Date.now() - cached.timestamp < 60000) {
       return cached.data;
@@ -44,8 +51,9 @@ export const reportsService = {
     fecha_inicio?: string;
     fecha_fin?: string;
     id_sucursal?: number | string;
+    role_view?: string;
   }): DashboardMetrics | null {
-    const key = `dash_${params?.id_sucursal || 'all'}_${params?.fecha_inicio || ''}_${params?.fecha_fin || ''}`;
+    const key = `dash_${params?.role_view || 'default'}_${params?.id_sucursal || 'all'}_${params?.fecha_inicio || ''}_${params?.fecha_fin || ''}`;
     const cached = dashboardCache.get(key);
     if (cached && Date.now() - cached.timestamp < 120000) {
       return cached.data;
@@ -114,5 +122,90 @@ export const reportsService = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(downloadUrl);
+  },
+
+  /**
+   * CU32 — Obtiene el catálogo de metadatos de entidades y operadores para QBE
+   */
+  async getQbeMetadata(): Promise<QbeMetadata> {
+    const res = await api.get<QbeMetadata>('/reports/qbe/metadata');
+    return res.data;
+  },
+
+  /**
+   * CU32 — Ejecuta una consulta dinámica QBE
+   */
+  async executeQbeQuery(payload: QbeQueryPayload): Promise<QbeQueryResult> {
+    const res = await api.post<QbeQueryResult>('/reports/qbe/execute', payload);
+    return res.data;
+  },
+
+  /**
+   * CU32 — Exporta una consulta dinámica QBE a CSV, Excel o PDF
+   */
+  async exportQbeQuery(
+    payload: QbeQueryPayload,
+    format: 'csv' | 'excel' | 'pdf',
+  ): Promise<void> {
+    const res = await api.post(
+      '/reports/qbe/export',
+      { ...payload, format },
+      { responseType: 'blob' },
+    );
+
+    const extension = format === 'excel' ? 'xlsx' : format;
+    const cleanDate = new Date().toISOString().split('T')[0];
+    const fileName = `Consulta_QBE_${payload.entity}_${cleanDate}.${extension}`;
+
+    const blob = new Blob([res.data], {
+      type:
+        format === 'csv'
+          ? 'text/csv;charset=utf-8;'
+          : format === 'pdf'
+            ? 'application/pdf'
+            : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  },
+
+  /**
+   * CU32 & CU33 — Interpreta una consulta en lenguaje natural a parámetros estructurados QBE
+   */
+  async interpretNaturalQuery(prompt: string): Promise<InterpretedQbeResponse> {
+    const res = await api.post<InterpretedQbeResponse>('/reports/qbe/interpret', { prompt });
+    return res.data;
+  },
+
+  /**
+   * CU33 — Genera un diagnóstico e insights ejecutivos con IA (Gemini)
+   */
+  async generateAiAnalysis(payload: {
+    entity: string;
+    rows: Record<string, any>[];
+    totalRows: number;
+    userPrompt?: string;
+  }): Promise<AiReportAnalysis> {
+    const res = await api.post<AiReportAnalysis>('/reports/ai/analyze', payload);
+    return res.data;
+  },
+
+  /**
+   * CU33 — Procesa un mensaje conversacional en el Chat Analítico con IA
+   */
+  async sendAiChat(payload: {
+    message: string;
+    history?: { role: 'user' | 'assistant'; content: string }[];
+    currentContext?: Record<string, any>;
+  }): Promise<AiChatResponse> {
+    const res = await api.post<AiChatResponse>('/reports/ai/chat', payload);
+    return res.data;
   },
 };

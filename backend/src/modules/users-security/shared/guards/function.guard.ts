@@ -103,9 +103,12 @@ export class FunctionGuard implements CanActivate {
       'registrar venta presencial': ['registrar venta presencial', 'registrar venta', 'cu24 — registrar venta presencial'],
       'procesar pago': ['procesar pago', 'procesar pago electronico', 'cu23 — procesar pago electronico', 'cu24 — registrar venta presencial', 'registrar venta presencial'],
       'procesar pago electronico': ['procesar pago electronico', 'procesar pago', 'cu23 — procesar pago electronico'],
-      'consultar dashboard y reportes': ['consultar dashboard y reportes', 'consultar dashboard', 'generar reportes', 'reportes', 'dashboard'],
+      'consultar dashboard y reportes': ['consultar dashboard y reportes', 'consultar dashboard', 'generar reportes', 'reportes', 'dashboard', 'gestionar reportes predefinidos', 'gestionar reportes qbe'],
       'consultar dashboard': ['consultar dashboard y reportes', 'consultar dashboard'],
-      'generar reportes': ['consultar dashboard y reportes', 'generar reportes', 'reportes'],
+      'generar reportes': ['consultar dashboard y reportes', 'generar reportes', 'reportes', 'gestionar reportes predefinidos'],
+      'gestionar reportes predefinidos': ['gestionar reportes predefinidos', 'reportes predefinidos', 'consultar dashboard y reportes', 'generar reportes'],
+      'gestionar reportes qbe': ['gestionar reportes qbe', 'reportes qbe', 'qbe', 'consultar dashboard y reportes'],
+      'gestionar reportes por voz': ['gestionar reportes por voz', 'reportes por voz', 'consultar dashboard y reportes'],
     };
     const acceptedFunctionNames = new Set([reqModuloNorm, ...(aliases[reqModuloNorm] ?? [])]);
 

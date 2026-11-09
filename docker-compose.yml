@@ -1,15 +1,17 @@
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-
-    container_name: dressly-backend-container
-
-    ports:
-      - "3000:3000"
-
-    env_file:
-      - ./backend/.env
-
+  postgres:
+    image: postgres:16-alpine
+    container_name: dressly-postgres
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: dressly_user
+      POSTGRES_PASSWORD: dressly_password
+      POSTGRES_DB: dressly_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - "./backend/Base de Datos/Dressly_DB.sql:/docker-entrypoint-initdb.d/01-init.sql:ro"
+
+volumes:
+  postgres_data:

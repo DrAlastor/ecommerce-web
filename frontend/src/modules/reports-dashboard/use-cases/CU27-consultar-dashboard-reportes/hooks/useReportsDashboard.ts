@@ -6,6 +6,7 @@
  * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
  */
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { reportsService } from '../services/reports.service';
 import type {
   TabType,
@@ -15,13 +16,43 @@ import type {
 } from '../types/reports.types';
 
 export const useReportsDashboard = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
+  const getValidTab = (tab: string | null): TabType => {
+    if (tab === 'qbe') return 'qbe';
+    return 'reports';
+  };
+
+  const [activeTab, setActiveTabState] = useState<TabType>(() => getValidTab(tabParam));
+
+  // Sincronizar activeTab cuando cambia el URL query param (?tab=...)
+  useEffect(() => {
+    const valid = getValidTab(tabParam);
+    setActiveTabState((current) => (current !== valid ? valid : current));
+  }, [tabParam]);
+
+  const setActiveTab = useCallback(
+    (tab: TabType) => {
+      setActiveTabState(tab);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('tab', tab);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   // Estado del Dashboard
   const [dashboardData, setDashboardData] = useState<DashboardMetrics | null>(null);
   const [loadingDashboard, setLoadingDashboard] = useState<boolean>(false);
   const [dashBranch, setDashBranch] = useState<string>('');
   const [dashDatePreset, setDashDatePreset] = useState<string>('30d');
+  const [roleView, setRoleView] = useState<string>('');
   const [dashFechaInicio] = useState<string>('');
   const [dashFechaFin] = useState<string>('');
 
@@ -120,6 +151,7 @@ export const useReportsDashboard = () => {
       fecha_inicio: fi || undefined,
       fecha_fin: ff || undefined,
       id_sucursal: dashBranch ? Number(dashBranch) : undefined,
+      role_view: roleView || undefined,
     };
 
     // Actualización instantánea síncrona si ya está en caché
@@ -142,7 +174,7 @@ export const useReportsDashboard = () => {
     } finally {
       setLoadingDashboard(false);
     }
-  }, [dashBranch, dashDatePreset, dashFechaInicio, dashFechaFin, calculatePresetRange]);
+  }, [dashBranch, dashDatePreset, dashFechaInicio, dashFechaFin, roleView, calculatePresetRange]);
 
   // Cambio de preset ultra-rápido: aplica caché síncrono al instante y sincroniza
   const handlePresetChange = (presetId: string) => {
@@ -304,6 +336,8 @@ export const useReportsDashboard = () => {
     loadingDashboard,
     dashBranch,
     dashDatePreset,
+    roleView,
+    setRoleView,
     loadDashboard,
     handlePresetChange,
     handleBranchChange,

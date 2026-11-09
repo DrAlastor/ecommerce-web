@@ -6,7 +6,7 @@
  * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
  */
 import React from 'react';
-import { AlertTriangle, Clock } from 'lucide-react';
+import { AlertTriangle, Clock, Check } from 'lucide-react';
 import type { DashboardMetrics } from '../types/reports.types';
 
 interface DashboardQuickTablesProps {
@@ -58,8 +58,9 @@ export const DashboardQuickTables: React.FC<DashboardQuickTablesProps> = ({ metr
         </div>
 
         {criticalInventory.length === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#15803D', fontSize: '0.88rem', fontWeight: 600 }}>
-            ✓ Todos los productos se encuentran con stock saludable.
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#15803D', fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <Check size={16} />
+            <span>Todos los productos se encuentran con stock saludable.</span>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>

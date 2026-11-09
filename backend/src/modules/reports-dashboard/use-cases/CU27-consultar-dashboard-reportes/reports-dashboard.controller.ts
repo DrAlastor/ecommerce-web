@@ -6,8 +6,10 @@
  * @secuencia Administrador o Encargado -> dashboard -> controlador de reportes -> servicio de agregación/exportación -> Ventas/Pagos/Inventario/Reservas/Compras.
  */
 import {
+  Body,
   Controller,
   Get,
+  Post,
   Query,
   Req,
   Res,
@@ -24,6 +26,17 @@ import {
 } from '../../dto/query-reports.dto.js';
 import { ReportExporterService } from '../../shared/services/report-exporter.service.js';
 import { ReportsDashboardService } from './reports-dashboard.service.js';
+import { QbeService } from '../CU32-gestionar-reportes-qbe/qbe.service.js';
+import {
+  ExecuteQbeQueryDto,
+  ExportQbeQueryDto,
+  InterpretNaturalQueryDto,
+} from '../CU32-gestionar-reportes-qbe/qbe.dto.js';
+import { ReportsAiService } from '../CU33-gestionar-reportes-ia/reports-ai.service.js';
+import {
+  AiChatQueryDto,
+  GenerateReportAiAnalysisDto,
+} from '../CU33-gestionar-reportes-ia/reports-ai.dto.js';
 
 @Controller('reports')
 @UseGuards(JwtAuthGuard, FunctionGuard)
@@ -31,6 +44,8 @@ export class ReportsDashboardController {
   constructor(
     private readonly reportsService: ReportsDashboardService,
     private readonly exporterService: ReportExporterService,
+    private readonly qbeService: QbeService,
+    private readonly reportsAiService: ReportsAiService,
   ) {}
 
   /**
@@ -122,5 +137,69 @@ export class ReportsDashboardController {
       `attachment; filename="${fileBaseName}.xlsx"`,
     );
     return res.send(buffer);
+  }
+
+  /**
+   * CU32 — Obtener Metadatos para el Constructor Visual QBE
+   */
+  @Get('qbe/metadata')
+  @FunctionRequired('Gestionar reportes qbe', 'Lectura')
+  async getQbeMetadata() {
+    return this.qbeService.getMetadata();
+  }
+
+  /**
+   * CU32 — Ejecutar Consulta Dinámica QBE
+   */
+  @Post('qbe/execute')
+  @FunctionRequired('Gestionar reportes qbe', 'Lectura')
+  async executeQbeQuery(@Req() req: any, @Body() dto: ExecuteQbeQueryDto) {
+    return this.qbeService.executeQuery(dto, req.user);
+  }
+
+  /**
+   * CU32 — Exportar Consulta Dinámica QBE a PDF, CSV o Excel
+   */
+  @Post('qbe/export')
+  @FunctionRequired('Gestionar reportes qbe', 'Lectura')
+  async exportQbeQuery(
+    @Req() req: any,
+    @Res() res: Response,
+    @Body() dto: ExportQbeQueryDto,
+  ) {
+    const result = await this.qbeService.exportQuery(dto, req.user);
+    res.setHeader('Content-Type', result.mimeType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${result.fileName}"`,
+    );
+    return res.send(result.buffer);
+  }
+
+  /**
+   * CU32 & CU33 — Interpretar Consulta en Lenguaje Natural a Estructura QBE con IA
+   */
+  @Post('qbe/interpret')
+  @FunctionRequired('Gestionar reportes qbe', 'Lectura')
+  async interpretQbeQuery(@Body() dto: InterpretNaturalQueryDto) {
+    return this.reportsAiService.interpretNaturalQuery(dto.prompt);
+  }
+
+  /**
+   * CU33 — Generar Diagnóstico e Insights Ejecutivos con IA (Gemini)
+   */
+  @Post('ai/analyze')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async generateAiReportAnalysis(@Body() dto: GenerateReportAiAnalysisDto) {
+    return this.reportsAiService.generateReportAnalysis(dto);
+  }
+
+  /**
+   * CU33 — Asistente Conversacional / Chat de Reportes con IA (Voz y Texto)
+   */
+  @Post('ai/chat')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async processAiChat(@Req() req: any, @Body() dto: AiChatQueryDto) {
+    return this.reportsAiService.processChat(dto, req.user);
   }
 }

@@ -13,11 +13,14 @@ import { UsersSecurityModule } from '../users-security/users-security.module.js'
 import { ReportExporterService } from './shared/services/report-exporter.service.js';
 import { ReportsDashboardController } from './use-cases/CU27-consultar-dashboard-reportes/reports-dashboard.controller.js';
 import { ReportsDashboardService } from './use-cases/CU27-consultar-dashboard-reportes/reports-dashboard.service.js';
+import { QbeService } from './use-cases/CU32-gestionar-reportes-qbe/qbe.service.js';
+import { QbeNlpService } from './use-cases/CU32-gestionar-reportes-qbe/qbe-nlp.service.js';
+import { ReportsAiService } from './use-cases/CU33-gestionar-reportes-ia/reports-ai.service.js';
 
 @Module({
   imports: [PrismaModule, AuthModule, UsersSecurityModule],
   controllers: [ReportsDashboardController],
-  providers: [ReportsDashboardService, ReportExporterService],
-  exports: [ReportsDashboardService, ReportExporterService],
+  providers: [ReportsDashboardService, ReportExporterService, QbeService, QbeNlpService, ReportsAiService],
+  exports: [ReportsDashboardService, ReportExporterService, QbeService, QbeNlpService, ReportsAiService],
 })
 export class ReportsDashboardModule {}

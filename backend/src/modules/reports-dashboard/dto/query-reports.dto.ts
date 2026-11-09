@@ -34,6 +34,10 @@ export class QueryDashboardDto {
   @Type(() => Number)
   @IsInt()
   id_sucursal?: number;
+
+  @IsOptional()
+  @IsString()
+  role_view?: string;
 }
 
 export class QueryReportDto {

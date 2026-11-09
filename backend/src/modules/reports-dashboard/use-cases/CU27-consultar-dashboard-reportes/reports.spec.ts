@@ -127,5 +127,56 @@ describe('CU27 - Reports and Dashboard Services', () => {
         reportsService.getAuthorizedBranches(encargadoUser, 2),
       ).rejects.toThrow('No tienes permisos autorizados');
     });
+
+    it('debe generar métricas de dashboard especializadas para Administrador (Rol 1)', async () => {
+      const adminUser = { id_usuario: 1, id_rol: 1, rol: 'Administrador' };
+      mockPrisma.reserva.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.cliente = { findUnique: vi.fn().mockResolvedValue({ puntos_fidelidad: 100 }) };
+      mockPrisma.promocion = { findMany: vi.fn().mockResolvedValue([]) };
+
+      const result = await reportsService.getDashboardMetrics({}, adminUser);
+      expect(result.roleDashboard).toBeDefined();
+      expect(result.roleDashboard.role).toBe('admin');
+      expect(result.roleDashboard.admin).toBeDefined();
+      expect(result.roleDashboard.admin?.kpis.totalIngresosNetos).toBeDefined();
+      expect(result.roleDashboard.admin?.charts.rankingSucursales).toBeDefined();
+    });
+
+    it('debe generar métricas de dashboard especializadas para Encargado de Sucursal (Rol 3)', async () => {
+      const managerUser = { id_usuario: 3, id_rol: 3, rol: 'Encargado de sucursal' };
+      mockPrisma.reserva.findMany = vi.fn().mockResolvedValue([]);
+
+      const result = await reportsService.getDashboardMetrics({}, managerUser);
+      expect(result.roleDashboard).toBeDefined();
+      expect(result.roleDashboard.role).toBe('manager');
+      expect(result.roleDashboard.manager).toBeDefined();
+      expect(result.roleDashboard.manager?.kpis.ventasHoy).toBeDefined();
+      expect(result.roleDashboard.manager?.tables.stockCriticoLocal).toBeDefined();
+    });
+
+    it('debe generar métricas de dashboard especializadas para Cajero (Rol 4)', async () => {
+      const cashierUser = { id_usuario: 4, id_rol: 4, rol: 'Cajero' };
+      mockPrisma.reserva.findMany = vi.fn().mockResolvedValue([]);
+
+      const result = await reportsService.getDashboardMetrics({}, cashierUser);
+      expect(result.roleDashboard).toBeDefined();
+      expect(result.roleDashboard.role).toBe('cashier');
+      expect(result.roleDashboard.cashier).toBeDefined();
+      expect(result.roleDashboard.cashier?.kpis.totalCobradoTurno).toBeDefined();
+      expect(result.roleDashboard.cashier?.charts.metodosPagoTurno).toBeDefined();
+    });
+
+    it('debe permitir a un Administrador alternar role_view para previsualizar los demás dashboards', async () => {
+      const adminUser = { id_usuario: 1, id_rol: 1, rol: 'Administrador' };
+      mockPrisma.reserva.findMany = vi.fn().mockResolvedValue([]);
+
+      const cashierPreview = await reportsService.getDashboardMetrics({ role_view: 'cashier' }, adminUser);
+      expect(cashierPreview.roleDashboard.role).toBe('cashier');
+      expect(cashierPreview.roleDashboard.cashier).toBeDefined();
+
+      const managerPreview = await reportsService.getDashboardMetrics({ role_view: 'manager' }, adminUser);
+      expect(managerPreview.roleDashboard.role).toBe('manager');
+      expect(managerPreview.roleDashboard.manager).toBeDefined();
+    });
   });
 });

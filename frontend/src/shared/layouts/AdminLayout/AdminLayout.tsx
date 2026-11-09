@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './components/AdminSidebar';
 import { AdminHeader } from './components/AdminHeader';
+import { AiAssistantFloatingButton } from '../../components/AiAssistantFloatingButton';
 import './AdminLayout.css';
 
 export const AdminLayout: React.FC = () => {
@@ -28,6 +29,9 @@ export const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Botón Flotante Global de IA en todas las páginas del sistema */}
+      <AiAssistantFloatingButton />
     </div>
   );
 };

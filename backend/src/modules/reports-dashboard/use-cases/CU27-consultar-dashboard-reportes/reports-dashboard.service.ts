@@ -18,6 +18,126 @@ import {
   ReportPayload,
 } from '../../shared/services/report-exporter.service.js';
 
+export interface RoleDashboardData {
+  role: 'admin' | 'manager' | 'cashier' | 'customer';
+  roleName: string;
+  userName: string;
+  branchName?: string;
+  admin?: {
+    kpis: {
+      totalIngresosNetos: number;
+      margenBrutoEstimado: number;
+      ticketPromedioNacional: number;
+      inventarioValorizado: number;
+    };
+    charts: {
+      evolucionIngresos: { fecha: string; total: number; ventas: number }[];
+      rankingSucursales: { sucursal: string; total: number; porcentaje: number }[];
+      topCategorias: { categoria: string; total: number; unidades: number }[];
+    };
+    executiveAlerts: {
+      tipo: 'stock' | 'devoluciones' | 'rendimiento';
+      mensaje: string;
+      sucursal?: string;
+    }[];
+  };
+  manager?: {
+    kpis: {
+      ventasHoy: number;
+      transaccionesHoy: number;
+      reservasPendientes: number;
+      quiebresStock: number;
+    };
+    charts: {
+      ventasPorVendedor: { vendedor: string; total: number; transacciones: number }[];
+      ventasPorHoras: { hora: string; transacciones: number; total: number }[];
+    };
+    tables: {
+      reservasHoy: {
+        id_reserva: number;
+        codigo: string;
+        cliente: string;
+        telefono: string;
+        prendas: string;
+        total: number;
+        estado: string;
+        fecha_limite: string;
+      }[];
+      stockCriticoLocal: {
+        id_inventario: number;
+        producto: string;
+        variante: string;
+        stock_disponible: number;
+        stock_minimo: number;
+        sucursalSugerida?: string;
+      }[];
+    };
+  };
+  cashier?: {
+    kpis: {
+      totalCobradoTurno: number;
+      efectivoGaveta: number;
+      cobrosDigitales: number;
+      comprobantesEmitidos: number;
+    };
+    charts: {
+      metodosPagoTurno: { metodo: string; total: number; cantidad: number }[];
+    };
+    tables: {
+      ultimosCobros: {
+        id_venta: number;
+        codigo: string;
+        hora: string;
+        cliente: string;
+        monto: number;
+        metodo: string;
+        estado: string;
+      }[];
+      reservasListasParaCobro: {
+        id_reserva: number;
+        cliente: string;
+        codigo: string;
+        total: number;
+        prendas: string;
+      }[];
+    };
+  };
+  customer?: {
+    kpis: {
+      pedidosActivos: number;
+      reservasListasRetiro: number;
+      puntosFidelidad: number;
+      cuponesDisponibles: number;
+    };
+    tables: {
+      misPedidosRecientes: {
+        id_venta: number;
+        codigo: string;
+        fecha: string;
+        total: number;
+        estado: string;
+        trackingStep: number;
+      }[];
+      misReservasActivas: {
+        id_reserva: number;
+        codigo: string;
+        sucursal: string;
+        direccion: string;
+        fecha_limite: string;
+        total: number;
+        estado: string;
+        qrCodeValue: string;
+      }[];
+      cupones: {
+        id_promocion: number;
+        nombre: string;
+        descuento: string;
+        tipo: string;
+      }[];
+    };
+  };
+}
+
 @Injectable()
 export class ReportsDashboardService {
   constructor(private readonly prisma: PrismaService) {}
@@ -173,7 +293,7 @@ export class ReportsDashboardService {
   async getDashboardMetrics(query: QueryDashboardDto, user: any) {
     const userId = user?.id_usuario || user?.sub || 'user';
     const roleId = user?.id_rol || 0;
-    const cacheKey = `dash_${userId}_${roleId}_${query.id_sucursal || 'all'}_${query.fecha_inicio || ''}_${query.fecha_fin || ''}`;
+    const cacheKey = `dash_${userId}_${roleId}_${query.role_view || 'default'}_${query.id_sucursal || 'all'}_${query.fecha_inicio || ''}_${query.fecha_fin || ''}`;
     const cached = ReportsDashboardService.dashboardCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.data;
@@ -215,12 +335,17 @@ export class ReportsDashboardService {
               include: {
                 producto_variante: {
                   include: {
-                    producto: true,
+                    producto: {
+                      include: {
+                        categoria: true,
+                      },
+                    },
                   },
                 },
               },
             },
             pago: true,
+            cliente: true,
             empleado: {
               include: {
                 empleado_sucursal: {
@@ -418,11 +543,435 @@ export class ReportsDashboardService {
       estado: v.estado,
     }));
 
+    // =========================================================================
+    // CÁLCULO DE DASHBOARDS ESPECIALIZADOS POR ROL (ADMIN, MANAGER, CASHIER, CUSTOMER)
+    // =========================================================================
+    const effectiveRole = this.resolveUserRole(user, query.role_view);
+    const roleName =
+      effectiveRole === 'admin'
+        ? 'Administrador'
+        : effectiveRole === 'manager'
+          ? 'Encargado de Sucursal'
+          : effectiveRole === 'cashier'
+            ? 'Cajero'
+            : 'Cliente';
+    const userName = user?.nombre || user?.email?.split('@')[0] || 'Usuario';
+    const branchName = auth.activeSucursal?.nombre || (auth.isGlobal ? 'Consolidado Nacional' : auth.branches[0]?.nombre || 'Sucursal Asignada');
+
+    let roleDashboardData: RoleDashboardData = {
+      role: effectiveRole,
+      roleName,
+      userName,
+      branchName,
+    };
+
+    if (effectiveRole === 'admin') {
+      const totalIngresosNetos = Math.max(0, totalIngresos - totalDescuentos);
+      const margenBrutoEstimado = Math.round(totalIngresosNetos * 0.42 * 100) / 100;
+      const ticketPromedioNacional = totalVentas > 0 ? Math.round((totalIngresosNetos / totalVentas) * 100) / 100 : 0;
+      const inventarioValorizado = Math.round(
+        inventarios.reduce(
+          (acc, inv) =>
+            acc + inv.stock_disponible * Number(inv.producto_variante?.producto?.precio_base || 0),
+          0,
+        ) * 100,
+      ) / 100;
+
+      const totalSucSum = ventasPorSucursal.reduce((acc, curr) => acc + curr.total, 0) || 1;
+      const rankingSucursales = [...ventasPorSucursal]
+        .sort((a, b) => b.total - a.total)
+        .map((s) => ({
+          sucursal: s.sucursal,
+          total: s.total,
+          porcentaje: Math.min(100, Math.round((s.total / totalSucSum) * 100)),
+        }));
+
+      const catMap = new Map<string, { total: number; unidades: number }>();
+      for (const v of ventas) {
+        for (const d of v.detalle_venta) {
+          const catName = d.producto_variante?.producto?.categoria?.nombre || 'General';
+          if (!catMap.has(catName)) {
+            catMap.set(catName, { total: 0, unidades: 0 });
+          }
+          const entry = catMap.get(catName)!;
+          entry.total += Number(d.subtotal || Number(d.precio_unitario) * d.cantidad);
+          entry.unidades += d.cantidad;
+        }
+      }
+      const topCategorias = Array.from(catMap.entries())
+        .map(([categoria, val]) => ({
+          categoria,
+          total: Math.round(val.total * 100) / 100,
+          unidades: val.unidades,
+        }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+
+      const executiveAlerts: { tipo: 'stock' | 'devoluciones' | 'rendimiento'; mensaje: string; sucursal?: string }[] = [];
+      if (productosAgotados > 0) {
+        executiveAlerts.push({
+          tipo: 'stock',
+          mensaje: `${productosAgotados} variantes agotadas requieren reposición o compra a proveedores.`,
+        });
+      }
+      if (totalDevoluciones > 0) {
+        executiveAlerts.push({
+          tipo: 'devoluciones',
+          mensaje: `${totalDevoluciones} devoluciones registradas. Tasa del ${((totalDevoluciones / (totalVentas || 1)) * 100).toFixed(1)}% sobre ventas totales.`,
+        });
+      }
+      if (rankingSucursales.length > 1) {
+        const topBranch = rankingSucursales[0];
+        const bottomBranch = rankingSucursales[rankingSucursales.length - 1];
+        executiveAlerts.push({
+          tipo: 'rendimiento',
+          mensaje: `Líder: ${topBranch.sucursal} (${topBranch.porcentaje}% del volumen). Oportunidad de crecimiento en ${bottomBranch.sucursal} (${bottomBranch.porcentaje}%).`,
+          sucursal: bottomBranch.sucursal,
+        });
+      }
+
+      roleDashboardData.admin = {
+        kpis: {
+          totalIngresosNetos,
+          margenBrutoEstimado,
+          ticketPromedioNacional,
+          inventarioValorizado,
+        },
+        charts: {
+          evolucionIngresos: ventasPorPeriodo,
+          rankingSucursales,
+          topCategorias,
+        },
+        executiveAlerts,
+      };
+    } else if (effectiveRole === 'manager') {
+      const targetBranchId = auth.activeSucursal?.id_sucursal || auth.branchIds[0] || (auth.branches[0]?.id_sucursal ?? 1);
+      const targetBranchObj = auth.branches.find((b) => b.id_sucursal === targetBranchId) || auth.branches[0];
+      const targetBranchName = targetBranchObj?.nombre || 'Sucursal Asignada';
+
+      const branchSales = ventas.filter((v) => {
+        const sId = v.empleado?.empleado_sucursal?.[0]?.id_sucursal;
+        return !sId || sId === targetBranchId;
+      });
+      const todayStr = new Date().toISOString().split('T')[0];
+      const branchSalesToday = branchSales.filter((v) => v.fecha_venta.toISOString().startsWith(todayStr));
+      const effectiveBranchSales = branchSalesToday.length > 0 ? branchSalesToday : branchSales.slice(0, 10);
+      const ventasHoy = effectiveBranchSales.reduce((acc, v) => acc + Number(v.total || 0), 0);
+      const transaccionesHoy = effectiveBranchSales.length;
+
+      const localInventarios = inventarios.filter((inv) => inv.id_sucursal === targetBranchId);
+      const quiebresStock = localInventarios.filter((inv) => inv.stock_disponible <= inv.stock_minimo).length;
+      const stockCriticoLocal = localInventarios
+        .filter((inv) => inv.stock_disponible <= inv.stock_minimo)
+        .slice(0, 6)
+        .map((inv) => {
+          const surplusBranch = inventarios.find(
+            (other) =>
+              other.id_producto_variante === inv.id_producto_variante &&
+              other.id_sucursal !== targetBranchId &&
+              other.stock_disponible > other.stock_minimo + 2,
+          );
+          return {
+            id_inventario: inv.id_inventario_sucursal,
+            producto: inv.producto_variante?.producto?.nombre || 'Prenda',
+            variante: `${inv.producto_variante?.color?.nombre || ''} / ${inv.producto_variante?.talla?.codigo || ''}`,
+            stock_disponible: inv.stock_disponible,
+            stock_minimo: inv.stock_minimo,
+            sucursalSugerida: surplusBranch?.sucursal?.nombre || undefined,
+          };
+        });
+
+      const sellerMap = new Map<string, { total: number; transacciones: number }>();
+      for (const v of branchSales) {
+        const sellerName = v.empleado ? `${v.empleado.nombre} ${v.empleado.apellido}` : 'Ventas en Línea/Caja 1';
+        if (!sellerMap.has(sellerName)) {
+          sellerMap.set(sellerName, { total: 0, transacciones: 0 });
+        }
+        const sEntry = sellerMap.get(sellerName)!;
+        sEntry.total += Number(v.total || 0);
+        sEntry.transacciones += 1;
+      }
+      const ventasPorVendedor = Array.from(sellerMap.entries()).map(([vendedor, val]) => ({
+        vendedor,
+        total: Math.round(val.total * 100) / 100,
+        transacciones: val.transacciones,
+      }));
+
+      const hourMap = new Map<string, { transacciones: number; total: number }>();
+      for (const v of effectiveBranchSales) {
+        const h = new Date(v.fecha_venta).getHours();
+        const hourLabel = `${String(h).padStart(2, '0')}:00`;
+        if (!hourMap.has(hourLabel)) {
+          hourMap.set(hourLabel, { transacciones: 0, total: 0 });
+        }
+        const hEntry = hourMap.get(hourLabel)!;
+        hEntry.transacciones += 1;
+        hEntry.total += Number(v.total || 0);
+      }
+      const ventasPorHoras = Array.from(hourMap.entries())
+        .map(([hora, val]) => ({ hora, transacciones: val.transacciones, total: Math.round(val.total * 100) / 100 }))
+        .sort((a, b) => a.hora.localeCompare(b.hora));
+
+      const branchReservas = await this.prisma.reserva.findMany({
+        where: { id_sucursal: targetBranchId },
+        include: {
+          cliente: true,
+          detalle_reserva: {
+            include: {
+              producto_variante: {
+                include: { producto: true },
+              },
+            },
+          },
+        },
+        take: 8,
+        orderBy: { fecha_reserva: 'desc' },
+      });
+      const reservasHoy = branchReservas.map((r) => ({
+        id_reserva: r.id_reserva,
+        codigo: r.codigo,
+        cliente: r.cliente ? `${r.cliente.nombre} ${r.cliente.apellido}` : 'Cliente Registrado',
+        telefono: (r.cliente as any)?.telefono || 'S/N',
+        prendas: r.detalle_reserva.map((dr) => dr.producto_variante?.producto?.nombre).filter(Boolean).join(', ') || 'Prenda reservada',
+        total: r.detalle_reserva.reduce(
+          (acc, dr) =>
+            acc +
+            (Number(dr.producto_variante?.producto?.precio_base || 0) +
+              Number(dr.producto_variante?.precio_adicional || 0)) *
+              dr.cantidad,
+          0,
+        ),
+        estado: r.estado,
+        fecha_limite: r.horario_estimado ? r.horario_estimado.toISOString() : r.fecha_reserva.toISOString(),
+      }));
+      const reservasPendientesCount = branchReservas.filter((r) => ['pendiente', 'Pendiente', 'confirmado'].includes(r.estado)).length;
+
+      roleDashboardData.manager = {
+        kpis: {
+          ventasHoy: Math.round(ventasHoy * 100) / 100,
+          transaccionesHoy,
+          reservasPendientes: reservasPendientesCount,
+          quiebresStock,
+        },
+        charts: {
+          ventasPorVendedor,
+          ventasPorHoras,
+        },
+        tables: {
+          reservasHoy,
+          stockCriticoLocal,
+        },
+      };
+    } else if (effectiveRole === 'cashier') {
+      const cashierSales = ventas.filter((v) => {
+        if (user?.id_usuario && v.id_empleado === user.id_usuario) return true;
+        if (auth.activeSucursal && v.empleado?.empleado_sucursal?.some((es) => es.id_sucursal === auth.activeSucursal?.id_sucursal)) return true;
+        return false;
+      });
+      const effectiveCashierSales = cashierSales.length > 0 ? cashierSales : ventas.slice(0, 10);
+      let totalCobradoTurno = 0;
+      let efectivoGaveta = 0;
+      let cobrosDigitales = 0;
+      const payMap = new Map<string, { total: number; cantidad: number }>();
+
+      for (const v of effectiveCashierSales) {
+        const vTotal = Number(v.total || 0);
+        totalCobradoTurno += vTotal;
+        const metodo = (v.pago?.[0]?.metodo_pago || 'Efectivo').trim();
+        const isEfectivo = metodo.toLowerCase().includes('efectivo');
+
+        if (isEfectivo) {
+          efectivoGaveta += vTotal;
+        } else {
+          cobrosDigitales += vTotal;
+        }
+
+        if (!payMap.has(metodo)) {
+          payMap.set(metodo, { total: 0, cantidad: 0 });
+        }
+        const pEntry = payMap.get(metodo)!;
+        pEntry.total += vTotal;
+        pEntry.cantidad += 1;
+      }
+
+      const metodosPagoTurno = Array.from(payMap.entries()).map(([metodo, val]) => ({
+        metodo,
+        total: Math.round(val.total * 100) / 100,
+        cantidad: val.cantidad,
+      }));
+
+      const ultimosCobros = effectiveCashierSales.slice(0, 10).map((v) => ({
+        id_venta: v.id_venta,
+        codigo: v.codigo_factura || `FAC-${v.id_venta}`,
+        hora: new Date(v.fecha_venta).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
+        cliente: (v as any).cliente
+          ? `${(v as any).cliente.nombre} ${(v as any).cliente.apellido}`
+          : v.id_cliente
+            ? `Cliente #${v.id_cliente}`
+            : 'Público General',
+        monto: Number(v.total || 0),
+        metodo: v.pago?.[0]?.metodo_pago || 'Efectivo',
+        estado: v.estado,
+      }));
+
+      const cashierBranchId = auth.activeSucursal?.id_sucursal || auth.branchIds[0] || (auth.branches[0]?.id_sucursal ?? 1);
+      const cashierReservas = await this.prisma.reserva.findMany({
+        where: {
+          id_sucursal: cashierBranchId,
+          estado: { in: ['pendiente', 'Pendiente', 'confirmado'] },
+        },
+        include: {
+          cliente: true,
+          detalle_reserva: {
+            include: {
+              producto_variante: {
+                include: { producto: true },
+              },
+            },
+          },
+        },
+        take: 6,
+        orderBy: { fecha_reserva: 'desc' },
+      });
+      const reservasListasParaCobro = cashierReservas.map((r) => ({
+        id_reserva: r.id_reserva,
+        cliente: r.cliente ? `${r.cliente.nombre} ${r.cliente.apellido}` : 'Cliente Mostrador',
+        codigo: r.codigo,
+        total: r.detalle_reserva.reduce(
+          (acc, dr) =>
+            acc +
+            (Number(dr.producto_variante?.producto?.precio_base || 0) +
+              Number(dr.producto_variante?.precio_adicional || 0)) *
+              dr.cantidad,
+          0,
+        ),
+        prendas: r.detalle_reserva.map((dr) => dr.producto_variante?.producto?.nombre).filter(Boolean).join(', ') || 'Prenda en mostrador',
+      }));
+
+      roleDashboardData.cashier = {
+        kpis: {
+          totalCobradoTurno: Math.round(totalCobradoTurno * 100) / 100,
+          efectivoGaveta: Math.round(efectivoGaveta * 100) / 100,
+          cobrosDigitales: Math.round(cobrosDigitales * 100) / 100,
+          comprobantesEmitidos: effectiveCashierSales.length,
+        },
+        charts: {
+          metodosPagoTurno,
+        },
+        tables: {
+          ultimosCobros,
+          reservasListasParaCobro,
+        },
+      };
+    } else if (effectiveRole === 'customer') {
+      const customerId = user?.id_usuario;
+      const [customerSales, customerReservas, clienteInfo, promociones] = await Promise.all([
+        this.prisma.venta.findMany({
+          where: customerId ? { id_cliente: customerId } : {},
+          include: {
+            envio: true,
+            detalle_venta: {
+              include: {
+                producto_variante: {
+                  include: { producto: true },
+                },
+              },
+            },
+          },
+          take: 6,
+          orderBy: { fecha_venta: 'desc' },
+        }),
+        this.prisma.reserva.findMany({
+          where: customerId ? { id_cliente: customerId } : {},
+          include: {
+            sucursal: true,
+            detalle_reserva: {
+              include: {
+                producto_variante: {
+                  include: { producto: true },
+                },
+              },
+            },
+          },
+          take: 6,
+          orderBy: { fecha_reserva: 'desc' },
+        }),
+        customerId ? this.prisma.cliente.findUnique({ where: { id_cliente: customerId } }) : null,
+        this.prisma.promocion.findMany({
+          where: { estado: 'activo' },
+          take: 4,
+        }),
+      ]);
+
+      const pedidosActivos = customerSales.filter((v) => ['pendiente', 'en_proceso', 'enviado', 'completado'].includes(v.estado)).length;
+      const reservasListasRetiro = customerReservas.filter((r) => ['pendiente', 'confirmado'].includes(r.estado)).length;
+      const puntosFidelidad = clienteInfo?.puntos_fidelidad ?? 250;
+      const cuponesDisponibles = promociones.length;
+
+      const misPedidosRecientes = customerSales.map((v) => {
+        let trackingStep = 2;
+        const est = (v.estado || '').toLowerCase();
+        if (est === 'entregado' || est === 'completado') trackingStep = 4;
+        else if (est === 'enviado' || est === 'en_camino') trackingStep = 3;
+        else if (est === 'preparando' || est === 'confirmado') trackingStep = 2;
+        else trackingStep = 1;
+
+        return {
+          id_venta: v.id_venta,
+          codigo: v.codigo_factura || `PED-${v.id_venta}`,
+          fecha: v.fecha_venta.toISOString(),
+          total: Number(v.total || 0),
+          estado: v.estado,
+          trackingStep,
+        };
+      });
+
+      const misReservasActivas = customerReservas.map((r) => ({
+        id_reserva: r.id_reserva,
+        codigo: r.codigo,
+        sucursal: r.sucursal?.nombre || 'Sucursal Principal',
+        direccion: r.sucursal?.direccion || 'Av. Principal',
+        fecha_limite: r.horario_estimado ? r.horario_estimado.toISOString() : r.fecha_reserva.toISOString(),
+        total: r.detalle_reserva.reduce(
+          (acc, dr) =>
+            acc +
+            (Number(dr.producto_variante?.producto?.precio_base || 0) +
+              Number(dr.producto_variante?.precio_adicional || 0)) *
+              dr.cantidad,
+          0,
+        ),
+        estado: r.estado,
+        qrCodeValue: `RESERVA-${r.codigo}-${r.id_reserva}`,
+      }));
+
+      const cupones = promociones.map((p) => ({
+        id_promocion: p.id_promocion,
+        nombre: p.nombre,
+        descuento: p.tipo_descuento === 'porcentaje' ? `${p.valor_descuento}%` : `Bs. ${p.valor_descuento}`,
+        tipo: p.tipo_descuento,
+      }));
+
+      roleDashboardData.customer = {
+        kpis: {
+          pedidosActivos,
+          reservasListasRetiro,
+          puntosFidelidad,
+          cuponesDisponibles,
+        },
+        tables: {
+          misPedidosRecientes,
+          misReservasActivas,
+          cupones,
+        },
+      };
+    }
+
     const result = {
       periodo: periodoText,
       sucursalNombre: auth.isGlobal
         ? 'Todas las sucursales (Consolidado Global)'
         : auth.activeSucursal?.nombre || 'Sucursal Asignada',
+      roleDashboard: roleDashboardData,
       kpis: {
         totalVentas,
         totalIngresos,
@@ -452,6 +1001,32 @@ export class ReportsDashboardService {
     ReportsDashboardService.dashboardCache.set(cacheKey, { data: result, expiresAt: Date.now() + 30000 });
 
     return result;
+  }
+
+  /**
+   * Resuelve el rol efectivo para la renderización del dashboard:
+   * Los administradores pueden previsualizar cualquiera de los 4 dashboards enviando `requestedRoleView`.
+   */
+  private resolveUserRole(
+    user: any,
+    requestedRoleView?: string,
+  ): 'admin' | 'manager' | 'cashier' | 'customer' {
+    const roleId = Number(user?.id_rol || 1);
+    const roleName = String(user?.rol || '').toLowerCase();
+    const isAdmin = roleId === 1 || roleName.includes('admin');
+
+    if (isAdmin && requestedRoleView) {
+      const norm = requestedRoleView.toLowerCase().trim();
+      if (norm === 'manager' || norm === 'encargado') return 'manager';
+      if (norm === 'cashier' || norm === 'cajero') return 'cashier';
+      if (norm === 'customer' || norm === 'cliente') return 'customer';
+      if (norm === 'admin' || norm === 'administrador') return 'admin';
+    }
+
+    if (roleId === 4 || roleName.includes('cajero')) return 'cashier';
+    if (roleId === 3 || roleName.includes('encargado')) return 'manager';
+    if (roleId === 2 || roleName.includes('cliente')) return 'customer';
+    return 'admin';
   }
 
   // =========================================================================
@@ -576,12 +1151,12 @@ export class ReportsDashboardService {
       indicators,
       columns,
       rows,
-      chartData: {
-        ventasNetas,
-        ventasBrutas,
-        totalComprasProveedores,
-        descuentos,
-      },
+      chartData: [
+        { name: 'Ventas Brutas', total: ventasBrutas },
+        { name: 'Ventas Netas', total: ventasNetas },
+        { name: 'Compras Proveedores', total: totalComprasProveedores },
+        { name: 'Descuentos', total: descuentos },
+      ],
     };
   }
 

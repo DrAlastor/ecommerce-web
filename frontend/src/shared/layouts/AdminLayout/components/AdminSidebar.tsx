@@ -68,7 +68,10 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (idFuncion === 5) return '/admin/roles';
   if (idFuncion === 4) return '/admin/users';
   if (idFuncion === 29) return '/virtual-fitting/1';
-  if (idFuncion === 30 || idFuncion === 31 || idFuncion === 32 || idFuncion === 33) return '/admin/reports';
+  if (idFuncion === 30) return '/admin';
+  if (idFuncion === 31) return '/admin/reports';
+  if (idFuncion === 32) return '/admin/reports?tab=qbe';
+  if (idFuncion === 33) return '/admin/reports?tab=qbe';
 
   const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
   if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
@@ -86,7 +89,10 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (norm.includes('inventario')) return '/admin/inventario';
   if (norm.includes('venta') || norm.includes('pos') || norm.includes('presencial')) return '/pos';
   if (norm.includes('vestidor') || norm.includes('movil')) return '/virtual-fitting/1';
-  if (norm.includes('dashboard') || norm.includes('reporte') || norm.includes('inteligencia') || norm.includes('negocio') || norm.includes('qbe') || norm.includes('voz')) return '/admin/reports';
+  if (norm.includes('qbe') || norm.includes('dinamico') || norm.includes('ejemplo')) return '/admin/reports?tab=qbe';
+  if (norm.includes('predefinido') || norm.includes('avanzado') || norm.includes('centro')) return '/admin/reports';
+  if (norm.includes('dashboard')) return '/admin';
+  if (norm.includes('reporte') || norm.includes('inteligencia') || norm.includes('negocio') || norm.includes('voz')) return '/admin/reports';
   return '/admin';
 };
 
