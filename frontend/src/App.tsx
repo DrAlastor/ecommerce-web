@@ -89,10 +89,8 @@ function App() {
               <Route path="/dressly" element={<Navigate to="/store/dressly" replace />} />
               <Route path="/dressly/catalog" element={<Navigate to="/store/dressly/catalog" replace />} />
               <Route path="/dressly/login" element={<Navigate to="/store/dressly/login" replace />} />
-              <Route path="/store/dressly" element={<HomePage />} />
-              <Route path="/home" element={<HomePage />} />
-
-              <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/home" element={<Navigate to="/store/dressly" replace />} />
+              <Route path="/catalog" element={<Navigate to="/store/dressly/catalog" replace />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               {/* Vestidor Virtual 3D / RA (CU25) */}
               <Route path="/virtual-fitting/:productId" element={<VirtualFittingPage />} />

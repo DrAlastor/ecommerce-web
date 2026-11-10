@@ -27,10 +27,10 @@ export const CatalogPage: React.FC = () => {
 
   const rawTenant = params.tenant || 
     (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
-     (localStorage.getItem('tenantKey') || 'urbanly'));
+     (localStorage.getItem('tenantKey') || 'dressly'));
   const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive' 
     ? 'urbanly' 
-    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
   const storeHome = `/store/${currentTenant}`;
 
   const {

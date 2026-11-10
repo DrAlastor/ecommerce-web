@@ -28,13 +28,19 @@ export const Navbar: React.FC = () => {
 
   const rawTenant = params.tenant || 
     (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
-     (localStorage.getItem('tenantKey') || 'urbanly'));
+     (localStorage.getItem('tenantKey') || 'dressly'));
 
   const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive' 
     ? 'urbanly' 
-    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
 
   const TENANT_BRANDING: Record<string, { name: string; tagline: string; storePath: string; club: string; logoUrl?: string }> = {
+    'dressly': { 
+      name: 'DRESSLY', 
+      tagline: 'FASHION STORE', 
+      storePath: '/store/dressly', 
+      club: 'Dressly Club',
+    },
     'urbanly': { 
       name: 'URBANLY', 
       tagline: 'AESTHETIC STREETWEAR', 
@@ -48,15 +54,9 @@ export const Navbar: React.FC = () => {
       storePath: '/store/aura-sport', 
       club: 'Aura Athlete Club',
     },
-    'dressly': { 
-      name: 'DRESSLY', 
-      tagline: 'FASHION STORE', 
-      storePath: '/store/dressly', 
-      club: 'Dressly Club',
-    },
   };
 
-  const tenantBranding = TENANT_BRANDING[currentTenant] || TENANT_BRANDING['urbanly'];
+  const tenantBranding = TENANT_BRANDING[currentTenant] || TENANT_BRANDING['dressly'];
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);

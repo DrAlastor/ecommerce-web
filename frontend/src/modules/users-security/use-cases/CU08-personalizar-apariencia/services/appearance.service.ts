@@ -12,7 +12,13 @@ export interface AppearanceData {
   hero_description: string;
   hero_banner_url: string;
   hero_banner_secondary_url?: string;
+  promo1_tag?: string;
+  promo1_title?: string;
+  promo1_btn?: string;
   promo1_image_url?: string;
+  promo2_tag?: string;
+  promo2_title?: string;
+  promo2_btn?: string;
   promo2_image_url?: string;
   newsletter_banner_url?: string;
   logo_url?: string;

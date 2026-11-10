@@ -18,10 +18,16 @@ api.interceptors.request.use(
 
     // Resolver el tenant activo para garantizar aislamiento en cada petición HTTP
     let tenantKey = localStorage.getItem('tenantKey') || 'dressly';
-    const path = window.location.pathname;
+    const path = window.location.pathname.toLowerCase();
     const match = path.match(/\/(?:store|tenant)\/([a-zA-Z0-9_-]+)/i);
     if (match && match[1]) {
       tenantKey = match[1];
+    } else if (path.includes('urbanly') || path.includes('subversive')) {
+      tenantKey = 'urbanly';
+    } else if (path.includes('aura')) {
+      tenantKey = 'aura-sport';
+    } else if (path.includes('dressly')) {
+      tenantKey = 'dressly';
     }
 
     // Normalizar slug
@@ -30,6 +36,8 @@ api.interceptors.request.use(
       tenantKey = 'urbanly';
     } else if (tenantKey === 'aura') {
       tenantKey = 'aura-sport';
+    } else if (tenantKey === 'fashionstore') {
+      tenantKey = 'dressly';
     }
 
     config.headers['x-tenant-id'] = tenantKey;
