@@ -2,7 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from '@nes
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 import { CreateBackupDto, RestoreBackupDto } from './dto/backup.dto.js';
-import { BlobServiceClient, StorageSharedKeyCredential, ContainerClient } from '@azure/storage-blob';
+import type { ContainerClient } from '@azure/storage-blob';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -92,14 +92,14 @@ export class BackupService {
     }
   }
 
-  private getAzureContainerClient(): ContainerClient | null {
+  private async getAzureContainerClient(): Promise<ContainerClient | null> {
     const account = process.env.AZURE_STORAGE_ACCOUNT || 'fashionstorestorages';
     const key = process.env.AZURE_STORAGE_KEY;
     if (!account || !key) {
-      this.logger.warn('Azure Blob Storage credentials missing in environment.');
       return null;
     }
     try {
+      const { BlobServiceClient, StorageSharedKeyCredential } = await import('@azure/storage-blob');
       const credential = new StorageSharedKeyCredential(account, key);
       const blobServiceClient = new BlobServiceClient(
         `https://${account}.blob.core.windows.net`,
@@ -107,7 +107,7 @@ export class BackupService {
       );
       return blobServiceClient.getContainerClient('backups');
     } catch (err: any) {
-      this.logger.error(`Error connecting to Azure Blob Storage: ${err?.message}`);
+      this.logger.warn(`Azure Blob Storage no disponible: ${err?.message}`);
       return null;
     }
   }
@@ -168,7 +168,7 @@ export class BackupService {
     await this.bitacoraService.logAction('Consulta de Historial de Backups', 'backups', userId, ip);
 
     const manifest = this.readManifest();
-    const container = this.getAzureContainerClient();
+    const container = await this.getAzureContainerClient();
 
     // Sincronizar catálogo con Azure Blob Storage
     if (container) {
@@ -305,7 +305,7 @@ export class BackupService {
 
     // 5. Subir a Azure Blob Storage
     let storageUrl = `https://${process.env.AZURE_STORAGE_ACCOUNT || 'fashionstorestorages'}.blob.core.windows.net/backups/${filename}`;
-    const container = this.getAzureContainerClient();
+    const container = await this.getAzureContainerClient();
     if (container) {
       try {
         const blockBlobClient = container.getBlockBlobClient(filename);
@@ -372,7 +372,7 @@ export class BackupService {
     let buffer: Buffer | null = null;
 
     // Intentar leer de Azure Blob Storage primero
-    const container = this.getAzureContainerClient();
+    const container = await this.getAzureContainerClient();
     if (container) {
       try {
         const blockBlob = container.getBlockBlobClient(filename);
