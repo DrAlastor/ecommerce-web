@@ -11,6 +11,17 @@ export interface AppearanceData {
   hero_subheadline: string;
   hero_description: string;
   hero_banner_url: string;
+  hero_banner_secondary_url?: string;
+  promo1_tag?: string;
+  promo1_title?: string;
+  promo1_btn?: string;
+  promo1_image_url?: string;
+  promo2_tag?: string;
+  promo2_title?: string;
+  promo2_btn?: string;
+  promo2_image_url?: string;
+  newsletter_banner_url?: string;
+  logo_url?: string;
   badge: string;
   cta_primary_text?: string;
   cta_secondary_text?: string;
@@ -23,6 +34,8 @@ export interface AppearanceData {
   admin_sidebar_color?: string;
   admin_accent_color?: string;
   storefront_bg_color?: string;
+  storefront_page_bg?: string;
+  card_bg_color?: string;
   css_variables?: string;
   fecha_modificacion?: string;
 }

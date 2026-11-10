@@ -62,6 +62,7 @@ function AlertIcon() {
 }
 
 interface LoginFormProps {
+  tenant?: string;
   email: string;
   setEmail: (val: string) => void;
   password: string;
@@ -80,6 +81,7 @@ interface LoginFormProps {
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
+  tenant = 'urbanly',
   email,
   setEmail,
   password,
@@ -96,29 +98,32 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   validatePassword,
   onSubmit,
 }) => {
+  const brandTitle = tenant === 'urbanly' ? 'Urbanly' : (tenant === 'aura-sport' ? 'Aura Sport' : 'Dressly');
+  const brandTag = tenant === 'urbanly' ? 'Streetwear & Oversize' : (tenant === 'aura-sport' ? 'Athletics & Gear' : 'Fashion Store');
+
   return (
     <div className="login-form-panel">
       <div className="login-form-container">
         {/* Back button */}
         <div className="login-back-button-wrapper">
-          <Link to="/" className="login-back-button">
+          <Link to={`/store/${tenant}`} className="login-back-button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            <span>Volver al inicio</span>
+            <span>Volver a la tienda</span>
           </Link>
         </div>
 
         {/* Logo móvil */}
         <div className="login-mobile-logo">
-          <h1>Dressly</h1>
-          <span>Fashion Store</span>
+          <h1>{brandTitle}</h1>
+          <span>{brandTag}</span>
         </div>
 
         {/* Header */}
         <div className="login-header">
-          <h2>Bienvenido de vuelta</h2>
-          <p>Inicia sesión para continuar con tu experiencia</p>
+          <h2>Bienvenido a {brandTitle}</h2>
+          <p>Inicia sesión en tu cuenta de {brandTitle}</p>
         </div>
 
         {/* Alert de error general */}
@@ -207,7 +212,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           {/* Forgot password */}
           <div className="forgot-password-wrapper">
-            <Link to="/forgot-password" className="login-link">
+            <Link to={`/store/${tenant}/forgot-password`} className="login-link">
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
@@ -235,7 +240,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <p className="login-register-link">
           ¿No tienes una cuenta?
-          <Link to="/register">Crear cuenta</Link>
+          <Link to={`/store/${tenant}/register`}>Crear cuenta en {brandTitle}</Link>
         </p>
       </div>
     </div>

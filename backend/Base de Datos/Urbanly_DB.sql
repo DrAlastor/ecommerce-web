@@ -802,15 +802,14 @@ INSERT INTO TALLA (ID_TALLA, CODIGO) VALUES
 (1, 'S (Boxy)'), (2, 'M (Boxy)'), (3, 'L (Boxy)'), (4, 'XL (Boxy)'), (5, 'XXL (Oversize)'), (6, 'OS (One Size)')
 ON CONFLICT (CODIGO) DO NOTHING;
 
--- 6. COLOR
+-- 6. COLOR (Paleta Oficial Aesthetic Streetwear: Neutral Tones)
 INSERT INTO COLOR (ID_COLOR, NOMBRE, CODIGO_HEX) VALUES
 (1, 'Grafito Acid Black', '#18181B'),
-(2, 'Ámbar Industrial', '#F59E0B'),
-(3, 'Crudo Vintage Off-White', '#F4F4F5'),
-(4, 'Verde Militar Washed', '#4D5645'),
-(5, 'Gris Cemento', '#71717A'),
-(6, 'Rojo Sangre Deep', '#991B1B')
-ON CONFLICT (ID_COLOR) DO NOTHING;
+(2, 'Sand / Beige Cálido', '#C4B49E'),
+(3, 'Crudo Vintage Off-White', '#F4F4F2'),
+(4, 'Verde Oliva Washed', '#4D5645'),
+(5, 'Gris Carbón Asfalto', '#38383A')
+ON CONFLICT (ID_COLOR) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, CODIGO_HEX = EXCLUDED.CODIGO_HEX;
 
 -- 7. MODULO (6 Módulos del Sistema SaaS)
 INSERT INTO MODULO (ID_MODULO, NOMBRE, DESCRIPCION) VALUES
@@ -832,8 +831,8 @@ ON CONFLICT (ID_ROL) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, PERMISO = EXCLUDED.
 
 -- 9. PROMOCION
 INSERT INTO PROMOCION (ID_PROMOCION, NOMBRE, LIMITE_USOS, USOS_ACTUALES, TIPO_DESCUENTO, VALOR_DESCUENTO, FECHA_INICIO, FECHA_FIN, ESTADO) VALUES
-(1, 'Early Drop Access 10%', 200, 35, 'PORCENTAJE', 10.00, '2026-01-01', '2026-12-31', 'activo'),
-(2, 'Black Cargo Fest 25%', 150, 18, 'PORCENTAJE', 25.00, '2026-02-15', '2026-11-30', 'activo')
+(1, 'Early Drop Access 10%', 200, 35, 'porcentaje', 10.00, '2026-01-01', '2026-12-31', 'activo'),
+(2, 'Black Cargo Fest 25%', 150, 18, 'porcentaje', 25.00, '2026-02-15', '2026-11-30', 'activo')
 ON CONFLICT (ID_PROMOCION) DO NOTHING;
 
 -- 10. SUCURSAL
@@ -906,11 +905,11 @@ ON CONFLICT (ID_FUNCION) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = E
 -- | Cliente       | camila.urban@gmail.com              | Cliente123*              |
 -- ============================================================================
 INSERT INTO USUARIO (ID_USUARIO, EMAIL, PASSWORD_HASH, ESTADO, ID_ROL) VALUES
-(1, 'admin@urbanly.bo', '$2b$10$dncfzXeXm93/Ze23m.0H2e7c31fP4.CsYkJ0zQeY2BbdfPu9OEj4O', 'ACTIVO', 1),
-(2, 'manager.lpz@urbanly.bo', '$2b$10$oHSA7rzwZOjuZv8eArglNeAC9R1akU4Kd2c5LHJyCOXuCwfbA89NW', 'ACTIVO', 3),
-(3, 'cajero.sopocachi@urbanly.bo', '$2b$10$gBXqnYQ7dNrxU9RK1daGLeZ4UdECuu/7hd6mnvMJp8vU5CHFMUUfO', 'ACTIVO', 4),
-(4, 'santiago.street@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'ACTIVO', 2),
-(5, 'camila.urban@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'ACTIVO', 2)
+(1, 'admin@urbanly.bo', '$2b$10$dncfzXeXm93/Ze23m.0H2e7c31fP4.CsYkJ0zQeY2BbdfPu9OEj4O', 'activo', 1),
+(2, 'manager.lpz@urbanly.bo', '$2b$10$oHSA7rzwZOjuZv8eArglNeAC9R1akU4Kd2c5LHJyCOXuCwfbA89NW', 'activo', 3),
+(3, 'cajero.sopocachi@urbanly.bo', '$2b$10$gBXqnYQ7dNrxU9RK1daGLeZ4UdECuu/7hd6mnvMJp8vU5CHFMUUfO', 'activo', 4),
+(4, 'santiago.street@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(5, 'camila.urban@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2)
 ON CONFLICT (ID_USUARIO) DO NOTHING;
 
 -- 15. ROL_FUNCION
@@ -935,9 +934,9 @@ ON CONFLICT (ID_CLIENTE) DO NOTHING;
 
 -- 17. EMPLEADO
 INSERT INTO EMPLEADO (ID_EMPLEADO, CODIGO_EMPLEADO, CI, NOMBRE, APELLIDO, TELEFONO, FECHA_CONTRATACION, ESTADO) VALUES
-(1, 'EMP-URB-001', '77665544', 'Nicolás', 'Prado Estrada', '76001110', '2026-01-05', 'ACTIVO'),
-(2, 'EMP-URB-002', '66554433', 'Flavia', 'Lozada Crespo', '76001120', '2026-01-12', 'ACTIVO'),
-(3, 'EMP-URB-003', '55443322', 'Esteban', 'Camacho Terán', '77002210', '2026-02-01', 'ACTIVO')
+(1, 'EMP-URB-001', '77665544', 'Nicolás', 'Prado Estrada', '76001110', '2026-01-05', 'activo'),
+(2, 'EMP-URB-002', '66554433', 'Flavia', 'Lozada Crespo', '76001120', '2026-01-12', 'activo'),
+(3, 'EMP-URB-003', '55443322', 'Esteban', 'Camacho Terán', '77002210', '2026-02-01', 'activo')
 ON CONFLICT (ID_EMPLEADO) DO NOTHING;
 
 -- 18. EMPLEADO_SUCURSAL
@@ -954,57 +953,71 @@ ON CONFLICT (ID_DIRECCION) DO NOTHING;
 -- 20. PRODUCTO (Catálogo Equilibrado: 5 Productos Hombre + 5 Productos Mujer)
 INSERT INTO PRODUCTO (ID_PRODUCTO, NOMBRE, DESCRIPCION, PRECIO_BASE, GENERO, ESTADO, ID_CATEGORIA, ID_COLECCION) VALUES
 -- HOMBRE
-(1, 'Hoodie Boxy 500GSM Acid Black Hombre', 'Sudadera pesada masculina con capucha de doble capa y corte boxy desestructurado.', 450.00, 'Masculino', 'ACTIVO', 5, 1),
-(2, 'Pantalón Cargo Táctico Multi-Pocket Hombre', 'Pantalón utilitario masculino en lona de algodón reforzada con 8 bolsillos.', 380.00, 'Masculino', 'ACTIVO', 6, 1),
-(3, 'Polera Oversize Vintage Washed Hombre', 'Camiseta masculina con cuello grueso de 3cm y lavado vintage desgastado.', 220.00, 'Masculino', 'ACTIVO', 9, 1),
-(4, 'Chaqueta Bomber Industrial MA-1 Hombre', 'Chaqueta militar acolchada masculina de corte holgado con forro naranja.', 580.00, 'Masculino', 'ACTIVO', 3, 3),
-(5, 'Jeans Wide-Leg Raw Indigo Denim Hombre', 'Pantalón vaquero ancho masculino confeccionado en denim japonés de 14.5 oz.', 390.00, 'Masculino', 'ACTIVO', 1, 1),
+(1, 'Hoodie Boxy 500GSM Acid Black Hombre', 'Sudadera pesada masculina con capucha de doble capa y corte boxy desestructurado.', 450.00, 'Masculino', 'activo', 5, 1),
+(2, 'Pantalón Cargo Táctico Multi-Pocket Hombre', 'Pantalón utilitario masculino en lona de algodón reforzada con 8 bolsillos.', 380.00, 'Masculino', 'activo', 6, 1),
+(3, 'Polera Oversize Vintage Washed Hombre', 'Camiseta masculina con cuello grueso de 3cm y lavado vintage desgastado.', 220.00, 'Masculino', 'activo', 9, 1),
+(4, 'Chaqueta Bomber Industrial MA-1 Hombre', 'Chaqueta militar acolchada masculina de corte holgado con forro naranja.', 580.00, 'Masculino', 'activo', 3, 3),
+(5, 'Jeans Wide-Leg Raw Indigo Denim Hombre', 'Pantalón vaquero ancho masculino confeccionado en denim japonés de 14.5 oz.', 390.00, 'Masculino', 'activo', 1, 1),
 -- MUJER
-(6, 'Hoodie Cropped Boxy 500GSM Mujer', 'Sudadera pesada femenina con corte cropped y dobladillo en canalé grueso.', 430.00, 'Femenino', 'ACTIVO', 7, 2),
-(7, 'Pantalón Parachute Cargo Street Mujer', 'Pantalón ancho femenino con elásticos ajustables en cintura y botamanga.', 360.00, 'Femenino', 'ACTIVO', 8, 2),
-(8, 'Polera Boxy Heavyweight Washed Mujer', 'Camiseta femenina con silueta boxy y serigrafía frontal texturizada.', 210.00, 'Femenino', 'ACTIVO', 2, 2),
-(9, 'Chaqueta Bomber Oversize MA-1 Mujer', 'Chaqueta bomber holgada femenina con acabados en satén industrial negro.', 560.00, 'Femenino', 'ACTIVO', 3, 3),
-(10, 'Vestido Hoodie Oversize Fleece Mujer', 'Vestido tipo sudadera femenina en felpa pesada de tacto suave.', 390.00, 'Femenino', 'ACTIVO', 2, 2)
+(6, 'Hoodie Cropped Boxy 500GSM Mujer', 'Sudadera pesada femenina con corte cropped y dobladillo en canalé grueso.', 430.00, 'Femenino', 'activo', 7, 2),
+(7, 'Pantalón Parachute Cargo Street Mujer', 'Pantalón ancho femenino con elásticos ajustables en cintura y botamanga.', 360.00, 'Femenino', 'activo', 8, 2),
+(8, 'Polera Boxy Heavyweight Washed Mujer', 'Camiseta femenina con silueta boxy y serigrafía frontal texturizada.', 210.00, 'Femenino', 'activo', 2, 2),
+(9, 'Chaqueta Bomber Oversize MA-1 Mujer', 'Chaqueta bomber holgada femenina con acabados en satén industrial negro.', 560.00, 'Femenino', 'activo', 3, 3),
+(10, 'Vestido Hoodie Oversize Fleece Mujer', 'Vestido tipo sudadera femenina en felpa pesada de tacto suave.', 390.00, 'Femenino', 'activo', 2, 2)
 ON CONFLICT (ID_PRODUCTO) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, PRECIO_BASE = EXCLUDED.PRECIO_BASE;
 
 -- 21. PROVEEDOR_PRODUCTO
 INSERT INTO PROVEEDOR_PRODUCTO (COSTO_REFERENCIA, ESTADO, ID_PROVEEDOR, ID_PRODUCTO) VALUES
-(220.00, 'ACTIVO', 1, 1),
-(180.00, 'ACTIVO', 2, 2),
-(95.00, 'ACTIVO', 1, 3),
-(290.00, 'ACTIVO', 3, 4),
-(185.00, 'ACTIVO', 4, 5),
-(210.00, 'ACTIVO', 1, 6),
-(170.00, 'ACTIVO', 2, 7),
-(90.00, 'ACTIVO', 1, 8),
-(280.00, 'ACTIVO', 3, 9),
-(190.00, 'ACTIVO', 1, 10)
+(220.00, 'activo', 1, 1),
+(180.00, 'activo', 2, 2),
+(95.00, 'activo', 1, 3),
+(290.00, 'activo', 3, 4),
+(185.00, 'activo', 4, 5),
+(210.00, 'activo', 1, 6),
+(170.00, 'activo', 2, 7),
+(90.00, 'activo', 1, 8),
+(280.00, 'activo', 3, 9),
+(190.00, 'activo', 1, 10)
 ON CONFLICT (ID_PROVEEDOR, ID_PRODUCTO) DO NOTHING;
 
--- 22. PRODUCTO_VARIANTE
+-- 22. PRODUCTO_VARIANTE (Variantes con URLs oficiales alojadas en Microsoft Azure Blob Storage)
 INSERT INTO PRODUCTO_VARIANTE (ID_PRODUCTO_VARIANTE, SKU, PRECIO_ADICIONAL, MODELO_3D_URL, IMAGEN_URL, ESTADO, ID_PRODUCTO, ID_COLOR, ID_TALLA) VALUES
-(1, 'URB-HOD-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 1, 1, 2),
-(2, 'URB-HOD-BLK-L', 0.00, NULL, NULL, 'ACTIVO', 1, 1, 3),
-(3, 'URB-CRG-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 2, 1, 2),
-(4, 'URB-CRG-MIL-L', 0.00, NULL, NULL, 'ACTIVO', 2, 4, 3),
-(5, 'URB-TEE-OFF-M', 0.00, NULL, NULL, 'ACTIVO', 3, 3, 2),
-(6, 'URB-BOM-BLK-L', 0.00, NULL, NULL, 'ACTIVO', 4, 1, 3),
-(7, 'URB-JNS-RAW-M', 0.00, NULL, NULL, 'ACTIVO', 5, 1, 2),
-(8, 'URB-HODW-OFF-S', 0.00, NULL, NULL, 'ACTIVO', 6, 3, 1),
-(9, 'URB-HODW-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 6, 1, 2),
-(10, 'URB-PRCW-MIL-S', 0.00, NULL, NULL, 'ACTIVO', 7, 4, 1),
-(11, 'URB-BOMW-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 9, 1, 2),
-(12, 'URB-VSTW-BLK-S', 0.00, NULL, NULL, 'ACTIVO', 10, 1, 1)
-ON CONFLICT (ID_PRODUCTO_VARIANTE) DO NOTHING;
+(1, 'URB-HOD-BLK-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/hoodie_boxy_negra.png', 'activo', 1, 1, 2),
+(2, 'URB-HOD-BLK-L', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/hoodie_boxy_negra.png', 'activo', 1, 1, 3),
+(3, 'URB-HOD-SND-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/hoodie_boxy_beige.png', 'activo', 1, 2, 2),
+(4, 'URB-CRG-BLK-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_cargo_negro.png', 'activo', 2, 1, 2),
+(5, 'URB-CRG-MIL-L', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_cargo_verde.png', 'activo', 2, 4, 3),
+(6, 'URB-CRG-SND-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_cargo_beige.png', 'activo', 2, 2, 2),
+(7, 'URB-TEE-OFF-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_oversize_crema.png', 'activo', 3, 3, 2),
+(8, 'URB-TEE-SND-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_oversize_beige.png', 'activo', 3, 2, 2),
+(9, 'URB-TEE-MIL-L', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_oversize_verde.png', 'activo', 3, 4, 3),
+(10, 'URB-TEE-BLK-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_oversize_carbon.png', 'activo', 3, 1, 2),
+(11, 'URB-BOM-BLK-L', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/chaqueta_bomberH_negro.png', 'activo', 4, 1, 3),
+(12, 'URB-JNS-RAW-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/jeans_wideleg_negro.png', 'activo', 5, 1, 2),
+(13, 'URB-HODW-OFF-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/hoodie_cropped_blanco.png', 'activo', 6, 3, 1),
+(14, 'URB-HODW-BLK-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/hoodie_cropped_negro.png', 'activo', 6, 1, 2),
+(15, 'URB-PRCW-MIL-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_parachute_verde.png', 'activo', 7, 4, 1),
+(16, 'URB-PRCW-SND-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/pantalon_parachute_beige.png', 'activo', 7, 2, 1),
+(17, 'URB-TEEW-SND-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_boxy_beige.png', 'activo', 8, 2, 1),
+(18, 'URB-TEEW-OFF-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_boxy_blanco.png', 'activo', 8, 3, 1),
+(19, 'URB-TEEW-BLK-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/polera_boxy_negro.png', 'activo', 8, 1, 1),
+(20, 'URB-BOMW-BLK-M', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/chaqueta_bomberM_negro.png', 'activo', 9, 1, 2),
+(21, 'URB-VSTW-BLK-S', 0.00, NULL, 'https://fashionstorestorages.blob.core.windows.net/variantes/vestido_hoodie_negro.png', 'activo', 10, 1, 1)
+ON CONFLICT (ID_PRODUCTO_VARIANTE) DO UPDATE SET IMAGEN_URL = EXCLUDED.IMAGEN_URL;
 
--- 23. IMAGEN_PRODUCTO
+-- 23. IMAGEN_PRODUCTO (Portadas Oficiales de los 10 Productos de Urbanly)
 INSERT INTO IMAGEN_PRODUCTO (ID_IMAGEN_PRODUCTO, URL, TEXTO_ALTERNATIVO, ES_PRINCIPAL, ORDEN, ID_PRODUCTO) VALUES
-(1, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'Hoodie Boxy 500GSM Acid Black Hombre', TRUE, 1, 1),
-(2, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'Pantalón Cargo Táctico Multi-Pocket Hombre', TRUE, 1, 2),
-(3, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'Hoodie Cropped Boxy 500GSM Mujer', TRUE, 1, 6),
-(4, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'Pantalón Parachute Cargo Street Mujer', TRUE, 1, 7),
-(5, 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg', 'Chaqueta Bomber Industrial MA-1 Hombre', TRUE, 1, 4)
-ON CONFLICT (ID_IMAGEN_PRODUCTO) DO NOTHING;
+(1, 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png', 'Hoodie Boxy 500GSM Acid Black Hombre', TRUE, 1, 1),
+(2, 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_cargo.png', 'Pantalón Cargo Táctico Multi-Pocket Hombre', TRUE, 1, 2),
+(3, 'https://fashionstorestorages.blob.core.windows.net/productos/polera_oversize.png', 'Polera Oversize Vintage Washed Hombre', TRUE, 1, 3),
+(4, 'https://fashionstorestorages.blob.core.windows.net/productos/chaqueta_bomberH.png', 'Chaqueta Bomber Industrial MA-1 Hombre', TRUE, 1, 4),
+(5, 'https://fashionstorestorages.blob.core.windows.net/productos/jeans_wideleg.png', 'Jeans Wide-Leg Raw Indigo Denim Hombre', TRUE, 1, 5),
+(6, 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_cropped.png', 'Hoodie Cropped Boxy 500GSM Mujer', TRUE, 1, 6),
+(7, 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_parachute.png', 'Pantalón Parachute Cargo Street Mujer', TRUE, 1, 7),
+(8, 'https://fashionstorestorages.blob.core.windows.net/productos/polera_boxy.png', 'Polera Boxy Heavyweight Washed Mujer', TRUE, 1, 8),
+(9, 'https://fashionstorestorages.blob.core.windows.net/productos/chaqueta_bomberM.png', 'Chaqueta Bomber Oversize MA-1 Mujer', TRUE, 1, 9),
+(10, 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_hoodie.png', 'Vestido Hoodie Oversize Fleece Mujer', TRUE, 1, 10)
+ON CONFLICT (ID_IMAGEN_PRODUCTO) DO UPDATE SET URL = EXCLUDED.URL, TEXTO_ALTERNATIVO = EXCLUDED.TEXTO_ALTERNATIVO;
 
 -- 24. PROMOCION_PRODUCTO
 INSERT INTO PROMOCION_PRODUCTO (ID_PROMOCION, ID_PRODUCTO) VALUES

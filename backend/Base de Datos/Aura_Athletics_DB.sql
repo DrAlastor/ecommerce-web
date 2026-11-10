@@ -835,8 +835,8 @@ ON CONFLICT (ID_ROL) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, PERMISO = EXCLUDED.
 
 -- 9. PROMOCION
 INSERT INTO PROMOCION (ID_PROMOCION, NOMBRE, LIMITE_USOS, USOS_ACTUALES, TIPO_DESCUENTO, VALOR_DESCUENTO, FECHA_INICIO, FECHA_FIN, ESTADO) VALUES
-(1, 'Promo Lanzamiento Atleta 15%', 500, 42, 'PORCENTAJE', 15.00, '2026-01-01', '2026-12-31', 'activo'),
-(2, 'Running Fest 20% Off', 300, 15, 'PORCENTAJE', 20.00, '2026-02-01', '2026-11-30', 'activo')
+(1, 'Promo Lanzamiento Atleta 15%', 500, 42, 'porcentaje', 15.00, '2026-01-01', '2026-12-31', 'activo'),
+(2, 'Running Fest 20% Off', 300, 15, 'porcentaje', 20.00, '2026-02-01', '2026-11-30', 'activo')
 ON CONFLICT (ID_PROMOCION) DO NOTHING;
 
 -- 10. SUCURSAL
@@ -909,11 +909,11 @@ ON CONFLICT (ID_FUNCION) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, DESCRIPCION = E
 -- | Cliente       | valeria.fitness@gmail.com   | Cliente123*              |
 -- ============================================================================
 INSERT INTO USUARIO (ID_USUARIO, EMAIL, PASSWORD_HASH, ESTADO, ID_ROL) VALUES
-(1, 'admin@aurasport.bo', '$2b$10$dncfzXeXm93/Ze23m.0H2e7c31fP4.CsYkJ0zQeY2BbdfPu9OEj4O', 'ACTIVO', 1),
-(2, 'encargado.scz@aurasport.bo', '$2b$10$oHSA7rzwZOjuZv8eArglNeAC9R1akU4Kd2c5LHJyCOXuCwfbA89NW', 'ACTIVO', 3),
-(3, 'cajero.scz@aurasport.bo', '$2b$10$gBXqnYQ7dNrxU9RK1daGLeZ4UdECuu/7hd6mnvMJp8vU5CHFMUUfO', 'ACTIVO', 4),
-(4, 'mateo.running@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'ACTIVO', 2),
-(5, 'valeria.fitness@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'ACTIVO', 2)
+(1, 'admin@aurasport.bo', '$2b$10$dncfzXeXm93/Ze23m.0H2e7c31fP4.CsYkJ0zQeY2BbdfPu9OEj4O', 'activo', 1),
+(2, 'encargado.scz@aurasport.bo', '$2b$10$oHSA7rzwZOjuZv8eArglNeAC9R1akU4Kd2c5LHJyCOXuCwfbA89NW', 'activo', 3),
+(3, 'cajero.scz@aurasport.bo', '$2b$10$gBXqnYQ7dNrxU9RK1daGLeZ4UdECuu/7hd6mnvMJp8vU5CHFMUUfO', 'activo', 4),
+(4, 'mateo.running@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2),
+(5, 'valeria.fitness@gmail.com', '$2b$10$Ov48XR1bmdxp02q/tj2awOCje5fCCMatkUrgL.3NWKqlpyNd0TEK.', 'activo', 2)
 ON CONFLICT (ID_USUARIO) DO NOTHING;
 
 -- 15. ROL_FUNCION
@@ -938,9 +938,9 @@ ON CONFLICT (ID_CLIENTE) DO NOTHING;
 
 -- 17. EMPLEADO
 INSERT INTO EMPLEADO (ID_EMPLEADO, CODIGO_EMPLEADO, CI, NOMBRE, APELLIDO, TELEFONO, FECHA_CONTRATACION, ESTADO) VALUES
-(1, 'EMP-AURA-001', '65432109', 'Carlos', 'Gutiérrez Alba', '71002210', '2026-01-10', 'ACTIVO'),
-(2, 'EMP-AURA-002', '54321098', 'Daniela', 'Paredes Silva', '72003320', '2026-01-15', 'ACTIVO'),
-(3, 'EMP-AURA-003', '43210987', 'Jorge', 'Navarro Flores', '73004430', '2026-02-01', 'ACTIVO')
+(1, 'EMP-AURA-001', '65432109', 'Carlos', 'Gutiérrez Alba', '71002210', '2026-01-10', 'activo'),
+(2, 'EMP-AURA-002', '54321098', 'Daniela', 'Paredes Silva', '72003320', '2026-01-15', 'activo'),
+(3, 'EMP-AURA-003', '43210987', 'Jorge', 'Navarro Flores', '73004430', '2026-02-01', 'activo')
 ON CONFLICT (ID_EMPLEADO) DO NOTHING;
 
 -- 18. EMPLEADO_SUCURSAL
@@ -957,48 +957,48 @@ ON CONFLICT (ID_DIRECCION) DO NOTHING;
 -- 20. PRODUCTO (Catálogo Equilibrado: 5 Productos Mujer + 5 Productos Hombre)
 INSERT INTO PRODUCTO (ID_PRODUCTO, NOMBRE, DESCRIPCION, PRECIO_BASE, GENERO, ESTADO, ID_CATEGORIA, ID_COLECCION) VALUES
 -- MUJER
-(1, 'Leggings High-Waist Seamless Pro Mujer', 'Mallas de compresión anatómica de 4 vías con pretina ancha reforzada anti-deslizamiento.', 280.00, 'Femenino', 'ACTIVO', 7, 2),
-(2, 'Top Deportivo Ultra-Support Bra Mujer', 'Sujetador deportivo con copas moldeadas transpirables y tirantes ergonómicos cruzados.', 180.00, 'Femenino', 'ACTIVO', 8, 2),
-(3, 'Shorts Running 2-en-1 Mujer Pro', 'Pantalón corto femenino con licra interna compresiva y bolsillo oculto.', 190.00, 'Femenino', 'ACTIVO', 7, 2),
-(4, 'Zapatillas Running Falcon Speed Mujer', 'Calzado técnico ultraligero con suela reactiva amortiguada para mujer.', 620.00, 'Femenino', 'ACTIVO', 10, 2),
-(5, 'Chaqueta Cortaviento Térmica Mujer', 'Chaqueta rompevientos ultraligera femenina con capucha y ventilación lateral.', 350.00, 'Femenino', 'ACTIVO', 2, 2),
+(1, 'Leggings High-Waist Seamless Pro Mujer', 'Mallas de compresión anatómica de 4 vías con pretina ancha reforzada anti-deslizamiento.', 280.00, 'Femenino', 'activo', 7, 2),
+(2, 'Top Deportivo Ultra-Support Bra Mujer', 'Sujetador deportivo con copas moldeadas transpirables y tirantes ergonómicos cruzados.', 180.00, 'Femenino', 'activo', 8, 2),
+(3, 'Shorts Running 2-en-1 Mujer Pro', 'Pantalón corto femenino con licra interna compresiva y bolsillo oculto.', 190.00, 'Femenino', 'activo', 7, 2),
+(4, 'Zapatillas Running Falcon Speed Mujer', 'Calzado técnico ultraligero con suela reactiva amortiguada para mujer.', 620.00, 'Femenino', 'activo', 10, 2),
+(5, 'Chaqueta Cortaviento Térmica Mujer', 'Chaqueta rompevientos ultraligera femenina con capucha y ventilación lateral.', 350.00, 'Femenino', 'activo', 2, 2),
 -- HOMBRE
-(6, 'Camiseta Dry-Fit Pro Performance Hombre', 'Camiseta técnica ultraligera masculina de secado rápido con microperforaciones.', 195.00, 'Masculino', 'ACTIVO', 5, 1),
-(7, 'Shorts Running 2-en-1 con Malla Hombre', 'Pantalón corto con licra interna compresiva y bolsillo para móvil.', 220.00, 'Masculino', 'ACTIVO', 6, 1),
-(8, 'Mallas de Compresión Térmica Hombre', 'Mallas largas de compresión muscular para entrenamientos y levantamiento de pesas.', 240.00, 'Masculino', 'ACTIVO', 6, 1),
-(9, 'Zapatillas Running Falcon Speed Hombre', 'Calzado técnico masculino con placa estabilizadora y amortiguación Nitro.', 650.00, 'Masculino', 'ACTIVO', 9, 1),
-(10, 'Sudadera Técnica con Capucha Hombre', 'Sudadera fleece térmica transpirable masculina con orificios para pulgares.', 340.00, 'Masculino', 'ACTIVO', 1, 3)
+(6, 'Camiseta Dry-Fit Pro Performance Hombre', 'Camiseta técnica ultraligera masculina de secado rápido con microperforaciones.', 195.00, 'Masculino', 'activo', 5, 1),
+(7, 'Shorts Running 2-en-1 con Malla Hombre', 'Pantalón corto con licra interna compresiva y bolsillo para móvil.', 220.00, 'Masculino', 'activo', 6, 1),
+(8, 'Mallas de Compresión Térmica Hombre', 'Mallas largas de compresión muscular para entrenamientos y levantamiento de pesas.', 240.00, 'Masculino', 'activo', 6, 1),
+(9, 'Zapatillas Running Falcon Speed Hombre', 'Calzado técnico masculino con placa estabilizadora y amortiguación Nitro.', 650.00, 'Masculino', 'activo', 9, 1),
+(10, 'Sudadera Técnica con Capucha Hombre', 'Sudadera fleece térmica transpirable masculina con orificios para pulgares.', 340.00, 'Masculino', 'activo', 1, 3)
 ON CONFLICT (ID_PRODUCTO) DO UPDATE SET NOMBRE = EXCLUDED.NOMBRE, PRECIO_BASE = EXCLUDED.PRECIO_BASE;
 
 -- 21. PROVEEDOR_PRODUCTO
 INSERT INTO PROVEEDOR_PRODUCTO (COSTO_REFERENCIA, ESTADO, ID_PROVEEDOR, ID_PRODUCTO) VALUES
-(140.00, 'ACTIVO', 3, 1),
-(85.00, 'ACTIVO', 3, 2),
-(95.00, 'ACTIVO', 1, 3),
-(310.00, 'ACTIVO', 4, 4),
-(170.00, 'ACTIVO', 2, 5),
-(95.00, 'ACTIVO', 1, 6),
-(110.00, 'ACTIVO', 1, 7),
-(120.00, 'ACTIVO', 3, 8),
-(320.00, 'ACTIVO', 4, 9),
-(165.00, 'ACTIVO', 1, 10)
+(140.00, 'activo', 3, 1),
+(85.00, 'activo', 3, 2),
+(95.00, 'activo', 1, 3),
+(310.00, 'activo', 4, 4),
+(170.00, 'activo', 2, 5),
+(95.00, 'activo', 1, 6),
+(110.00, 'activo', 1, 7),
+(120.00, 'activo', 3, 8),
+(320.00, 'activo', 4, 9),
+(165.00, 'activo', 1, 10)
 ON CONFLICT (ID_PROVEEDOR, ID_PRODUCTO) DO NOTHING;
 
 -- 22. PRODUCTO_VARIANTE (Variantes con SKUs, Tallas y Colores)
 INSERT INTO PRODUCTO_VARIANTE (ID_PRODUCTO_VARIANTE, SKU, PRECIO_ADICIONAL, MODELO_3D_URL, IMAGEN_URL, ESTADO, ID_PRODUCTO, ID_COLOR, ID_TALLA) VALUES
-(1, 'AURA-LEG-BLK-S', 0.00, NULL, NULL, 'ACTIVO', 1, 1, 2),
-(2, 'AURA-LEG-CYN-M', 0.00, NULL, NULL, 'ACTIVO', 1, 2, 3),
-(3, 'AURA-TOP-CYN-S', 0.00, NULL, NULL, 'ACTIVO', 2, 2, 2),
-(4, 'AURA-TOP-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 2, 1, 3),
-(5, 'AURA-SHW-BLK-S', 0.00, NULL, NULL, 'ACTIVO', 3, 1, 2),
-(6, 'AURA-ZPW-38', 0.00, NULL, NULL, 'ACTIVO', 4, 7, 9),
-(7, 'AURA-CTW-CYN-M', 0.00, NULL, NULL, 'ACTIVO', 5, 2, 3),
-(8, 'AURA-CAM-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 6, 1, 3),
-(9, 'AURA-CAM-CYN-L', 0.00, NULL, NULL, 'ACTIVO', 6, 2, 4),
-(10, 'AURA-SHM-BLK-M', 0.00, NULL, NULL, 'ACTIVO', 7, 1, 3),
-(11, 'AURA-MLM-BLK-L', 0.00, NULL, NULL, 'ACTIVO', 8, 1, 4),
-(12, 'AURA-ZPM-42', 0.00, NULL, NULL, 'ACTIVO', 9, 1, 13),
-(13, 'AURA-SDM-GRY-L', 0.00, NULL, NULL, 'ACTIVO', 10, 5, 4)
+(1, 'AURA-LEG-BLK-S', 0.00, NULL, NULL, 'activo', 1, 1, 2),
+(2, 'AURA-LEG-CYN-M', 0.00, NULL, NULL, 'activo', 1, 2, 3),
+(3, 'AURA-TOP-CYN-S', 0.00, NULL, NULL, 'activo', 2, 2, 2),
+(4, 'AURA-TOP-BLK-M', 0.00, NULL, NULL, 'activo', 2, 1, 3),
+(5, 'AURA-SHW-BLK-S', 0.00, NULL, NULL, 'activo', 3, 1, 2),
+(6, 'AURA-ZPW-38', 0.00, NULL, NULL, 'activo', 4, 7, 9),
+(7, 'AURA-CTW-CYN-M', 0.00, NULL, NULL, 'activo', 5, 2, 3),
+(8, 'AURA-CAM-BLK-M', 0.00, NULL, NULL, 'activo', 6, 1, 3),
+(9, 'AURA-CAM-CYN-L', 0.00, NULL, NULL, 'activo', 6, 2, 4),
+(10, 'AURA-SHM-BLK-M', 0.00, NULL, NULL, 'activo', 7, 1, 3),
+(11, 'AURA-MLM-BLK-L', 0.00, NULL, NULL, 'activo', 8, 1, 4),
+(12, 'AURA-ZPM-42', 0.00, NULL, NULL, 'activo', 9, 1, 13),
+(13, 'AURA-SDM-GRY-L', 0.00, NULL, NULL, 'activo', 10, 5, 4)
 ON CONFLICT (ID_PRODUCTO_VARIANTE) DO NOTHING;
 
 -- 23. IMAGEN_PRODUCTO

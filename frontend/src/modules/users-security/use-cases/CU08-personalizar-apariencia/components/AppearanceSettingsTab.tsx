@@ -37,6 +37,8 @@ interface ThemePresetItem {
   ctaPrimary: string;
   ctaSecondary: string;
   heroBannerUrl: string;
+  storefrontPageBg?: string;
+  storefrontBg?: string;
 }
 
 const PRESET_PALETTES: Record<string, ThemePresetItem[]> = {
@@ -58,6 +60,28 @@ const PRESET_PALETTES: Record<string, ThemePresetItem[]> = {
       ctaPrimary: 'Comprar Ahora',
       ctaSecondary: 'Ver Lookbook',
       heroBannerUrl: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
+      storefrontPageBg: '#FAF8F5',
+      storefrontBg: '#F8F5F1',
+    },
+    {
+      id: 'dressly-crimson',
+      name: 'Crimson & Noir (Rojo & Negro)',
+      primary: '#DC2626',
+      secondary: '#EF4444',
+      accent: '#991B1B',
+      adminSidebar: '#0F0F10',
+      adminAccent: '#DC2626',
+      font: 'Playfair Display, Georgia, serif',
+      tagline: 'HAUTE COUTURE PASSION',
+      badge: 'COLECCIÓN CRIMSON 2026',
+      heroHeadline: 'Pasión Roja &',
+      heroSubheadline: 'Negro Profundo',
+      heroDescription: 'Impacto visual dramático con sedas carmesí, cuero negro y siluetas de alta costura.',
+      ctaPrimary: 'Comprar Colección',
+      ctaSecondary: 'Ver Lookbook',
+      heroBannerUrl: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
+      storefrontPageBg: '#0A0A0C',
+      storefrontBg: '#1A0C0E',
     },
     {
       id: 'dressly-champagne',
@@ -134,6 +158,28 @@ const PRESET_PALETTES: Record<string, ThemePresetItem[]> = {
       ctaPrimary: 'Explorar Drop',
       ctaSecondary: 'Ver Lookbook',
       heroBannerUrl: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1600&auto=format&fit=crop',
+      storefrontPageBg: '#181716',
+      storefrontBg: '#21201E',
+    },
+    {
+      id: 'urbanly-crimson-rebel',
+      name: 'Rebel Red & Dark Noir',
+      primary: '#EF4444',
+      secondary: '#F87171',
+      accent: '#B91C1C',
+      adminSidebar: '#111113',
+      adminAccent: '#EF4444',
+      font: 'Inter, sans-serif',
+      tagline: 'STREET REBEL DROP',
+      badge: 'EDICIÓN ESPECIAL 2026',
+      heroHeadline: 'Graffiti Soul &',
+      heroSubheadline: 'Rojo Rebelde',
+      heroDescription: 'Hoodies y pantalones cargo con diseño gráfico brutalista sobre base negra y rojo vibrante.',
+      ctaPrimary: 'Ver Rebel Drop',
+      ctaSecondary: 'Ver Lookbook',
+      heroBannerUrl: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1600&auto=format&fit=crop',
+      storefrontPageBg: '#0F0F12',
+      storefrontBg: '#1F1113',
     },
   ],
 };
@@ -180,6 +226,7 @@ export const AppearanceSettingsTab: React.FC = () => {
     admin_sidebar_color: '#1A1918',
     admin_accent_color: '#C4956A',
     storefront_bg_color: '#F8F5F1',
+    storefront_page_bg: '#FAF8F5',
     font_family: 'Playfair Display, Georgia, serif',
     hero_headline: 'Eleva Tu',
     hero_subheadline: 'Estilo Cotidiano',
@@ -197,13 +244,56 @@ export const AppearanceSettingsTab: React.FC = () => {
     trust3_desc: 'QR, Tarjeta & Bancos',
   });
 
+  const isDarkColor = (hex?: string): boolean => {
+    if (!hex || !hex.startsWith('#') || hex.length < 7) return false;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return false;
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5;
+  };
+
+  const applyLiveStyles = (updated: AppearanceData) => {
+    if (updated.primary_color) {
+      document.documentElement.style.setProperty('--color-primary', updated.primary_color);
+    }
+    if (updated.secondary_color) {
+      document.documentElement.style.setProperty('--color-secondary', updated.secondary_color);
+    }
+    if (updated.accent_color) {
+      document.documentElement.style.setProperty('--color-accent', updated.accent_color);
+    }
+    if (updated.font_family) {
+      document.documentElement.style.setProperty('--font-display', updated.font_family);
+    }
+    if (updated.storefront_bg_color) {
+      document.documentElement.style.setProperty('--storefront-hero-bg', updated.storefront_bg_color);
+    }
+    if (updated.storefront_page_bg) {
+      document.documentElement.style.setProperty('--storefront-page-bg', updated.storefront_page_bg);
+      if (isDarkColor(updated.storefront_page_bg)) {
+        document.documentElement.style.setProperty('--storefront-text-color', '#F5F5F7');
+        document.documentElement.style.setProperty('--storefront-text-muted', '#A1A1AA');
+        document.documentElement.style.setProperty('--storefront-border-color', 'rgba(255, 255, 255, 0.15)');
+      } else {
+        document.documentElement.style.setProperty('--storefront-text-color', '#1A1A1A');
+        document.documentElement.style.setProperty('--storefront-text-muted', '#736B63');
+        document.documentElement.style.setProperty('--storefront-border-color', '#EFECE6');
+      }
+    }
+    if (updated.admin_accent_color) {
+      document.documentElement.style.setProperty('--admin-accent', updated.admin_accent_color);
+    }
+  };
+
   const loadAppearance = async () => {
     setLoading(true);
     setErrorMsg(null);
     try {
       const data = await appearanceService.getAppearance(currentTenant);
-      setTheme((prev) => ({
-        ...prev,
+      const merged: AppearanceData = {
+        ...theme,
         ...data,
         cta_primary_text: data.cta_primary_text || 'Comprar Ahora',
         cta_secondary_text: data.cta_secondary_text || 'Ver Lookbook',
@@ -216,7 +306,10 @@ export const AppearanceSettingsTab: React.FC = () => {
         admin_sidebar_color: data.admin_sidebar_color || '#1A1918',
         admin_accent_color: data.admin_accent_color || data.secondary_color || '#C4956A',
         storefront_bg_color: data.storefront_bg_color || '#F8F5F1',
-      }));
+        storefront_page_bg: data.storefront_page_bg || '#FAF8F5',
+      };
+      setTheme(merged);
+      applyLiveStyles(merged);
     } catch (err: any) {
       console.warn('Usando valores iniciales de apariencia:', err);
     } finally {
@@ -229,27 +322,37 @@ export const AppearanceSettingsTab: React.FC = () => {
   }, [currentTenant]);
 
   const handleInputChange = (field: keyof AppearanceData, val: string) => {
-    setTheme((prev) => ({ ...prev, [field]: val }));
+    setTheme((prev) => {
+      const next = { ...prev, [field]: val };
+      applyLiveStyles(next);
+      return next;
+    });
   };
 
   const applyPreset = (preset: ThemePresetItem) => {
-    setTheme((prev) => ({
-      ...prev,
-      primary_color: preset.primary,
-      secondary_color: preset.secondary,
-      accent_color: preset.accent,
-      admin_sidebar_color: preset.adminSidebar,
-      admin_accent_color: preset.adminAccent,
-      font_family: preset.font,
-      tagline: preset.tagline,
-      badge: preset.badge,
-      hero_headline: preset.heroHeadline,
-      hero_subheadline: preset.heroSubheadline,
-      hero_description: preset.heroDescription,
-      cta_primary_text: preset.ctaPrimary,
-      cta_secondary_text: preset.ctaSecondary,
-      hero_banner_url: preset.heroBannerUrl,
-    }));
+    setTheme((prev) => {
+      const next: AppearanceData = {
+        ...prev,
+        primary_color: preset.primary,
+        secondary_color: preset.secondary,
+        accent_color: preset.accent,
+        admin_sidebar_color: preset.adminSidebar,
+        admin_accent_color: preset.adminAccent,
+        font_family: preset.font,
+        tagline: preset.tagline,
+        badge: preset.badge,
+        hero_headline: preset.heroHeadline,
+        hero_subheadline: preset.heroSubheadline,
+        hero_description: preset.heroDescription,
+        cta_primary_text: preset.ctaPrimary,
+        cta_secondary_text: preset.ctaSecondary,
+        hero_banner_url: preset.heroBannerUrl,
+        storefront_bg_color: preset.storefrontBg || prev.storefront_bg_color || '#F8F5F1',
+        storefront_page_bg: preset.storefrontPageBg || prev.storefront_page_bg || '#FAF8F5',
+      };
+      applyLiveStyles(next);
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -434,6 +537,93 @@ export const AppearanceSettingsTab: React.FC = () => {
                       />
                     </div>
                     <span className="color-role-hint">Tono de fondo cálido o neutro para la cabecera</span>
+                  </div>
+
+                  {/* Fondo General del Sistema (Página Completa / Vitrina) */}
+                  <div className="color-picker-item" style={{ gridColumn: '1 / -1', background: '#FBF9F6', padding: '1rem', borderRadius: '10px', border: '1px solid #EAE5DE' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+                      <label className="settings-label" style={{ marginBottom: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1C1510' }}>
+                        Fondo General del Sistema (Página Completa / Vitrina)
+                      </label>
+                      <span style={{ fontSize: '0.74rem', color: '#8C7B6D', fontWeight: 600, background: '#F0ECE4', padding: '0.2rem 0.55rem', borderRadius: '4px' }}>
+                        ⚡ Cambio en Tiempo Real
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.65rem' }}>
+                      <div className="color-input-wrapper" style={{ minWidth: '170px' }}>
+                        <input
+                          type="color"
+                          value={theme.storefront_page_bg || '#FAF8F5'}
+                          onChange={(e) => handleInputChange('storefront_page_bg', e.target.value)}
+                          className="color-input-box"
+                        />
+                        <input
+                          type="text"
+                          value={theme.storefront_page_bg || '#FAF8F5'}
+                          onChange={(e) => handleInputChange('storefront_page_bg', e.target.value)}
+                          className="color-hex-text"
+                          placeholder="#FAF8F5"
+                        />
+                      </div>
+
+                      {/* Swatches de acceso rápido para cambio inmediato */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                        {[
+                          { name: 'Beige Clásico', hex: '#FAF8F5', heroHex: '#F8F5F1' },
+                          { name: 'Blanco Puro', hex: '#FFFFFF', heroHex: '#FBFBFA' },
+                          { name: 'Negro Carbón', hex: '#121212', heroHex: '#1C1917' },
+                          { name: 'Rojo Carmesí & Negro', hex: '#1F0808', heroHex: '#2E0C0F' },
+                          { name: 'Rojo Rubí Intenso', hex: '#7F1D1D', heroHex: '#991B1B' },
+                          { name: 'Gris Urbano', hex: '#EAE6DF', heroHex: '#DFD9D0' },
+                          { name: 'Azul Noche', hex: '#0F172A', heroHex: '#1E293B' },
+                        ].map((swatch) => (
+                          <button
+                            key={swatch.hex}
+                            type="button"
+                            onClick={() => {
+                              handleInputChange('storefront_page_bg', swatch.hex);
+                              handleInputChange('storefront_bg_color', swatch.heroHex);
+                              if (swatch.hex === '#1F0808' || swatch.hex === '#7F1D1D') {
+                                handleInputChange('primary_color', '#DC2626');
+                                handleInputChange('secondary_color', '#EF4444');
+                              }
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              padding: '0.4rem 0.75rem',
+                              borderRadius: '7px',
+                              border: theme.storefront_page_bg?.toLowerCase() === swatch.hex.toLowerCase()
+                                ? '2px solid #C4956A'
+                                : '1px solid #D5CFC7',
+                              backgroundColor: '#FFFFFF',
+                              cursor: 'pointer',
+                              fontSize: '0.78rem',
+                              color: '#2D2D2D',
+                              fontWeight: 600,
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: '13px',
+                                height: '13px',
+                                borderRadius: '50%',
+                                backgroundColor: swatch.hex,
+                                border: '1px solid rgba(0,0,0,0.2)',
+                                display: 'inline-block',
+                              }}
+                            />
+                            {swatch.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="color-role-hint" style={{ marginTop: '0.2rem', display: 'block' }}>
+                      Permite cambiar el fondo global de beige/blanco a rojo con negro, carbón, o cualquier color deseado en tiempo real.
+                    </span>
                   </div>
                 </div>
               </div>
@@ -735,7 +925,14 @@ export const AppearanceSettingsTab: React.FC = () => {
               </div>
 
               {/* Marco de Pantalla Simulada */}
-              <div className="viewport-frame">
+              <div
+                className="viewport-frame"
+                style={{
+                  backgroundColor: theme.storefront_page_bg || '#FAF8F5',
+                  transition: 'background-color 0.25s ease',
+                  border: isDarkColor(theme.storefront_page_bg) ? '1px solid #333' : '1px solid #E5E0D8',
+                }}
+              >
                 <div className={previewDevice === 'desktop' ? 'viewport-desktop' : 'viewport-mobile'}>
                   {/* Navbar Simulada */}
                   <div
@@ -744,8 +941,9 @@ export const AppearanceSettingsTab: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      borderBottom: '1px solid #EFECE6',
-                      backgroundColor: '#FFFFFF',
+                      borderBottom: isDarkColor(theme.storefront_page_bg) ? '1px solid rgba(255,255,255,0.1)' : '1px solid #EFECE6',
+                      backgroundColor: isDarkColor(theme.storefront_page_bg) ? '#141416' : '#FFFFFF',
+                      transition: 'background-color 0.25s ease',
                     }}
                   >
                     <div style={{ textAlign: 'left' }}>
@@ -862,6 +1060,52 @@ export const AppearanceSettingsTab: React.FC = () => {
                           <span className="mock-slide-dot">03</span>
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Sección Simulada del Sistema y Catálogo en la Vitrina */}
+                  <div
+                    style={{
+                      padding: '0.85rem 0.9rem 1.1rem',
+                      backgroundColor: theme.storefront_page_bg || '#FAF8F5',
+                      transition: 'background-color 0.25s ease',
+                      borderTop: isDarkColor(theme.storefront_page_bg) ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span
+                        style={{
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          fontFamily: theme.font_family,
+                          color: isDarkColor(theme.storefront_page_bg) ? '#F5F5F7' : theme.primary_color,
+                        }}
+                      >
+                        Catálogo & Categorías ({theme.storefront_page_bg || '#FAF8F5'})
+                      </span>
+                      <span style={{ fontSize: '0.62rem', color: theme.secondary_color, fontWeight: 600 }}>
+                        Ver Todo →
+                      </span>
+                    </div>
+
+                    {/* Mini Chips de Categorías */}
+                    <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'hidden' }}>
+                      {['Todos', 'Novedades', 'Prendas', 'Rebajas'].map((cat, i) => (
+                        <div
+                          key={cat}
+                          style={{
+                            padding: '0.22rem 0.55rem',
+                            borderRadius: '9999px',
+                            fontSize: '0.62rem',
+                            fontWeight: 600,
+                            backgroundColor: i === 0 ? theme.primary_color : (isDarkColor(theme.storefront_page_bg) ? '#242428' : '#FFFFFF'),
+                            color: i === 0 ? '#FFFFFF' : (isDarkColor(theme.storefront_page_bg) ? '#E4E4E7' : '#333333'),
+                            border: isDarkColor(theme.storefront_page_bg) ? '1px solid rgba(255,255,255,0.12)' : '1px solid #E2DDD5',
+                          }}
+                        >
+                          {cat}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

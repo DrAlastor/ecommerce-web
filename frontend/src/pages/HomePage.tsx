@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { appearanceService } from '../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
 import type { AppearanceData } from '../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
+import { CatalogApi } from '../modules/catalog/services/catalog.api';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { CartDrawer } from '../components/shop/CartDrawer';
 import { WishlistDrawer } from '../components/shop/WishlistDrawer';
 import { useShop } from '../context/ShopContext';
-import { CATEGORIES, FEATURED_COLLECTIONS, PRODUCTS } from '../data/mockProducts';
 import type { Product } from '../types/shop.types';
 import './HomePage.css';
-
 
 interface TenantTheme {
   name: string;
@@ -28,11 +27,11 @@ interface TenantTheme {
 const TENANTS_THEME: Record<string, TenantTheme> = {
   'aura-sport': {
     name: 'Aura Athletics & Sportswear',
-    badge: 'HIGH PERFORMANCE 2026',
-    headline: 'Supera Tus Límites',
-    subheadline: 'Alto Rendimiento',
-    description: 'Descubre prendas de compresión Seamless, calzado técnico de running y accesorios diseñados para optimizar cada entrenamiento.',
-    heroImage: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
+    badge: 'PRO SERIES 2026',
+    headline: 'PERFORMANCE',
+    subheadline: 'MEETS STYLE',
+    description: 'Ropa técnica de alto impacto diseñada para maximizar tu rendimiento físico y estilo diario.',
+    heroImage: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1600&auto=format&fit=crop',
     accentColor: '#00F2FE',
     trust1: { icon: '⚡', title: 'Envío Atleta', desc: 'En compras más de 300 Bs' },
     trust2: { icon: '🛡️', title: 'Garantía Pro', desc: '30 días de prueba activa' },
@@ -41,12 +40,12 @@ const TENANTS_THEME: Record<string, TenantTheme> = {
   },
   'urbanly': {
     name: 'Urbanly Fashion Store',
-    badge: 'OVERSIZED & STREETWEAR 2026',
-    headline: 'Estilo Urbano',
-    subheadline: 'Corte Oversize',
-    description: 'Streetwear contemporáneo para hombre y mujer: hoodies boxy-fit de 500 GSM, pantalones cargo tácticos, siluetas amplias y estética neutral tones.',
-    heroImage: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
-    accentColor: '#F59E0B',
+    badge: 'NEUTRAL TONES DROP',
+    headline: 'AESTHETIC T-SHIRTS &',
+    subheadline: 'OVERSIZED ESSENTIALS',
+    description: 'Siluetas holgadas, tonos tierra neutros y algodón pesado 500 GSM diseñados para el movimiento contemporáneo.',
+    heroImage: 'https://fashionstorestorages.blob.core.windows.net/portada/portada_uno.png',
+    accentColor: '#4D5645',
     trust1: { icon: '📦', title: 'Drop Nacional', desc: 'Despacho rápido express' },
     trust2: { icon: '⚡', title: '500 GSM Heavy', desc: 'Calidad superior de algodón' },
     trust3: { icon: '🛡️', title: 'Pago Seguro', desc: 'QR, Tarjeta & Bancos' },
@@ -67,12 +66,179 @@ const TENANTS_THEME: Record<string, TenantTheme> = {
   },
 };
 
+interface TenantCategory {
+  id: string;
+  name: string;
+  slug: string;
+  image: string;
+}
+
+const TENANT_CATEGORIES: Record<string, TenantCategory[]> = {
+  'dressly': [
+    { id: 'all', name: 'Todo', slug: 'all', image: 'https://fashionstorestorages.blob.core.windows.net/productos/conjunto_limono.png' },
+    { id: 'vestidos', name: 'Vestidos', slug: 'vestidos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_sleep.jpg' },
+    { id: 'blazers', name: 'Blazers & Abrigos', slug: 'blazers', image: 'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png' },
+    { id: 'tops', name: 'Tops & Blusas', slug: 'tops', image: 'https://fashionstorestorages.blob.core.windows.net/productos/top_punto.jpg' },
+    { id: 'pantalones', name: 'Pantalones & Faldas', slug: 'pantalones', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_palazo.png' },
+    { id: 'bolsos', name: 'Bolsos & Carteras', slug: 'bolsos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/bolso_tote.png' },
+    { id: 'calzado', name: 'Calzado & Mocasines', slug: 'calzado', image: 'https://fashionstorestorages.blob.core.windows.net/productos/mocasines_italiano.png' },
+    { id: 'accesorios', name: 'Accesorios & Joyería', slug: 'accesorios', image: 'https://fashionstorestorages.blob.core.windows.net/productos/cinturon_becerro.png' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_noche.jpg' },
+  ],
+  'urbanly': [
+    { id: 'all', name: 'Todo', slug: 'all', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png' },
+    { id: 'hoodies', name: 'Hoodies Boxy 500GSM', slug: 'hoodies', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png' },
+    { id: 'cargos', name: 'Pantalones Cargo', slug: 'cargos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_cargo.png' },
+    { id: 'poleras', name: 'Poleras Oversize', slug: 'poleras', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_oversize.png' },
+    { id: 'chaquetas', name: 'Chaquetas MA-1', slug: 'chaquetas', image: 'https://fashionstorestorages.blob.core.windows.net/productos/chaqueta_bomberH.png' },
+    { id: 'jeans', name: 'Jeans Wide-Leg', slug: 'jeans', image: 'https://fashionstorestorages.blob.core.windows.net/productos/jeans_wideleg.png' },
+    { id: 'cropped', name: 'Hoodies Cropped', slug: 'cropped', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_cropped.png' },
+    { id: 'parachute', name: 'Parachute Pants', slug: 'parachute', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_parachute.png' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_oversize_carbon.png' },
+  ],
+  'aura-sport': [
+    { id: 'all', name: 'Todo', slug: 'all', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
+    { id: 'leggings', name: 'Leggings Seamless', slug: 'leggings', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400&auto=format&fit=crop' },
+    { id: 'tops', name: 'Tops & Bra Deportivo', slug: 'tops', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop' },
+    { id: 'calzado', name: 'Running Shoes Pro', slug: 'calzado', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop' },
+    { id: 'shorts', name: 'Shorts de Compresión', slug: 'shorts', image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop' },
+    { id: 'cortavientos', name: 'Cortavientos Técnicos', slug: 'cortavientos', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
+  ],
+};
+
+interface FeaturedCollection {
+  id: string;
+  title: string;
+  subtitle: string;
+  tag: string;
+  action: string;
+  image: string;
+  categorySlug: string;
+}
+
+const TENANT_FEATURED_COLLECTIONS: Record<string, FeaturedCollection[]> = {
+  'dressly': [
+    {
+      id: 'col-1',
+      title: 'Colección Lino & Sastrería',
+      subtitle: 'Prendas atemporales en tonos arena, moca y marfil',
+      tag: 'NUEVA TEMPORADA',
+      action: 'EXPLORAR COLECCIÓN',
+      image: 'https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg',
+      categorySlug: 'Lino',
+    },
+    {
+      id: 'col-2',
+      title: 'Vestidos de Noche & Satén',
+      subtitle: 'Siluetas fluidas en seda mocha y champagne',
+      tag: 'GALA & CÓCTEL',
+      action: 'VER VESTIDOS',
+      image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_sleep.jpg',
+      categorySlug: 'Vestidos',
+    },
+    {
+      id: 'col-3',
+      title: 'Bolsos & Marroquinería',
+      subtitle: 'Piel genuina en marrón moca y negro con herrajes dorados',
+      tag: 'ACCESORIOS',
+      action: 'VER BOLSOS',
+      image: 'https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg',
+      categorySlug: 'Accesorios',
+    },
+    {
+      id: 'col-4',
+      title: 'Pantalones & Siluetas Minimal',
+      subtitle: 'Cortes limpios de tiro alto y caída fluida en crepé',
+      tag: 'ESENCIALES',
+      action: 'VER PANTALONES',
+      image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_palazo.png',
+      categorySlug: 'Pantalones',
+    },
+  ],
+  'urbanly': [
+    {
+      id: 'col-1',
+      title: 'Heavyweight 500 GSM Drop',
+      subtitle: 'Hoodies y poleras de algodón pesado con corte boxy industrial',
+      tag: 'STREETWEAR DROP',
+      action: 'EXPLORAR HOODIES',
+      image: 'https://fashionstorestorages.blob.core.windows.net/portada/portada_dos.png',
+      categorySlug: 'Hoodies',
+    },
+    {
+      id: 'col-2',
+      title: 'Tactical Cargo Pants',
+      subtitle: 'Pantalones cargo multi-bolsillos y parachute ajustables',
+      tag: 'CARGO SYSTEM',
+      action: 'VER CARGOS',
+      image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_cargo.png',
+      categorySlug: 'Pantalones',
+    },
+    {
+      id: 'col-3',
+      title: 'Vintage Acid Washed',
+      subtitle: 'Poleras oversize con lavado vintage y estética neutral tones',
+      tag: 'ESSENTIALS',
+      action: 'VER POLERAS',
+      image: 'https://fashionstorestorages.blob.core.windows.net/portada/portada_tres.png',
+      categorySlug: 'Poleras',
+    },
+    {
+      id: 'col-4',
+      title: 'Industrial Outerwear',
+      subtitle: 'Bombers MA-1 y chaquetas de gabardina de alta resistencia',
+      tag: 'OUTERWEAR',
+      action: 'VER CHAQUETAS',
+      image: 'https://fashionstorestorages.blob.core.windows.net/productos/chaqueta_bomberH.png',
+      categorySlug: 'Chaquetas',
+    },
+  ],
+  'aura-sport': [
+    {
+      id: 'col-1',
+      title: 'Colección Seamless Pro',
+      subtitle: 'Tejido elástico de compresión sin costuras para máxima libertad',
+      tag: 'PERFORMANCE',
+      action: 'EXPLORAR SEAMLESS',
+      image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop',
+      categorySlug: 'Leggings',
+    },
+    {
+      id: 'col-2',
+      title: 'Falcon Running Footwear',
+      subtitle: 'Amortiguación reactiva ultraligera para asfalto y pista',
+      tag: 'SPEED SYSTEM',
+      action: 'VER CALZADO',
+      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop',
+      categorySlug: 'Calzado',
+    },
+    {
+      id: 'col-3',
+      title: 'Tops Ultra-Support',
+      subtitle: 'Sujeción deportiva de alto impacto con copas transpirables',
+      tag: 'TRAINING',
+      action: 'VER TOPS',
+      image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop',
+      categorySlug: 'Tops',
+    },
+    {
+      id: 'col-4',
+      title: 'Outerwear Cortaviento',
+      subtitle: 'Chaquetas técnicas térmicas repelentes al agua para exterior',
+      tag: 'ALL-WEATHER',
+      action: 'VER CORTAVIENTOS',
+      image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=600&auto=format&fit=crop',
+      categorySlug: 'Chaquetas',
+    },
+  ],
+};
+
 export const HomePage: React.FC = () => {
   const {
     addToCart,
     toggleWishlist,
     isInWishlist,
-
     toastMessage,
     setIsCartOpen,
     selectedCategory,
@@ -83,14 +249,45 @@ export const HomePage: React.FC = () => {
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [showLookbookModal, setShowLookbookModal] = useState(false);
   const navigate = useNavigate();
+
+  // Resolución estricta y sin ambigüedad del Tenant activo:
+  // 1. Parametro en la ruta de React Router
+  // 2. Prefijo en window.location.pathname (/store/:tenant o /tenant/:tenant)
+  // 3. Segmento directo en URL (urbanly, aura-sport, dressly)
+  // 4. Fallback estándar al tenant insignia 'dressly'
   const { tenant } = useParams<{ tenant?: string }>();
-  const resolvedTenant = tenant === 'subversive-urban' ? 'urbanly' : tenant;
-  const activeTenantKey = (resolvedTenant && TENANTS_THEME[resolvedTenant]) ? resolvedTenant : 'dressly';
-  const currentTheme = TENANTS_THEME[activeTenantKey];
+  const pathname = window.location.pathname.toLowerCase();
+  const pathMatch = pathname.match(/\/(?:store|tenant)\/([a-zA-Z0-9_-]+)/i);
+
+  let rawTenant = tenant || (pathMatch ? pathMatch[1] : null);
+  if (!rawTenant) {
+    if (pathname.includes('urbanly') || pathname.includes('subversive')) {
+      rawTenant = 'urbanly';
+    } else if (pathname.includes('aura')) {
+      rawTenant = 'aura-sport';
+    } else if (pathname.includes('dressly')) {
+      rawTenant = 'dressly';
+    } else {
+      rawTenant = localStorage.getItem('tenantKey') || 'dressly';
+    }
+  }
+
+  const normalized = (rawTenant || 'dressly').toLowerCase().trim();
+  const resolvedTenant = (normalized === 'subversive-urban' || normalized === 'subversive')
+    ? 'urbanly'
+    : (normalized === 'aura' ? 'aura-sport' : (normalized === 'fashionstore' ? 'dressly' : normalized));
+
+  const activeTenantKey = resolvedTenant;
+  const currentTheme = TENANTS_THEME[activeTenantKey] || TENANTS_THEME['dressly'];
 
   const [appearance, setAppearance] = useState<AppearanceData | null>(null);
+  const [dynamicProducts, setDynamicProducts] = useState<Product[]>([]);
 
   useEffect(() => {
+    // Sincronizar tenant en el almacenamiento local para interceptores HTTP
+    localStorage.setItem('tenantKey', activeTenantKey);
+
+    // Cargar la apariencia oficial exclusiva del tenant
     appearanceService.getPublicAppearance(activeTenantKey).then((data) => {
       if (data) {
         setAppearance(data);
@@ -106,15 +303,67 @@ export const HomePage: React.FC = () => {
         if (data.font_family) {
           document.documentElement.style.setProperty('--font-display', data.font_family);
         }
+        if (data.storefront_page_bg) {
+          document.documentElement.style.setProperty('--storefront-page-bg', data.storefront_page_bg);
+          const r = parseInt(data.storefront_page_bg.slice(1, 3), 16);
+          const g = parseInt(data.storefront_page_bg.slice(3, 5), 16);
+          const b = parseInt(data.storefront_page_bg.slice(5, 7), 16);
+          const lum = (!isNaN(r) && !isNaN(g) && !isNaN(b)) ? (0.299 * r + 0.587 * g + 0.114 * b) / 255 : 1;
+          if (lum < 0.5) {
+            document.documentElement.style.setProperty('--storefront-text-color', '#F5F5F7');
+            document.documentElement.style.setProperty('--storefront-text-muted', '#A1A1AA');
+            document.documentElement.style.setProperty('--storefront-border-color', 'rgba(255, 255, 255, 0.15)');
+          } else {
+            document.documentElement.style.setProperty('--storefront-text-color', '#1A1A1A');
+            document.documentElement.style.setProperty('--storefront-text-muted', '#736B63');
+            document.documentElement.style.setProperty('--storefront-border-color', '#EFECE6');
+          }
+        }
         if (data.storefront_bg_color) {
           document.documentElement.style.setProperty('--storefront-hero-bg', data.storefront_bg_color);
         }
       }
-    }).catch((err) => console.warn('Usando tema predeterminado para vitrina:', err));
+    }).catch((err) => console.warn('Usando configuración predeterminada para vitrina:', err));
+
+    // Cargar los productos reales aislados directamente de la base de datos física del tenant
+    CatalogApi.getProducts({ limit: 12 })
+      .then((res) => {
+        if (res && res.data && res.data.length > 0) {
+          const defaultImg = activeTenantKey === 'urbanly'
+            ? 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png'
+            : (activeTenantKey === 'aura-sport'
+              ? 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop'
+              : 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg');
+
+          const mapped: Product[] = res.data.map((cp) => ({
+            id: cp.id_producto,
+            name: cp.nombre,
+            category: cp.categoria?.nombre || 'General',
+            categorySlug: cp.categoria?.nombre?.toLowerCase().replace(/\s+/g, '-') || 'general',
+            price: cp.precio_final,
+            originalPrice: cp.tiene_descuento ? cp.precio_base : undefined,
+            rating: 4.9,
+            reviewsCount: 16,
+            image: cp.imagen_principal || defaultImg,
+            isNew: true,
+            isSale: cp.tiene_descuento,
+            description: cp.descripcion || '',
+            sizes: cp.tallas_disponibles.map((t) => t.codigo),
+            colors: cp.colores_disponibles.map((c) => c.nombre),
+          }));
+          setDynamicProducts(mapped);
+        } else {
+          setDynamicProducts([]);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error al cargar catálogo de tenant:', err);
+        setDynamicProducts([]);
+      });
   }, [activeTenantKey]);
 
-  // Filtrar productos para la portada (solo novedades o aleatorios, máximo 10)
-  const homeProducts = PRODUCTS.slice(0, 10);
+  const activeCategories = TENANT_CATEGORIES[activeTenantKey] || TENANT_CATEGORIES['dressly'];
+  const activeCollections = TENANT_FEATURED_COLLECTIONS[activeTenantKey] || TENANT_FEATURED_COLLECTIONS['dressly'];
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,12 +379,17 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="home-container">
-      {/* Toast Alert */}
+    <div
+      className="home-page home-container"
+      style={{
+        backgroundColor: appearance?.storefront_page_bg || 'var(--storefront-page-bg, #FAF8F5)',
+        transition: 'background-color 0.25s ease',
+      }}
+    >
+      {/* Toast Notification */}
       {toastMessage && (
-        <div className="toast-notification">
-          <span className="toast-icon">✨</span>
-          <span className="toast-text">{toastMessage}</span>
+        <div className="cart-toast animate-toast">
+          <span>{toastMessage}</span>
           <button
             className="toast-view-cart"
             onClick={() => setIsCartOpen(true)}
@@ -185,7 +439,7 @@ export const HomePage: React.FC = () => {
               <button
                 className="hero-cta-btn"
                 style={{ backgroundColor: appearance?.primary_color || undefined }}
-                onClick={() => navigate('/catalog')}
+                onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
               >
                 <span>{appearance?.cta_primary_text || 'Comprar Ahora'}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -237,7 +491,11 @@ export const HomePage: React.FC = () => {
           <div className="hero-image-wrapper">
             <div className="hero-image-container">
               <img
-                src={appearance?.hero_banner_url || currentTheme.heroImage}
+                src={
+                  activeSlide === 2
+                    ? (appearance?.hero_banner_secondary_url || currentTheme.heroImage)
+                    : (appearance?.hero_banner_url || currentTheme.heroImage)
+                }
                 alt={currentTheme.name}
                 className="hero-main-img"
               />
@@ -254,12 +512,6 @@ export const HomePage: React.FC = () => {
                 >
                   02
                 </button>
-                <button
-                  className={`slide-dot ${activeSlide === 3 ? 'active' : ''}`}
-                  onClick={() => setActiveSlide(3)}
-                >
-                  03
-                </button>
               </div>
             </div>
           </div>
@@ -270,14 +522,14 @@ export const HomePage: React.FC = () => {
       <section className="circular-categories-section">
         <div className="section-container">
           <div className="circular-categories-row">
-            {CATEGORIES.map((cat) => {
+            {activeCategories.map((cat) => {
               const isSelected = selectedCategory === cat.slug;
               return (
                 <button
                   key={cat.id}
                   className={`category-circle-item ${isSelected ? 'selected' : ''}`}
                   onClick={() => {
-                    navigate(`/catalog?category=${cat.slug}`);
+                    navigate(`/store/${activeTenantKey}/catalog?category=${cat.slug}`);
                   }}
                 >
                   <div className="circle-image-wrapper">
@@ -305,26 +557,27 @@ export const HomePage: React.FC = () => {
             </div>
             <button
               className="view-all-link-btn"
-              onClick={() => navigate('/catalog')}
+              onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
             >
               Ver Todas las Categorías →
             </button>
           </div>
 
           <div className="collections-quad-grid">
-            {FEATURED_COLLECTIONS.map((col) => (
+            {activeCollections.map((col) => (
               <div
                 key={col.id}
                 className="collection-card"
-                onClick={() => navigate(`/catalog?category=${col.categorySlug}`)}
+                onClick={() => navigate(`/store/${activeTenantKey}/catalog?category=${encodeURIComponent(col.categorySlug)}`)}
               >
                 <img src={col.image} alt={col.title} className="collection-card-img" />
                 <div className="collection-card-overlay">
                   <div className="collection-card-content">
+                    <span className="collection-card-tag">{col.tag}</span>
                     <h3 className="collection-card-title">{col.title}</h3>
                     <p className="collection-card-subtitle">{col.subtitle}</p>
                     <span className="collection-explore-link">
-                      {col.actionText} →
+                      {col.action} →
                     </span>
                   </div>
                 </div>
@@ -338,42 +591,64 @@ export const HomePage: React.FC = () => {
       <section className="promo-split-section">
         <div className="section-container">
           <div className="promo-split-grid">
-            {/* Promo 1: Spring Sale */}
+            {/* Promo 1 */}
             <div className="promo-banner-card promo-spring">
               <div className="promo-text-side">
-                <span className="promo-tag">COLECCIÓN ATEMPORAL</span>
-                <h3 className="promo-title">Lino Natural & Tonos Tierra</h3>
+                <span className="promo-tag">
+                  {appearance?.promo1_tag || (activeTenantKey === 'urbanly' ? 'STREETWEAR & ESSENTIALS' : (activeTenantKey === 'aura-sport' ? 'ENTRENAMIENTO & PERFORMANCE' : 'COLECCIÓN ATEMPORAL'))}
+                </span>
+                <h3 className="promo-title">
+                  {appearance?.promo1_title || (activeTenantKey === 'urbanly' ? 'Siluetas Boxy & 500 GSM Heavyweight' : (activeTenantKey === 'aura-sport' ? 'Prendas de Compresión & Seamless' : 'Lino Natural & Tonos Tierra'))}
+                </h3>
                 <button
                   className="promo-action-btn"
-                  onClick={() => navigate('/catalog?category=blazers')}
+                  onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
                 >
-                  Ver Colección Lino →
+                  {appearance?.promo1_btn || (activeTenantKey === 'urbanly' ? 'Ver Colección Heavyweight →' : (activeTenantKey === 'aura-sport' ? 'Ver Colección Pro →' : 'Ver Colección Lino →'))}
                 </button>
               </div>
               <div className="promo-img-side">
                 <img
-                  src="https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg"
-                  alt="Colección Lino Natural Femenino"
+                  src={
+                    appearance?.promo1_image_url ||
+                    (activeTenantKey === 'urbanly'
+                      ? 'https://fashionstorestorages.blob.core.windows.net/portada/portada_dos.png'
+                      : (activeTenantKey === 'aura-sport'
+                        ? 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1000&auto=format&fit=crop'
+                        : 'https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg'))
+                  }
+                  alt="Colección Destacada"
                 />
               </div>
             </div>
 
-            {/* Promo 2: Fresh Styles */}
+            {/* Promo 2 */}
             <div className="promo-banner-card promo-fresh">
               <div className="promo-text-side">
-                <span className="promo-tag">MARROQUINERÍA & ACCESORIOS</span>
-                <h3 className="promo-title">Bolsos en Moca & Negro Profundo</h3>
+                <span className="promo-tag">
+                  {appearance?.promo2_tag || (activeTenantKey === 'urbanly' ? 'STREETWEAR & CARGO' : (activeTenantKey === 'aura-sport' ? 'CALZADO & EQUIPAMIENTO' : 'MARROQUINERÍA & ACCESORIOS'))}
+                </span>
+                <h3 className="promo-title">
+                  {appearance?.promo2_title || (activeTenantKey === 'urbanly' ? 'Cargos & Outerwear Industrial' : (activeTenantKey === 'aura-sport' ? 'Running & Calzado Técnico' : 'Bolsos en Moca & Negro Profundo'))}
+                </h3>
                 <button
                   className="promo-action-btn"
-                  onClick={() => navigate('/catalog?category=bolsos')}
+                  onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
                 >
-                  Ver Accesorios →
+                  {appearance?.promo2_btn || (activeTenantKey === 'urbanly' ? 'Ver Streetwear →' : (activeTenantKey === 'aura-sport' ? 'Ver Calzado →' : 'Ver Accesorios →'))}
                 </button>
               </div>
               <div className="promo-img-side">
                 <img
-                  src="https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg"
-                  alt="Bolsos y Accesorios de Lujo"
+                  src={
+                    appearance?.promo2_image_url ||
+                    (activeTenantKey === 'urbanly'
+                      ? 'https://fashionstorestorages.blob.core.windows.net/portada/portada_tres.png'
+                      : (activeTenantKey === 'aura-sport'
+                        ? 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop'
+                        : 'https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg'))
+                  }
+                  alt="Accesorios y Prendas Destacadas"
                 />
               </div>
             </div>
@@ -391,7 +666,7 @@ export const HomePage: React.FC = () => {
             </div>
             <button
               className="view-all-link-btn"
-              onClick={() => navigate('/catalog')}
+              onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
             >
               Ver Todo el Catálogo →
             </button>
@@ -399,73 +674,94 @@ export const HomePage: React.FC = () => {
 
           {/* Products Grid */}
           <div className="products-grid">
-            {homeProducts.map((product) => {
-                const isFavorited = isInWishlist(product.id);
-                return (
-                  <div key={product.id} className="product-card">
-                    {/* Media container */}
-                    <div className="product-card-media">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        loading="lazy"
-                        className="product-card-img"
-                      />
+            {dynamicProducts.map((product) => {
+              const isFavorited = isInWishlist(product.id);
+              return (
+                <div
+                  key={product.id}
+                  className="product-card"
+                  onClick={() => navigate(`/store/${activeTenantKey}/product/${product.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {/* Media container */}
+                  <div className="product-card-media">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      loading="lazy"
+                    />
 
-                      {/* Badges */}
-                      <div className="product-badges-corner">
-                        {product.isNew && <span className="badge-pill badge-new">NUEVO</span>}
-                        {product.isSale && <span className="badge-pill badge-sale">OFERTA</span>}
-                      </div>
+                    {/* Badges */}
+                    <div className="product-badges">
+                      {product.isSale && (
+                        <span className="product-badge badge-sale">OFERTA</span>
+                      )}
+                      {product.isNew && !product.isSale && (
+                        <span className="product-badge badge-new">NUEVO</span>
+                      )}
+                    </div>
 
-                      {/* Wishlist Heart Button */}
-                      <button
-                        className={`product-wishlist-toggle ${isFavorited ? 'favorited' : ''}`}
-                        onClick={() => toggleWishlist(product.id)}
-                        aria-label="Guardar en favoritos"
-                        title="Guardar en favoritos"
+                    {/* Wishlist Button */}
+                    <button
+                      className={`product-wishlist-btn ${isFavorited ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(product.id);
+                      }}
+                      aria-label="Agregar a favoritos"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill={isFavorited ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                        strokeWidth="2"
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill={isFavorited ? '#DC2626' : 'none'} stroke={isFavorited ? '#DC2626' : '#1A1A1A'} strokeWidth="1.8">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                      </button>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                    </button>
 
-                      {/* Quick Add Overlay */}
+                    {/* Quick Add Overlay */}
+                    <div className="product-quick-add">
                       <button
                         className="quick-add-btn"
                         onClick={(e) => handleQuickAdd(product, e)}
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
                           <line x1="3" y1="6" x2="21" y2="6"></line>
                           <path d="M16 10a4 4 0 0 1-8 0"></path>
                         </svg>
-                        <span>Añadir a la Bolsa</span>
+                        <span>Añadir Rápido</span>
                       </button>
                     </div>
+                  </div>
 
-                    {/* Info */}
-                    <div className="product-card-info">
-                      <h4 className="product-title">{product.name}</h4>
+                  {/* Info container */}
+                  <div className="product-card-info">
+                    <span className="product-card-category">{product.category}</span>
+                    <h3 className="product-card-title">{product.name}</h3>
 
-                      <div className="product-price-row">
-                        <span className="product-price">{product.price.toFixed(2)} Bs</span>
+                    <div className="product-card-footer">
+                      <div className="product-pricing">
+                        <span className="current-price">{product.price.toFixed(2)} Bs</span>
                         {product.originalPrice && (
-                          <span className="product-old-price">{product.originalPrice.toFixed(2)} Bs</span>
+                          <span className="original-price">{product.originalPrice.toFixed(2)} Bs</span>
                         )}
                       </div>
 
-                      {/* Ratings */}
-                      <div className="product-rating-row">
-                        <div className="star-icons">
+                      <div className="product-rating">
+                        <div className="stars-wrapper" style={{ color: '#D97706' }}>
                           {'★'.repeat(Math.floor(product.rating))}
                         </div>
                         <span className="reviews-count">({product.reviewsCount})</span>
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -476,23 +772,23 @@ export const HomePage: React.FC = () => {
           <div className="trust-grid">
             <div className="trust-card">
               <span className="trust-card-icon">🚚</span>
-              <h4>Envío Gratuito</h4>
-              <p>En compras superiores a 350 Bs a cualquier ciudad de Bolivia.</p>
+              <h4>Envío Rápido</h4>
+              <p>Cobertura nacional express a cualquier ciudad de Bolivia.</p>
             </div>
             <div className="trust-card">
               <span className="trust-card-icon">📦</span>
               <h4>Devoluciones Fáciles</h4>
-              <p>30 días de periodo de cambio sin costo adicional.</p>
+              <p>Periodo de cambio de hasta 30 días sin costo adicional.</p>
             </div>
             <div className="trust-card">
               <span className="trust-card-icon">🛡️</span>
               <h4>Pagos 100% Seguros</h4>
-              <p>Transferencia, QR Simple y tarjetas bancarias habilitadas.</p>
+              <p>Transferencia bancaria directa, QR Simple y tarjetas habilitadas.</p>
             </div>
             <div className="trust-card">
               <span className="trust-card-icon">🎧</span>
-              <h4>Soporte Exclusivo</h4>
-              <p>Asesoría personalizada en tallas y estilismo femenino.</p>
+              <h4>Atención Exclusiva</h4>
+              <p>Asesoría personalizada en tallas y colecciones activas.</p>
             </div>
           </div>
         </div>
@@ -504,20 +800,27 @@ export const HomePage: React.FC = () => {
           <div className="newsletter-card">
             <div className="newsletter-image-side">
               <img
-                src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg"
-                alt="Dressly Style Club"
+                src={
+                  appearance?.newsletter_banner_url ||
+                  (activeTenantKey === 'urbanly'
+                    ? 'https://fashionstorestorages.blob.core.windows.net/portada/portada_cuatro.png'
+                    : (activeTenantKey === 'aura-sport'
+                      ? 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1600&auto=format&fit=crop'
+                      : 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg'))
+                }
+                alt="Club Oficial"
               />
             </div>
             <div className="newsletter-form-side">
               <span className="newsletter-tag">OBTÉN 10% DE DESCUENTO EN TU PRIMER PEDIDO</span>
-              <h3 className="newsletter-title">Únete a Nuestro Style List</h3>
+              <h3 className="newsletter-title">Únete a {currentTheme.name}</h3>
               <p className="newsletter-desc">
-                Suscríbete para recibir lanzamientos exclusivos, colecciones cápsula de temporada e inspiración de moda femenina.
+                Suscríbete para recibir lanzamientos exclusivos, drops de temporada e inspiración curada.
               </p>
 
               {newsletterSubscribed ? (
                 <div className="newsletter-success">
-                  🎉 ¡Gracias por unirte! Usa el código <strong>DRESSLY10</strong> al pagar para tu 10% de descuento.
+                  🎉 ¡Gracias por unirte! Usa el código <strong>{activeTenantKey === 'urbanly' ? 'URBANLY10' : 'DRESSLY10'}</strong> al pagar para tu 10% de descuento.
                 </div>
               ) : (
                 <form className="newsletter-form" onSubmit={handleNewsletterSubmit}>
@@ -545,10 +848,10 @@ export const HomePage: React.FC = () => {
           <div className="footer-top-grid">
             {/* Col 1: Brand */}
             <div className="footer-brand-col">
-              <span className="footer-brand-name">DRESSLY</span>
-              <span className="footer-brand-tagline">FASHION STORE</span>
+              <span className="footer-brand-name">{activeTenantKey === 'urbanly' ? 'URBANLY' : (activeTenantKey === 'aura-sport' ? 'AURA SPORT' : 'DRESSLY')}</span>
+              <span className="footer-brand-tagline">{appearance?.tagline || (activeTenantKey === 'urbanly' ? 'AESTHETIC STREETWEAR' : (activeTenantKey === 'aura-sport' ? 'ATHLETICS & GEAR' : 'FASHION BOUTIQUE'))}</span>
               <p className="footer-brand-desc">
-                Moda femenina atemporal confeccionada en lino, seda y piel. Estilo sofisticado y minimalista diseñado para la mujer contemporánea.
+                {appearance?.hero_description || currentTheme.description}
               </p>
               <div className="footer-social-icons">
                 <span className="social-icon">📸</span>
@@ -560,13 +863,13 @@ export const HomePage: React.FC = () => {
 
             {/* Col 2: Tienda */}
             <div className="footer-links-col">
-              <h5>TIENDA FEMENINA</h5>
+              <h5>{activeTenantKey === 'urbanly' ? 'STREETWEAR ARCHIVE' : (activeTenantKey === 'aura-sport' ? 'COLECCIÓN ATLETA' : 'TIENDA OFICIAL')}</h5>
               <ul>
-                <li><Link to="/catalog" onClick={() => window.scrollTo(0, 0)}>Todas las Prendas</Link></li>
-                <li><Link to="/catalog?category=blazers" onClick={() => window.scrollTo(0, 0)}>Blazers & Trajes</Link></li>
-                <li><Link to="/catalog?category=vestidos" onClick={() => window.scrollTo(0, 0)}>Vestidos de Gala & Lino</Link></li>
-                <li><Link to="/catalog?category=bolsos" onClick={() => window.scrollTo(0, 0)}>Bolsos & Marroquinería</Link></li>
-                <li><Link to="/catalog?category=sale" onClick={() => window.scrollTo(0, 0)}>Rebajas Especiales</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog`} onClick={() => window.scrollTo(0, 0)}>Todas las Prendas</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?category=${activeTenantKey === 'urbanly' ? 'hoodies' : 'chaquetas'}`} onClick={() => window.scrollTo(0, 0)}>{activeTenantKey === 'urbanly' ? 'Hoodies & Sudaderas' : 'Blazers & Chaquetas'}</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?category=${activeTenantKey === 'urbanly' ? 'cargos' : 'vestidos'}`} onClick={() => window.scrollTo(0, 0)}>{activeTenantKey === 'urbanly' ? 'Cargos & Parachutes' : 'Vestidos de Gala'}</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?category=${activeTenantKey === 'urbanly' ? 'poleras' : 'accesorios'}`} onClick={() => window.scrollTo(0, 0)}>{activeTenantKey === 'urbanly' ? 'Poleras Oversize' : 'Bolsos & Marroquinería'}</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?sale=true`} onClick={() => window.scrollTo(0, 0)}>Rebajas Especiales</Link></li>
               </ul>
             </div>
 
@@ -588,7 +891,7 @@ export const HomePage: React.FC = () => {
               <ul>
                 <li><a href="#story">Nuestra Historia</a></li>
                 <li><a href="#sustainability">Sostenibilidad</a></li>
-                <li><a href="#stores">Nuestras Sucursales</a></li>
+                <li><Link to={`/store/${activeTenantKey}/sucursales`}>Nuestras Sucursales</Link></li>
                 <li><a href="#press">Prensa & Moda</a></li>
                 <li><a href="#careers">Trabaja con Nosotros</a></li>
               </ul>
@@ -596,7 +899,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="footer-bottom-bar">
-            <p>© {new Date().getFullYear()} Dressly Fashion Store. Todos los derechos reservados.</p>
+            <p>© {new Date().getFullYear()} {currentTheme.name}. Todos los derechos reservados.</p>
             <div className="footer-legal-links">
               <a href="#privacy">Política de Privacidad</a>
               <span>•</span>
@@ -613,23 +916,23 @@ export const HomePage: React.FC = () => {
         <div className="lookbook-modal-overlay" onClick={() => setShowLookbookModal(false)}>
           <div className="lookbook-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="lookbook-modal-header">
-              <h3>Lookbook Primavera / Verano 2026</h3>
+              <h3>{currentTheme.lookbookTitle || 'Lookbook 2026'}</h3>
               <button className="lookbook-close" onClick={() => setShowLookbookModal(false)}>✕</button>
             </div>
             <div className="lookbook-gallery">
-              <img src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg" alt="Look Sastrería & Lino" />
-              <img src="https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg" alt="Colección Lino Natural" />
-              <img src="https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg" alt="Marroquinería & Accesorios" />
+              <img src={appearance?.hero_banner_url || currentTheme.heroImage} alt="Look Principal" />
+              <img src={appearance?.promo1_image_url || currentTheme.heroImage} alt="Colección Destacada" />
+              <img src={appearance?.promo2_image_url || currentTheme.heroImage} alt="Drop de Temporada" />
             </div>
             <div className="lookbook-footer">
               <button
                 className="lookbook-shop-btn"
                 onClick={() => {
                   setShowLookbookModal(false);
-                  navigate('/catalog');
+                  navigate(`/store/${activeTenantKey}/catalog`);
                 }}
               >
-                Comprar Estos Looks →
+                Comprar Colección
               </button>
             </div>
           </div>

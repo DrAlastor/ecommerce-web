@@ -8,13 +8,39 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Interceptor de request: inyecta token JWT
+// Interceptor de request: inyecta token JWT y contexto de aislamiento Multi-Tenant (x-tenant-id)
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Resolver el tenant activo para garantizar aislamiento en cada petición HTTP
+    let tenantKey = localStorage.getItem('tenantKey') || 'dressly';
+    const path = window.location.pathname.toLowerCase();
+    const match = path.match(/\/(?:store|tenant)\/([a-zA-Z0-9_-]+)/i);
+    if (match && match[1]) {
+      tenantKey = match[1];
+    } else if (path.includes('urbanly') || path.includes('subversive')) {
+      tenantKey = 'urbanly';
+    } else if (path.includes('aura')) {
+      tenantKey = 'aura-sport';
+    } else if (path.includes('dressly')) {
+      tenantKey = 'dressly';
+    }
+
+    // Normalizar slug
+    tenantKey = tenantKey.toLowerCase().trim();
+    if (tenantKey === 'subversive-urban' || tenantKey === 'subversive') {
+      tenantKey = 'urbanly';
+    } else if (tenantKey === 'aura') {
+      tenantKey = 'aura-sport';
+    } else if (tenantKey === 'fashionstore') {
+      tenantKey = 'dressly';
+    }
+
+    config.headers['x-tenant-id'] = tenantKey;
     return config;
   },
   (error) => Promise.reject(error),

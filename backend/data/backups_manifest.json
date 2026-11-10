@@ -1,0 +1,32 @@
+[
+  {
+    "id": "bkp-20261109222813",
+    "nombre_archivo": "dressly_backup_20261109222813.json",
+    "ruta_storage": "https://fashionstorestorages.blob.core.windows.net/backups/dressly_backup_20261109222813.json",
+    "tamano_bytes": 223081,
+    "tamano_formateado": "217.85 KB",
+    "tipo_backup": "MANUAL",
+    "estado": "COMPLETADO",
+    "checksum_sha256": "152d38b694ee9f828954a034dfde7c465dec7e883be7f76f87ff9bc207b9dae2",
+    "fecha_creacion": "2026-11-09T22:28:19.181Z",
+    "total_tablas": 44,
+    "total_registros": 870,
+    "descripcion": "Pre-Urbanly transition backup",
+    "almacenamiento": "Microsoft Azure Blob Storage"
+  },
+  {
+    "id": "bkp-20261109145759",
+    "nombre_archivo": "dressly_backup_20261109145759.json",
+    "ruta_storage": "https://fashionstorestorages.blob.core.windows.net/backups/dressly_backup_20261109145759.json",
+    "tamano_bytes": 220870,
+    "tamano_formateado": "215.69 KB",
+    "tipo_backup": "MANUAL",
+    "estado": "COMPLETADO",
+    "checksum_sha256": "1c1ff516dc9684d80710925aaa40f44d25ae7d3f56ba57f9a7b4b21f2e5afdbd",
+    "fecha_creacion": "2026-11-09T14:58:05.589Z",
+    "total_tablas": 44,
+    "total_registros": 864,
+    "descripcion": "Test verification backup Azure + Local",
+    "almacenamiento": "Microsoft Azure Blob Storage"
+  }
+]

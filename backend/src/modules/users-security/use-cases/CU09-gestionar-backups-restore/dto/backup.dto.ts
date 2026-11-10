@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, Allow } from 'class-validator';
 
 export class CreateBackupDto {
   @IsOptional()
@@ -14,7 +14,16 @@ export class RestoreBackupDto {
   @IsString()
   backup_id: string;
 
+  @IsOptional()
   @IsString()
-  password_confirm: string;
+  password_confirm?: string;
 }
 
+export class RestoreUploadDto {
+  @Allow()
+  backup_data: any;
+
+  @IsOptional()
+  @IsString()
+  password_confirm?: string;
+}

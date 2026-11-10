@@ -41,9 +41,43 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+
+  const getActiveTenant = useCallback(() => {
+    const path = window.location.pathname.toLowerCase();
+    const match = path.match(/\/(?:store|tenant)\/([a-zA-Z0-9_-]+)/i);
+    if (match && match[1]) {
+      const t = match[1];
+      if (t === 'subversive-urban' || t === 'subversive') return 'urbanly';
+      if (t === 'aura') return 'aura-sport';
+      if (t === 'fashionstore') return 'dressly';
+      return t;
+    }
+    if (path.includes('urbanly') || path.includes('subversive')) return 'urbanly';
+    if (path.includes('aura')) return 'aura-sport';
+    if (path.includes('dressly')) return 'dressly';
+    return localStorage.getItem('tenantKey') || 'dressly';
+  }, []);
+
+  const [activeTenant, setActiveTenant] = useState<string>(getActiveTenant);
+
+  useEffect(() => {
+    const checkTenant = () => {
+      const current = getActiveTenant();
+      setActiveTenant((prev) => (prev !== current ? current : prev));
+    };
+
+    window.addEventListener('popstate', checkTenant);
+    const interval = setInterval(checkTenant, 500);
+    return () => {
+      window.removeEventListener('popstate', checkTenant);
+      clearInterval(interval);
+    };
+  }, [getActiveTenant]);
+
   const storageSuffix = user ? `_user_${user.id_usuario}` : '_guest';
-  const cartKey = `dressly_cart${storageSuffix}`;
-  const wishlistKey = `dressly_wishlist${storageSuffix}`;
+  const cartKey = `${activeTenant}_cart${storageSuffix}`;
+  const wishlistKey = `${activeTenant}_wishlist${storageSuffix}`;
+  const guestCartKey = `${activeTenant}_cart_guest`;
 
   const [backendCart, setBackendCart] = useState<BackendCart | null>(null);
   const [isCartLoading, setIsCartLoading] = useState(false);
@@ -122,6 +156,16 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   /**
    * Sincroniza el carrito local con el backend al iniciar sesión
    */
+  // Cargar lista de deseos del tenant activo
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(wishlistKey);
+      setWishlist(saved ? JSON.parse(saved) : []);
+    } catch {
+      setWishlist([]);
+    }
+  }, [wishlistKey]);
+
   useEffect(() => {
     if (isLoading) return;
 
@@ -129,8 +173,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const syncAndLoad = async () => {
         try {
           setIsCartLoading(true);
-          // Leer posible carrito de invitado guardado
-          const guestSaved = localStorage.getItem('dressly_cart_guest');
+          // Leer posible carrito de invitado guardado para este tenant
+          const guestSaved = localStorage.getItem(guestCartKey);
           const guestItems: CartItem[] = guestSaved ? JSON.parse(guestSaved) : [];
 
           if (guestItems.length > 0) {
@@ -145,7 +189,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             if (syncPayload.items.length > 0) {
               await cartService.syncGuestCart(syncPayload);
-              localStorage.removeItem('dressly_cart_guest');
+              localStorage.removeItem(guestCartKey);
             }
           }
 

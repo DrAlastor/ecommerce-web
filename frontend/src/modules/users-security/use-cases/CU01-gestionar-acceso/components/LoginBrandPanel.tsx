@@ -39,23 +39,42 @@ function HeartIcon() {
   );
 }
 
-export const LoginBrandPanel: React.FC = () => {
+interface LoginBrandPanelProps {
+  tenant?: string;
+}
+
+export const LoginBrandPanel: React.FC<LoginBrandPanelProps> = ({ tenant = 'urbanly' }) => {
+  const brandConfig = tenant === 'urbanly' ? {
+    logo: 'URBANLY',
+    tagline: 'Aesthetic Streetwear & Essentials',
+    headline: 'Estética Urbana & Siluetas Boxy-Fit',
+    desc: 'Heavyweight hoodies 500 GSM, pantalones cargo y prendas atemporales diseñadas para el movimiento.',
+  } : tenant === 'aura-sport' ? {
+    logo: 'AURA SPORT',
+    tagline: 'Athletics & High Performance',
+    headline: 'Supera Tus Límites Cada Día',
+    desc: 'Prendas Seamless de compresión y calzado técnico diseñado para el máximo rendimiento deportivo.',
+  } : {
+    logo: 'Dressly',
+    tagline: 'Fashion Store',
+    headline: 'Eleva tu estilo de cada día',
+    desc: 'Descubre piezas atemporales confeccionadas en lino, seda y piel, creadas para ti.',
+  };
+
   return (
     <div className="login-brand-panel">
       <div className="brand-content">
-        <div className="brand-logo">Dressly</div>
-        <div className="brand-tagline">Fashion Store</div>
+        <div className="brand-logo">{brandConfig.logo}</div>
+        <div className="brand-tagline">{brandConfig.tagline}</div>
 
         <div className="brand-decorative-line" />
 
         <h1 className="brand-headline">
-          Eleva tu estilo <br />
-          de cada día
+          {brandConfig.headline}
         </h1>
 
         <p className="brand-description">
-          Descubre piezas atemporales diseñadas con confort,
-          pensadas con elegancia, creadas para ti.
+          {brandConfig.desc}
         </p>
 
         <div className="brand-features">
@@ -63,7 +82,7 @@ export const LoginBrandPanel: React.FC = () => {
             <div className="brand-feature-icon">
               <TruckIcon />
             </div>
-            <span>Envío gratis</span>
+            <span>Envío express</span>
           </div>
           <div className="brand-feature">
             <div className="brand-feature-icon">
@@ -75,7 +94,7 @@ export const LoginBrandPanel: React.FC = () => {
             <div className="brand-feature-icon">
               <HeartIcon />
             </div>
-            <span>Estilo premium</span>
+            <span>Calidad garantizada</span>
           </div>
         </div>
       </div>

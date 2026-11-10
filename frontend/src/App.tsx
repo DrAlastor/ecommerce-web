@@ -48,13 +48,49 @@ function App() {
               {/* Landing Page Corporativa del SaaS FashionStore (Venta de Planes y Precios) */}
               <Route path="/" element={<SaasLandingPage />} />
 
-              {/* Vitrina / Tienda de cada Tenant (ej. Dressly) */}
+              {/* Vitrina / Tienda y rutas completas por Tenant (Urbanly, Dressly, Aura Sport) */}
               <Route path="/store/:tenant" element={<HomePage />} />
-              <Route path="/store/dressly" element={<HomePage />} />
-              <Route path="/dressly" element={<Navigate to="/store/dressly" replace />} />
-              <Route path="/home" element={<HomePage />} />
+              <Route path="/store/:tenant/catalog" element={<CatalogPage />} />
+              <Route path="/store/:tenant/product/:id" element={<ProductDetailPage />} />
+              <Route path="/store/:tenant/virtual-fitting/:productId" element={<VirtualFittingPage />} />
+              <Route path="/store/:tenant/cart" element={<CartPage />} />
+              <Route
+                path="/store/:tenant/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/store/:tenant/sucursales" element={<BranchesPage />} />
+              <Route
+                path="/store/:tenant/recommendations"
+                element={
+                  <ProtectedRoute allowedRoles={['Cliente']}>
+                    <RecommendationsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/store/:tenant/login" element={<LoginPage />} />
+              <Route path="/store/:tenant/register" element={<RegisterPage />} />
+              <Route path="/store/:tenant/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/store/:tenant/reset-password" element={<ResetPasswordPage />} />
 
-              <Route path="/catalog" element={<CatalogPage />} />
+              {/* Redirecciones y alias directos por Tenant */}
+              <Route path="/urbanly" element={<Navigate to="/store/urbanly" replace />} />
+              <Route path="/urbanly/catalog" element={<Navigate to="/store/urbanly/catalog" replace />} />
+              <Route path="/urbanly/login" element={<Navigate to="/store/urbanly/login" replace />} />
+              <Route path="/subversive-urban" element={<Navigate to="/store/urbanly" replace />} />
+              <Route path="/subversive" element={<Navigate to="/store/urbanly" replace />} />
+              <Route path="/aura-sport" element={<Navigate to="/store/aura-sport" replace />} />
+              <Route path="/aura-sport/catalog" element={<Navigate to="/store/aura-sport/catalog" replace />} />
+              <Route path="/aura-sport/login" element={<Navigate to="/store/aura-sport/login" replace />} />
+              <Route path="/aura" element={<Navigate to="/store/aura-sport" replace />} />
+              <Route path="/dressly" element={<Navigate to="/store/dressly" replace />} />
+              <Route path="/dressly/catalog" element={<Navigate to="/store/dressly/catalog" replace />} />
+              <Route path="/dressly/login" element={<Navigate to="/store/dressly/login" replace />} />
+              <Route path="/home" element={<Navigate to="/store/dressly" replace />} />
+              <Route path="/catalog" element={<Navigate to="/store/dressly/catalog" replace />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               {/* Vestidor Virtual 3D / RA (CU25) */}
               <Route path="/virtual-fitting/:productId" element={<VirtualFittingPage />} />
@@ -164,13 +200,17 @@ function App() {
                 {/* Módulo 4 — Gestión de Reservas en Sucursal (CU19) */}
                 <Route path="reservas" element={<ManageBranchReservationsPage />} />
                 <Route path="gestionar-reservas" element={<ManageBranchReservationsPage />} />
-                {/* Módulo 6 — Inteligencia de Negocios y Reportes (CU29 al CU32) */}
+                {/* Módulo 6 — Inteligencia de Negocios y Reportes (CU29 al CU32) con rutas propias */}
                 <Route path="dashboard" element={<ReportsDashboardPage defaultTab="dashboard" />} />
+                <Route path="consultar-dashboard" element={<ReportsDashboardPage defaultTab="dashboard" />} />
                 <Route path="reports" element={<ReportsDashboardPage defaultTab="dashboard" />} />
                 <Route path="reportes" element={<ReportsDashboardPage defaultTab="reports" />} />
                 <Route path="reportes-predefinidos" element={<ReportsDashboardPage defaultTab="reports" />} />
+                <Route path="gestionar-reportes-predefinidos" element={<ReportsDashboardPage defaultTab="reports" />} />
                 <Route path="reportes-qbe" element={<ReportsDashboardPage defaultTab="qbe" />} />
+                <Route path="gestionar-reportes-qbe" element={<ReportsDashboardPage defaultTab="qbe" />} />
                 <Route path="reportes-voz" element={<ReportsDashboardPage defaultTab="voz" />} />
+                <Route path="gestionar-reportes-voz" element={<ReportsDashboardPage defaultTab="voz" />} />
                 {/* Módulo 5 — Ventas y Devoluciones (CU26) */}
                 <Route path="devoluciones" element={<ManageReturnsPage />} />
                 <Route path="gestionar-devoluciones" element={<ManageReturnsPage />} />

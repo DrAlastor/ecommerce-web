@@ -78,6 +78,44 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
     }
   }, [defaultTab, location.pathname, setActiveTab]);
 
+  const getHeaderInfo = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return {
+          title: 'Consultar Dashboard',
+          subtitle: isAdmin
+            ? 'Panel ejecutivo con visibilidad global consolidada y métricas de todas las sucursales.'
+            : 'Panel operativo restringido exclusivamente a tus sucursales autorizadas.',
+          icon: <LayoutDashboard size={24} style={{ color: '#8A5340' }} />,
+        };
+      case 'reports':
+        return {
+          title: 'Gestionar Reportes Predefinidos',
+          subtitle: 'Consultas analíticas consolidadas de ventas, inventario y finanzas exportables a PDF y Excel.',
+          icon: <FileBarChart2 size={24} style={{ color: '#8A5340' }} />,
+        };
+      case 'qbe':
+        return {
+          title: 'Gestionar Reportes QBE',
+          subtitle: 'Generador de consultas analíticas avanzadas y búsquedas personalizadas Query-By-Example.',
+          icon: <TableProperties size={24} style={{ color: '#8A5340' }} />,
+        };
+      case 'voz':
+        return {
+          title: 'Gestionar Reportes por Voz',
+          subtitle: 'Consultas analíticas inteligentes en lenguaje natural con procesamiento de voz y síntesis auditiva en tiempo real.',
+          icon: <Mic size={24} style={{ color: '#8A5340' }} />,
+        };
+      default:
+        return {
+          title: 'Inteligencia de Negocios y Reportes',
+          subtitle: 'Panel ejecutivo y reportes consolidados del sistema.',
+          icon: <LayoutDashboard size={24} style={{ color: '#8A5340' }} />,
+        };
+    }
+  };
+
+  const headerInfo = getHeaderInfo();
   return (
     <div style={{ padding: '2rem', maxWidth: '1440px', margin: '0 auto', color: '#1C1510' }}>
       {/* Cabecera Principal */}
@@ -91,23 +129,38 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
           marginBottom: '1.75rem',
         }}
       >
-        <div>
-          <h1
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div
             style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              margin: 0,
-              fontFamily: 'var(--font-display, Georgia, serif)',
-              letterSpacing: '-0.02em',
+              width: '46px',
+              height: '46px',
+              borderRadius: '12px',
+              backgroundColor: '#F5EBE6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            Inteligencia de Negocios y Reportes
-          </h1>
-          <p style={{ color: '#736B63', fontSize: '0.95rem', margin: '0.25rem 0 0 0' }}>
-            {isAdmin
-              ? 'Panel ejecutivo con visibilidad global consolidada y métricas de todas las sucursales.'
-              : 'Panel operativo restringido exclusivamente a tus sucursales autorizadas.'}
-          </p>
+            {headerInfo.icon}
+          </div>
+          <div>
+            <h1
+              style={{
+                fontSize: '1.85rem',
+                fontWeight: 700,
+                margin: 0,
+                fontFamily: 'var(--font-display, Georgia, serif)',
+                letterSpacing: '-0.02em',
+                color: '#1C1510',
+              }}
+            >
+              {headerInfo.title}
+            </h1>
+            <p style={{ color: '#736B63', fontSize: '0.92rem', margin: '0.2rem 0 0 0' }}>
+              {headerInfo.subtitle}
+            </p>
+          </div>
         </div>
 
         {/* Switch de Pestañas Principales (Los 4 Casos de Uso del Módulo) */}

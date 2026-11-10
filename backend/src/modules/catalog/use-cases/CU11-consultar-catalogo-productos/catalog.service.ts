@@ -367,7 +367,7 @@ export class CatalogService {
    * @returns {Promise<Object>} Objeto con las opciones de filtros disponibles y rangos numéricos.
    */
   async getFilterMetadata() {
-    const [categorias, colecciones, tallas, colores, precios, count3D] = await Promise.all([
+    const [categorias, colecciones, tallas, colores, precios, count3D, generosList] = await Promise.all([
       this.prisma.categoria.findMany({
         select: {
           id_categoria: true,
@@ -412,6 +412,11 @@ export class CatalogService {
           },
         },
       }),
+      this.prisma.producto.findMany({
+        where: { estado: 'activo' },
+        select: { genero: true },
+        distinct: ['genero'],
+      }),
     ]);
 
     return {
@@ -436,7 +441,7 @@ export class CatalogService {
         nombre: c.nombre,
         codigo_hex: c.codigo_hex,
       })),
-      generos: ['Mujer'],
+      generos: generosList.map((g) => g.genero).filter(Boolean),
       total_3d: count3D,
       precio_rango: {
         min: Number(precios._min.precio_base || 0),

@@ -6,7 +6,7 @@
  * @secuencia Cliente -> catálogo y filtros -> controlador de catálogo -> servicio de catálogo -> Producto/Categoría/Colección/Promoción.
  */
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useShop } from '../../../../../../context/ShopContext';
 import type { CatalogProduct } from '../../../../types/catalog.types';
 import type { Product } from '../../../../../../types/shop.types';
@@ -18,6 +18,17 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, toShopProduct }) => {
   const navigate = useNavigate();
+  const params = useParams<{ tenant?: string }>();
+  const location = useLocation();
+
+  const rawTenant = params.tenant || 
+    (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
+     (localStorage.getItem('tenantKey') || 'urbanly'));
+
+  const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive' 
+    ? 'urbanly' 
+    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+
   const { toggleWishlist, isInWishlist, addToCart } = useShop();
   const isFavorited = isInWishlist(product.id_producto);
 
@@ -27,7 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, toShopProduct
   };
 
   const handleCardClick = () => {
-    navigate(`/product/${product.id_producto}`);
+    navigate(`/store/${currentTenant}/product/${product.id_producto}`);
   };
 
   return (
@@ -54,7 +65,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, toShopProduct
               className="badge-pill badge-3d-live"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/virtual-fitting/${product.id_producto}`);
+                navigate(`/store/${currentTenant}/virtual-fitting/${product.id_producto}`);
               }}
               title="Probar con webcam en 3D"
             >

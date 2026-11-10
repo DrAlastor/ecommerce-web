@@ -28,6 +28,8 @@ export interface AppearanceRecord {
   admin_sidebar_color?: string;
   admin_accent_color?: string;
   storefront_bg_color?: string;
+  storefront_page_bg?: string;
+  card_bg_color?: string;
   css_variables: string;
   fecha_modificacion: string;
 }
@@ -228,9 +230,11 @@ export class AppearanceService {
     primary: string,
     secondary: string,
     accent: string,
-    fontFamily?: string
+    fontFamily?: string,
+    storefrontBg?: string,
+    pageBg?: string,
   ): string {
-    return `:root { --color-primary: ${primary}; --color-secondary: ${secondary}; --color-accent: ${accent}; --font-display: ${fontFamily || "'Playfair Display', serif"}; }`;
+    return `:root { --color-primary: ${primary}; --color-secondary: ${secondary}; --color-accent: ${accent}; --font-display: ${fontFamily || "'Playfair Display', serif"}; --storefront-hero-bg: ${storefrontBg || '#F8F5F1'}; --storefront-page-bg: ${pageBg || '#FAF8F5'}; }`;
   }
 
   async getAppearance(tenantKey?: string, userId: number = 1, ip?: string): Promise<AppearanceRecord> {
@@ -270,6 +274,8 @@ export class AppearanceService {
     const adminSidebar = dto.admin_sidebar_color || existing.admin_sidebar_color || '#1A1918';
     const adminAccent = dto.admin_accent_color || existing.admin_accent_color || secondary;
     const font = dto.font_family || existing.font_family;
+    const storefrontBg = dto.storefront_bg_color || existing.storefront_bg_color || '#F8F5F1';
+    const pageBg = dto.storefront_page_bg || existing.storefront_page_bg || '#FAF8F5';
 
     const updated: AppearanceRecord = {
       ...existing,
@@ -281,7 +287,9 @@ export class AppearanceService {
       admin_sidebar_color: adminSidebar,
       admin_accent_color: adminAccent,
       font_family: font,
-      css_variables: this.generateCss(primary, secondary, accent, font),
+      storefront_bg_color: storefrontBg,
+      storefront_page_bg: pageBg,
+      css_variables: this.generateCss(primary, secondary, accent, font, storefrontBg, pageBg),
       fecha_modificacion: new Date().toISOString(),
     };
 
