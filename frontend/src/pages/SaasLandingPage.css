@@ -740,6 +740,21 @@
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@media (max-width: 640px) {
+  .saas-plans-carousel {
+    gap: 1rem;
+    padding: 1rem 0.25rem 2rem;
+  }
+  .saas-plan-card-wide {
+    flex: 0 0 calc(100vw - 3.5rem);
+    min-width: 260px;
+    max-width: 330px;
+    padding: 1.85rem 1.25rem;
+    scroll-snap-align: center;
+    border-radius: 20px;
+  }
+}
+
 .saas-plan-card-wide:hover {
   transform: translateY(-6px);
   border-color: rgba(196, 149, 106, 0.7);
@@ -811,9 +826,33 @@
   color: #333333;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
   margin-bottom: 1.5rem;
   border: 1px solid rgba(26, 26, 26, 0.05);
+}
+
+.saas-plan-limit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+  color: #374151;
+}
+
+.saas-plan-limit-icon {
+  color: #C4956A;
+  flex-shrink: 0;
+}
+
+.saas-currency-badge {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #1A1A1A;
 }
 
 .saas-plan-features {
@@ -886,6 +925,18 @@
   animation: fadeIn 0.25s ease;
 }
 
+@media (max-width: 768px) {
+  .saas-modal-backdrop {
+    padding: 1rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .saas-modal-backdrop {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
 .saas-modal-card-large {
   background: #FFFFFF;
   border-radius: 26px;
@@ -902,6 +953,28 @@
 
 .saas-modal-card-large.saas-checkout-wide {
   max-width: 980px;
+}
+
+@media (max-width: 768px) {
+  .saas-modal-card-large {
+    padding: 1.75rem 1.25rem;
+    border-radius: 20px;
+    max-height: 94vh;
+  }
+  .saas-modal-close {
+    top: 1rem;
+    right: 1rem;
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .saas-modal-card-large {
+    padding: 1.25rem 0.85rem;
+    border-radius: 16px;
+    max-height: 96vh;
+  }
 }
 
 .saas-modal-close {
@@ -936,6 +1009,28 @@
   margin: 1.75rem 0 2rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+}
+
+@media (max-width: 640px) {
+  .saas-steps-bar {
+    margin: 1rem 0 1.25rem;
+    padding-bottom: 0.75rem;
+    gap: 0.4rem;
+  }
+  .saas-step-item span {
+    display: none;
+  }
+  .saas-step-item.active span {
+    display: inline;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .saas-step-num {
+    width: 1.65rem;
+    height: 1.65rem;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
 }
 
 .saas-step-item {
@@ -1012,6 +1107,14 @@
   box-shadow: 0 0 0 3px rgba(196, 149, 106, 0.15);
 }
 
+@media (max-width: 640px) {
+  .saas-input,
+  .saas-select {
+    font-size: 16px;
+    padding: 0.7rem 0.85rem;
+  }
+}
+
 .saas-form-row {
   display: grid;
   grid-template-columns: 1fr;
@@ -1033,6 +1136,33 @@
 @media (min-width: 600px) {
   .saas-form-row-3 {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.saas-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.75rem;
+}
+
+.saas-modal-actions.end {
+  justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  .saas-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .saas-modal-actions button,
+  .saas-modal-actions a {
+    width: 100% !important;
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -1209,11 +1339,38 @@
 }
 
 @media (max-width: 767px) {
+  .saas-stripe-checkout-split {
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
   .saas-sc-left {
     border-right: none;
     border-bottom: 1px solid #ECECEC;
     padding-right: 0;
-    padding-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .saas-sc-currency-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .saas-sc-currency-btn {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.88rem;
+  }
+  .saas-sc-express-btns {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .saas-sc-btn-apple,
+  .saas-sc-btn-link {
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  .saas-sc-title {
+    font-size: 1.15rem;
   }
 }
 

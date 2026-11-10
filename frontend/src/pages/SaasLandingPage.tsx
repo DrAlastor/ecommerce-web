@@ -13,7 +13,11 @@ import {
   ShieldCheck,
   Layers,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users,
+  Tag,
+  ExternalLink,
+  CheckCircle2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SaasLandingPage.css';
@@ -571,7 +575,8 @@ export const SaasLandingPage: React.FC = () => {
           {/* Controles de Navegación del Carrusel */}
           <div className="saas-slider-controls-wrap">
             <span className="saas-slider-info-hint">
-              <span>👉</span> Desliza o usa los botones para comparar los 5 planes empresariales:
+              <Sparkles className="w-4 h-4 text-[#C4956A] inline-block mr-1.5" />
+              Desliza o usa los botones para comparar los 5 planes empresariales:
             </span>
             <div className="saas-slider-buttons">
               <button 
@@ -623,9 +628,18 @@ export const SaasLandingPage: React.FC = () => {
                       </div>
 
                       <div className="saas-plan-limits">
-                        <div>🏬 {plan.limits.branches}</div>
-                        <div>👥 {plan.limits.users}</div>
-                        <div>🏷️ {plan.limits.products}</div>
+                        <div className="saas-plan-limit-row">
+                          <Building2 className="w-3.5 h-3.5 saas-plan-limit-icon" />
+                          <span>{plan.limits.branches}</span>
+                        </div>
+                        <div className="saas-plan-limit-row">
+                          <Users className="w-3.5 h-3.5 saas-plan-limit-icon" />
+                          <span>{plan.limits.users}</span>
+                        </div>
+                        <div className="saas-plan-limit-row">
+                          <Tag className="w-3.5 h-3.5 saas-plan-limit-icon" />
+                          <span>{plan.limits.products}</span>
+                        </div>
                       </div>
 
                       <ul className="saas-plan-features">
@@ -768,11 +782,11 @@ export const SaasLandingPage: React.FC = () => {
             {/* Barra de 3 Pasos */}
             <div className="saas-steps-bar" style={step === 3 ? { margin: '0 0 1.5rem', paddingBottom: '1rem' } : undefined}>
               <div className={`saas-step-item ${step === 1 ? 'active' : step > 1 ? 'completed' : ''}`}>
-                <div className="saas-step-num">{step > 1 ? '✓' : '1'}</div>
+                <div className="saas-step-num">{step > 1 ? <Check className="w-3.5 h-3.5" /> : '1'}</div>
                 <span>1. Datos de Empresa</span>
               </div>
               <div className={`saas-step-item ${step === 2 ? 'active' : step > 2 ? 'completed' : ''}`}>
-                <div className="saas-step-num">{step > 2 ? '✓' : '2'}</div>
+                <div className="saas-step-num">{step > 2 ? <Check className="w-3.5 h-3.5" /> : '2'}</div>
                 <span>2. Dueño y Administrador</span>
               </div>
               <div className={`saas-step-item ${step === 3 ? 'active' : ''}`}>
@@ -793,10 +807,8 @@ export const SaasLandingPage: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   margin: '0 auto 1.25rem',
-                  fontSize: '1.75rem',
-                  fontWeight: 'bold'
                 }}>
-                  ✓
+                  <CheckCircle2 className="w-10 h-10 text-emerald-600" />
                 </div>
                 <h4 style={{ fontFamily: 'Playfair Display', fontSize: '1.65rem', color: '#1A1A1A', fontWeight: '700' }}>
                   ¡Pago Confirmado y Cuenta Habilitada!
@@ -974,9 +986,9 @@ export const SaasLandingPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.75rem' }}>
+                    <div className="saas-modal-actions end">
                       <button type="submit" className="saas-btn-hero-main" style={{ padding: '0.85rem 2rem' }}>
-                        Continuar a Datos del Administrador
+                        <span>Continuar a Datos del Administrador</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -1054,16 +1066,17 @@ export const SaasLandingPage: React.FC = () => {
                       />
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.75rem' }}>
+                    <div className="saas-modal-actions">
                       <button 
                         type="button" 
                         onClick={() => setStep(1)}
                         className="saas-btn-text"
                       >
-                        ← Volver a Datos de Empresa
+                        <ChevronLeft className="w-4 h-4 inline-block mr-1" />
+                        <span>Volver a Datos de Empresa</span>
                       </button>
                       <button type="submit" className="saas-btn-hero-main" style={{ padding: '0.85rem 2rem' }}>
-                        Continuar al Pago con Stripe
+                        <span>Continuar al Pago con Stripe</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -1088,9 +1101,14 @@ export const SaasLandingPage: React.FC = () => {
                         </button>
 
                         <div className="saas-sc-store-badge-wrap">
-                          <div className="saas-sc-store-icon">🏬</div>
+                          <div className="saas-sc-store-icon">
+                            <Building2 className="w-5 h-5 text-indigo-600" />
+                          </div>
                           <span className="saas-sc-store-name">Entorno de prueba de FashionStore</span>
-                          <span className="saas-sc-test-mode-pill">❖ Entorno de prueba</span>
+                          <span className="saas-sc-test-mode-pill">
+                            <ShieldCheck className="w-3 h-3 inline-block mr-1" />
+                            Entorno de prueba
+                          </span>
                         </div>
 
                         <h3 className="saas-sc-title">
@@ -1106,7 +1124,7 @@ export const SaasLandingPage: React.FC = () => {
                               onClick={() => setStripeCurrency('BOB')}
                               className={`saas-sc-currency-btn ${stripeCurrency === 'BOB' ? 'active' : ''}`}
                             >
-                              <span>🇧🇴</span>
+                              <span className="saas-currency-badge">BOB</span>
                               <span>{amountBOB} BOB</span>
                             </button>
                             <button
@@ -1114,7 +1132,7 @@ export const SaasLandingPage: React.FC = () => {
                               onClick={() => setStripeCurrency('USD')}
                               className={`saas-sc-currency-btn ${stripeCurrency === 'USD' ? 'active' : ''}`}
                             >
-                              <span>🇺🇸</span>
+                              <span className="saas-currency-badge">USD</span>
                               <span>{amountUSD} US$</span>
                             </button>
                           </div>
@@ -1145,7 +1163,14 @@ export const SaasLandingPage: React.FC = () => {
                             className="saas-sc-hosted-btn"
                             style={{ width: '100%' }}
                           >
-                            {stripeCheckoutLoading ? 'Iniciando sesión Stripe...' : '🔗 Abrir en Stripe Checkout Oficial (Nueva Ventana ↗)'}
+                            {stripeCheckoutLoading ? (
+                              'Iniciando sesión Stripe...'
+                            ) : (
+                              <>
+                                <ExternalLink className="w-4 h-4 inline-block mr-1.5" />
+                                <span>Abrir en Stripe Checkout Oficial (Nueva Ventana)</span>
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
@@ -1155,10 +1180,10 @@ export const SaasLandingPage: React.FC = () => {
                         {/* Botones de Pago Rápido Express */}
                         <div className="saas-sc-express-btns">
                           <button type="button" onClick={fillStripeTestCard} className="saas-sc-btn-apple">
-                             Pay
+                            Apple Pay
                           </button>
                           <button type="button" onClick={fillStripeTestCard} className="saas-sc-btn-link">
-                            › link
+                            Link
                           </button>
                         </div>
 

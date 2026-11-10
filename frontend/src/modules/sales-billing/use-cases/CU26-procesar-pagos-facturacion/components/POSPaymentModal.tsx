@@ -792,8 +792,9 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
                         <span style={{ fontSize: '0.72rem', color: '#6B7280' }}>
                           Cuenta vinculada: {POS_QR_ACCOUNTS.find(a => a.id === selectedAccountId)?.cuenta}
                         </span>
-                        <p style={{ fontSize: '0.72rem', color: '#059669', margin: 0, fontWeight: 600 }}>
-                          ✓ Listo para escanear desde app de {POS_QR_ACCOUNTS.find(a => a.id === selectedAccountId)?.name}
+                        <p style={{ fontSize: '0.72rem', color: '#059669', margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Listo para escanear desde app de {POS_QR_ACCOUNTS.find(a => a.id === selectedAccountId)?.name}</span>
                         </p>
                       </div>
                     )}
@@ -815,8 +816,9 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
                             padding: '6px',
                           }}
                         />
-                        <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>
-                          ✓ QR de sucursal guardado y activo permanentemente
+                        <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>QR de sucursal guardado y activo permanentemente</span>
                         </span>
                         <button
                           type="button"
