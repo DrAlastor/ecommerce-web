@@ -243,22 +243,58 @@ export const SaasLandingPage: React.FC = () => {
     }
   };
 
-  const handleProcessStripePayment = (e: React.FormEvent) => {
+  const handleProcessStripePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setStripeProcessing(true);
 
-    // Llamada con la API de Stripe
-    setTimeout(() => {
+    try {
       const generatedTxId = `pi_stripe_${Math.random().toString(36).substring(2, 11)}_${Date.now()}`;
+      const slug = (codigoEmpresa || nombreComercial.toLowerCase().replace(/[^a-z0-9]/g, '')).trim();
+
+      const payload = {
+        codigo_empresa: slug,
+        razon_social: razonSocial || nombreComercial,
+        nombre_comercial: nombreComercial,
+        nit,
+        pais,
+        ciudad_nombre: ciudadNombre,
+        direccion,
+        telefono: telefonoEmpresa,
+        email: emailEmpresa,
+        moneda_principal: monedaPrincipal,
+        moneda_secundaria: monedaSecundaria,
+        admin_nombre: ownerName,
+        admin_email: adminEmail,
+        admin_password: adminPassword,
+        admin_telefono: ownerPhone,
+        admin_cargo: ownerCargo,
+        plan_id: selectedPlan?.id || 'trial',
+        stripe_tx_id: generatedTxId,
+      };
+
+      const res = await fetch('/api/users-security/company/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const responseData = await res.json();
+      if (!res.ok) {
+        throw new Error(responseData?.message || 'Error en el registro y aprovisionamiento de la empresa.');
+      }
+
       setStripeTxId(generatedTxId);
       setStripeProcessing(false);
       setPaymentSuccess(true);
 
       setTimeout(() => {
         setShowModal(false);
-        navigate(`/store/dressly`);
+        navigate(`/store/${slug}`);
       }, 3500);
-    }, 1800);
+    } catch (err: any) {
+      alert(err.message || 'Error al procesar el registro.');
+      setStripeProcessing(false);
+    }
   };
 
   return (
@@ -765,12 +801,14 @@ export const SaasLandingPage: React.FC = () => {
                 <h4 style={{ fontFamily: 'Playfair Display', fontSize: '1.65rem', color: '#1A1A1A', fontWeight: '700' }}>
                   ¡Pago Confirmado y Cuenta Habilitada!
                 </h4>
-                <div style={{ background: '#F8F9FA', padding: '1rem', borderRadius: '12px', margin: '1.25rem auto', maxWidth: '480px', textAlign: 'left', fontSize: '0.82rem', color: '#444' }}>
-                  <p><strong>Comprobante Stripe:</strong> <code style={{ color: '#635BFF' }}>{stripeTxId}</code></p>
+                <div style={{ background: '#F8F9FA', padding: '1.25rem', borderRadius: '12px', margin: '1.25rem auto', maxWidth: '480px', textAlign: 'left', fontSize: '0.85rem', color: '#444', lineHeight: 1.6 }}>
+                  <p><strong>Comprobante de Pago:</strong> <code style={{ color: '#635BFF' }}>{stripeTxId}</code></p>
                   <p><strong>Empresa:</strong> {nombreComercial || razonSocial}</p>
+                  <p><strong>Ruta Exclusiva:</strong> <code style={{ color: '#0284C7' }}>/store/{codigoEmpresa}</code></p>
+                  <p><strong>Base de Datos Físicamente Aislada:</strong> <code style={{ color: '#059669' }}>{codigoEmpresa}_db</code></p>
                   <p><strong>Plan Activado:</strong> {selectedPlan.name} ({billingCycle === 'monthly' ? 'Mensual' : 'Anual'})</p>
-                  <p><strong>Usuario Maestro:</strong> {adminEmail}</p>
-                  <p><strong>Estado:</strong> <span style={{ color: '#2E7D32', fontWeight: 'bold' }}>ACTIVO EN PRODUCCIÓN</span></p>
+                  <p><strong>Usuario Administrador:</strong> {adminEmail}</p>
+                  <p><strong>Estado:</strong> <span style={{ color: '#2E7D32', fontWeight: 'bold' }}>APROVISIONADO Y ACTIVO</span></p>
                 </div>
                 <p style={{ fontSize: '0.85rem', color: '#666' }}>
                   Redirigiendo automáticamente a la tienda de tu empresa...

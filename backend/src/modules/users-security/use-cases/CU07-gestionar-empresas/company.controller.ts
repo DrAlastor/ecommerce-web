@@ -1,13 +1,22 @@
-import { Controller, Get, Put, Body, Param, Query, UseGuards, Req, Ip } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Req, Ip } from '@nestjs/common';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard.js';
 import { FunctionGuard } from '../../shared/guards/function.guard.js';
 import { FunctionRequired } from '../../shared/decorators/function-required.decorator.js';
 import { CompanyService } from './company.service.js';
-import { UpdateCompanyDto } from './dto/company.dto.js';
+import { UpdateCompanyDto, RegisterCompanyDto } from './dto/company.dto.js';
 
 @Controller('users-security/company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
+
+  /**
+   * Endpoint público para registro y aprovisionamiento automático de una nueva empresa (Tenant)
+   * desde la Landing Page de Planes del SaaS. Aprovisiona su base de datos física y usuario administrador.
+   */
+  @Post('register')
+  registerCompany(@Body() dto: RegisterCompanyDto, @Ip() ip: string) {
+    return this.companyService.registerCompany(dto, ip);
+  }
 
   /**
    * Endpoint público para que la vitrina de la tienda obtenga los datos corporativos del tenant.

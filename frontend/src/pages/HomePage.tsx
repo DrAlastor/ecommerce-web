@@ -277,8 +277,8 @@ export const HomePage: React.FC = () => {
     ? 'urbanly'
     : (normalized === 'aura' ? 'aura-sport' : (normalized === 'fashionstore' ? 'dressly' : normalized));
 
-  const activeTenantKey = TENANTS_THEME[resolvedTenant] ? resolvedTenant : 'dressly';
-  const currentTheme = TENANTS_THEME[activeTenantKey];
+  const activeTenantKey = resolvedTenant;
+  const currentTheme = TENANTS_THEME[activeTenantKey] || TENANTS_THEME['dressly'];
 
   const [appearance, setAppearance] = useState<AppearanceData | null>(null);
   const [dynamicProducts, setDynamicProducts] = useState<Product[]>([]);

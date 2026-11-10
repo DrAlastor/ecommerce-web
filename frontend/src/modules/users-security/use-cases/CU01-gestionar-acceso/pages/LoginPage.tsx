@@ -16,7 +16,8 @@ export const LoginPage: React.FC = () => {
   const params = useParams<{ tenant?: string }>();
   const location = useLocation();
 
-  const rawTenant = params.tenant || 
+  const queryTenant = new URLSearchParams(location.search).get('tenant');
+  const rawTenant = params.tenant || queryTenant || 
     (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
      (localStorage.getItem('tenantKey') || 'urbanly'));
 
