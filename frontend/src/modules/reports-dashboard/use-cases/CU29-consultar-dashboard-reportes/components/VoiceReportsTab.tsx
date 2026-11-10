@@ -116,11 +116,14 @@ export const VoiceReportsTab: React.FC = () => {
     // Detener cualquier audio previo
     stopSpeechSynthesis();
 
-    // Limpieza de markdown para que la pronunciación sea fluida y natural
+    // Limpieza de markdown y adaptación fonética para que la pronunciación sea fluida y natural
     const cleanSpeech = text
       .replace(/[*_#`]/g, '')
       .replace(/\n+/g, '. ')
       .replace(/--+/g, '')
+      .replace(/Bs\./gi, 'Bolivianos')
+      .replace(/USD/gi, 'dólares')
+      .replace(/\$/g, 'dólares ')
       .trim();
 
     if (!cleanSpeech) return;
@@ -141,10 +144,23 @@ export const VoiceReportsTab: React.FC = () => {
       const utterance = new SpeechSynthesisUtterance(cleanSpeech);
       utteranceRef.current = utterance;
 
+      const esVoices = voices.filter(
+        (v) => v.lang.startsWith('es') || v.lang.includes('es'),
+      );
+
+      // Preferir voces femeninas cálidas por nombre
+      const femaleKeywords = [
+        'sabina', 'monica', 'mónica', 'paulina', 'helena', 'laura', 'victoria',
+        'lucia', 'lucía', 'conchita', 'elena', 'maria', 'maría', 'carmen',
+        'sofia', 'sofía', 'female', 'femenina', 'mujer'
+      ];
+      const femaleVoice = esVoices.find((v) =>
+        femaleKeywords.some((kw) => v.name.toLowerCase().includes(kw)),
+      );
       const esVoice =
-        voices.find((v) => v.lang.startsWith('es-BO')) ||
-        voices.find((v) => v.lang.startsWith('es-')) ||
-        voices.find((v) => v.lang.includes('es'));
+        femaleVoice ||
+        esVoices.find((v) => v.lang.startsWith('es-BO')) ||
+        esVoices[0];
 
       if (esVoice) {
         utterance.voice = esVoice;
@@ -153,8 +169,8 @@ export const VoiceReportsTab: React.FC = () => {
         utterance.lang = 'es-ES';
       }
 
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
+      utterance.rate = 0.98;
+      utterance.pitch = 1.12;
 
       utterance.onstart = () => {
         setVoiceState('speaking');

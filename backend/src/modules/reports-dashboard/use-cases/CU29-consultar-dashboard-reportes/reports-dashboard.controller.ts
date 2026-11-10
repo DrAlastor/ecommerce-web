@@ -17,6 +17,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { spawn } from 'child_process';
+import * as https from 'https';
 import type { Response } from 'express';
 import { FunctionRequired } from '../../../users-security/shared/decorators/function-required.decorator.js';
 import { FunctionGuard } from '../../../users-security/shared/guards/function.guard.js';
@@ -208,7 +209,7 @@ export class ReportsDashboardController {
   }
 
   /**
-   * CU33 — Síntesis de Voz (TTS) como respaldo universal para navegadores sin motor local
+   * CU33 — Síntesis de Voz (TTS) con voz natural, cálida y femenina en español
    */
   @Post('ai/tts')
   @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
@@ -220,6 +221,9 @@ export class ReportsDashboardController {
       .replace(/[*_#`]/g, '')
       .replace(/\n+/g, '. ')
       .replace(/--+/g, '')
+      .replace(/Bs\./gi, 'Bolivianos')
+      .replace(/USD/gi, 'dólares')
+      .replace(/\$/g, 'dólares ')
       .trim()
       .slice(0, 1500);
 
@@ -227,18 +231,95 @@ export class ReportsDashboardController {
       return res.status(400).send('Texto vacío');
     }
 
+    try {
+      // 1. Intentar síntesis neural natural femenina (voz cálida y amigable)
+      const chunks = this.splitTextIntoTtsChunks(cleanText, 175);
+      const audioBuffers: Buffer[] = [];
+
+      for (const chunk of chunks) {
+        const audioBuffer = await this.fetchNaturalFemaleTts(chunk);
+        if (audioBuffer && audioBuffer.length > 0) {
+          audioBuffers.push(audioBuffer);
+        }
+      }
+
+      if (audioBuffers.length > 0) {
+        const combined = Buffer.concat(audioBuffers);
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.send(combined);
+      }
+    } catch (err) {
+      this.logger.warn('Fallo en Google TTS natural, recurriendo a motor local femenino:', err);
+    }
+
+    // 2. Fallback local con espeak-ng configurado en variante femenina y tono cálido (+f3)
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Cache-Control', 'no-cache');
-
-    const child = spawn('espeak-ng', ['-v', 'es', '-s', '150', '--stdout', cleanText]);
-
+    const child = spawn('espeak-ng', ['-v', 'es+f3', '-s', '140', '-p', '65', '--stdout', cleanText]);
     child.stdout.pipe(res);
-
     child.on('error', (err) => {
       this.logger.error('Error al invocar espeak-ng para TTS:', err);
       if (!res.headersSent) {
         res.status(500).send('Error en síntesis de voz');
       }
+    });
+  }
+
+  /**
+   * Divide un texto en oraciones o fragmentos de longitud adecuada para TTS
+   */
+  private splitTextIntoTtsChunks(text: string, maxLen = 175): string[] {
+    const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+    const chunks: string[] = [];
+    let current = '';
+
+    for (const s of sentences) {
+      const trimmed = s.trim();
+      if (!trimmed) continue;
+      if ((current + ' ' + trimmed).trim().length <= maxLen) {
+        current = (current + ' ' + trimmed).trim();
+      } else {
+        if (current) chunks.push(current);
+        if (trimmed.length <= maxLen) {
+          current = trimmed;
+        } else {
+          const words = trimmed.split(' ');
+          current = '';
+          for (const w of words) {
+            if ((current + ' ' + w).trim().length <= maxLen) {
+              current = (current + ' ' + w).trim();
+            } else {
+              if (current) chunks.push(current);
+              current = w;
+            }
+          }
+        }
+      }
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  }
+
+  /**
+   * Obtiene un fragmento de audio en formato MP3 con voz femenina natural en español
+   */
+  private fetchNaturalFemaleTts(text: string): Promise<Buffer | null> {
+    return new Promise((resolve) => {
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=es-419&client=tw-ob&q=${encodeURIComponent(text)}`;
+      const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 4000 }, (res) => {
+        if (res.statusCode !== 200) {
+          return resolve(null);
+        }
+        const data: Buffer[] = [];
+        res.on('data', (c) => data.push(c));
+        res.on('end', () => resolve(Buffer.concat(data)));
+      });
+      req.on('error', () => resolve(null));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(null);
+      });
     });
   }
 }
