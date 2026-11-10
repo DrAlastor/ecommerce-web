@@ -34,6 +34,8 @@ export interface AppearanceData {
   admin_sidebar_color?: string;
   admin_accent_color?: string;
   storefront_bg_color?: string;
+  storefront_page_bg?: string;
+  card_bg_color?: string;
   css_variables?: string;
   fecha_modificacion?: string;
 }

@@ -303,6 +303,22 @@ export const HomePage: React.FC = () => {
         if (data.font_family) {
           document.documentElement.style.setProperty('--font-display', data.font_family);
         }
+        if (data.storefront_page_bg) {
+          document.documentElement.style.setProperty('--storefront-page-bg', data.storefront_page_bg);
+          const r = parseInt(data.storefront_page_bg.slice(1, 3), 16);
+          const g = parseInt(data.storefront_page_bg.slice(3, 5), 16);
+          const b = parseInt(data.storefront_page_bg.slice(5, 7), 16);
+          const lum = (!isNaN(r) && !isNaN(g) && !isNaN(b)) ? (0.299 * r + 0.587 * g + 0.114 * b) / 255 : 1;
+          if (lum < 0.5) {
+            document.documentElement.style.setProperty('--storefront-text-color', '#F5F5F7');
+            document.documentElement.style.setProperty('--storefront-text-muted', '#A1A1AA');
+            document.documentElement.style.setProperty('--storefront-border-color', 'rgba(255, 255, 255, 0.15)');
+          } else {
+            document.documentElement.style.setProperty('--storefront-text-color', '#1A1A1A');
+            document.documentElement.style.setProperty('--storefront-text-muted', '#736B63');
+            document.documentElement.style.setProperty('--storefront-border-color', '#EFECE6');
+          }
+        }
         if (data.storefront_bg_color) {
           document.documentElement.style.setProperty('--storefront-hero-bg', data.storefront_bg_color);
         }
@@ -363,7 +379,13 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="home-page">
+    <div
+      className="home-page home-container"
+      style={{
+        backgroundColor: appearance?.storefront_page_bg || 'var(--storefront-page-bg, #FAF8F5)',
+        transition: 'background-color 0.25s ease',
+      }}
+    >
       {/* Toast Notification */}
       {toastMessage && (
         <div className="cart-toast animate-toast">

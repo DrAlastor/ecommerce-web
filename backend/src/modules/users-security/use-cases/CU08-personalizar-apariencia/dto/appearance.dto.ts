@@ -114,5 +114,13 @@ export class UpdateAppearanceDto {
 
   @IsOptional()
   @IsString()
+  storefront_page_bg?: string;
+
+  @IsOptional()
+  @IsString()
+  card_bg_color?: string;
+
+  @IsOptional()
+  @IsString()
   preset_name?: string;
 }
