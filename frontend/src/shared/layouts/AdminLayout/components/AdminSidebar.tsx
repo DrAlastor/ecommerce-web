@@ -38,14 +38,14 @@ const webPanelUseCaseIds = new Set([
 
 const getModuleIcon = (modulo: string) => {
   const norm = normalize(modulo);
-  if (norm.includes('usuario') || norm.includes('seguridad')) return <Users size={20} />;
-  if (norm.includes('catalogo') || norm.includes('proveedor')) return <Package size={20} />;
-  if (norm.includes('inventario') || norm.includes('sucursal')) return <Box size={20} />;
-  if (norm.includes('reserva')) return <Calendar size={20} />;
-  if (norm.includes('devolucion') || norm.includes('retorno')) return <RotateCcw size={20} />;
-  if (norm.includes('venta') || norm.includes('pago') || norm.includes('factura')) return <ShoppingCart size={20} />;
-  if (norm.includes('reporte') || norm.includes('dashboard') || norm.includes('inteligencia') || norm.includes('negocio')) return <FileText size={20} />;
-  return <LayoutDashboard size={20} />;
+  if (norm.includes('usuario') || norm.includes('seguridad')) return <Users size={17} />;
+  if (norm.includes('catalogo') || norm.includes('proveedor')) return <Package size={17} />;
+  if (norm.includes('inventario') || norm.includes('sucursal')) return <Box size={17} />;
+  if (norm.includes('reserva')) return <Calendar size={17} />;
+  if (norm.includes('devolucion') || norm.includes('retorno')) return <RotateCcw size={17} />;
+  if (norm.includes('venta') || norm.includes('pago') || norm.includes('factura')) return <ShoppingCart size={17} />;
+  if (norm.includes('reporte') || norm.includes('dashboard') || norm.includes('inteligencia') || norm.includes('negocio')) return <FileText size={17} />;
+  return <LayoutDashboard size={17} />;
 };
 
 const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
@@ -186,7 +186,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
             onClick={onClose} 
             aria-label="Cerrar menú"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         )}
       </div>
@@ -200,7 +200,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
             onClick={handleNavClick}
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
-            <LayoutDashboard size={20} />
+            <LayoutDashboard size={17} />
             <span>Dashboard</span>
           </NavLink>
 
@@ -216,7 +216,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
                   </span>
                   <span className="admin-module-text">{modulo.replace('Gestión de ', '')}</span>
                 </div>
-                {openModules[modulo] ? <ChevronDown size={16} className="admin-module-chevron" /> : <ChevronRight size={16} className="admin-module-chevron" />}
+                {openModules[modulo] ? <ChevronDown size={14} className="admin-module-chevron" /> : <ChevronRight size={14} className="admin-module-chevron" />}
               </div>
 
               {openModules[modulo] && (
@@ -248,11 +248,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
             onClick={handleNavClick}
             className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
           >
-            <Settings size={20} />
+            <Settings size={17} />
             <span>Configuración</span>
           </NavLink>
           <a href="/" className="admin-nav-item" onClick={handleNavClick}>
-            <Store size={20} />
+            <Store size={17} />
             <span>Volver a la Tienda</span>
           </a>
         </nav>
