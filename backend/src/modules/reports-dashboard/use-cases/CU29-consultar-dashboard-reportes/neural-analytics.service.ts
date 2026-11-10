@@ -172,8 +172,15 @@ export class NeuralAnalyticsService {
    */
   async getDemandForecasting(branchId?: number): Promise<DemandPredictionResult> {
     const whereClause: any = {
-      estado: { in: ['completada', 'pagada', 'finalizada', 'entregada'] },
+      estado: { in: ['completada', 'pagada', 'finalizada', 'entregada', 'Completada', 'Pagada'] },
     };
+    if (branchId) {
+      whereClause.empleado = {
+        empleado_sucursal: {
+          some: { id_sucursal: branchId },
+        },
+      };
+    }
 
     const ventas: any[] = await this.prisma.venta.findMany({
       where: whereClause,
@@ -503,7 +510,7 @@ export class NeuralAnalyticsService {
       include: {
         usuario: true,
         venta: {
-          where: { estado: { in: ['completada', 'pagada', 'finalizada', 'entregada'] } },
+          where: { estado: { in: ['completada', 'pagada', 'finalizada', 'entregada', 'Completada', 'Pagada'] } },
         },
       },
       take: 200,
@@ -779,10 +786,14 @@ export class NeuralAnalyticsService {
     const growthRate = (Number(params?.growthRatePercent) || 0) / 100;
 
     const whereClause: any = {
-      estado: { in: ['completada', 'pagada', 'finalizada', 'entregada'] },
+      estado: { in: ['completada', 'pagada', 'finalizada', 'entregada', 'Completada', 'Pagada'] },
     };
     if (params?.branchId) {
-      whereClause.id_sucursal = params.branchId;
+      whereClause.empleado = {
+        empleado_sucursal: {
+          some: { id_sucursal: params.branchId },
+        },
+      };
     }
 
     const ventas: any[] = await this.prisma.venta.findMany({

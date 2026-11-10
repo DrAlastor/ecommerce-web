@@ -233,3 +233,4 @@ export const ExecutiveVerdictCard: React.FC<ExecutiveVerdictCardProps> = ({
     </div>
   );
 };
+
