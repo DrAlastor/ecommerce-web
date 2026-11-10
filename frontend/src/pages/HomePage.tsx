@@ -81,8 +81,8 @@ const TENANT_CATEGORIES: Record<string, TenantCategory[]> = {
     { id: 'tops', name: 'Tops & Blusas', slug: 'tops', image: 'https://fashionstorestorages.blob.core.windows.net/productos/top_punto.jpg' },
     { id: 'pantalones', name: 'Pantalones & Faldas', slug: 'pantalones', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_palazo.png' },
     { id: 'bolsos', name: 'Bolsos & Carteras', slug: 'bolsos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/bolso_tote.png' },
-    { id: 'calzado', name: 'Calzado & Mocasines', slug: 'calzado', image: 'https://fashionstorestorages.blob.core.windows.net/productos/mocasines_cuero.png' },
-    { id: 'accesorios', name: 'Accesorios & Joyería', slug: 'accesorios', image: 'https://fashionstorestorages.blob.core.windows.net/productos/cinturon_piel.png' },
+    { id: 'calzado', name: 'Calzado & Mocasines', slug: 'calzado', image: 'https://fashionstorestorages.blob.core.windows.net/productos/mocasines_italiano.png' },
+    { id: 'accesorios', name: 'Accesorios & Joyería', slug: 'accesorios', image: 'https://fashionstorestorages.blob.core.windows.net/productos/cinturon_becerro.png' },
     { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_noche.jpg' },
   ],
   'urbanly': [
@@ -94,7 +94,7 @@ const TENANT_CATEGORIES: Record<string, TenantCategory[]> = {
     { id: 'jeans', name: 'Jeans Wide-Leg', slug: 'jeans', image: 'https://fashionstorestorages.blob.core.windows.net/productos/jeans_wideleg.png' },
     { id: 'cropped', name: 'Hoodies Cropped', slug: 'cropped', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_cropped.png' },
     { id: 'parachute', name: 'Parachute Pants', slug: 'parachute', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_parachute.png' },
-    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_vintage.png' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_oversize_carbon.png' },
   ],
   'aura-sport': [
     { id: 'all', name: 'Todo', slug: 'all', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
