@@ -5,7 +5,6 @@ import {
   MicOff,
   Send,
   Play,
-  CheckCircle2,
   X,
   Download,
   FileSpreadsheet,
@@ -18,9 +17,13 @@ import {
   Trash2,
   AlertCircle,
   RotateCcw,
-  SlidersHorizontal,
   Layers,
   Check,
+  Activity,
+  BarChart2,
+  PieChart,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { reportsService } from '../services/reports.service';
 import type {
@@ -59,7 +62,7 @@ const ENTITY_PRESETS: Record<string, EntityPreset[]> = {
     {
       id: 'todas',
       label: 'Todas las ventas',
-      description: 'Listado cronologico de todas las ventas con totales',
+      description: 'Listado cronologico general de ventas',
       payload: { orderBy: { field: 'fecha_venta', direction: 'desc' } },
     },
     {
@@ -120,7 +123,7 @@ const ENTITY_PRESETS: Record<string, EntityPreset[]> = {
     {
       id: 'top_caras',
       label: 'Prendas mas caras',
-      description: 'Top de prendas ordenadas de mayor a menor precio',
+      description: 'Top prendas ordenadas de mayor a menor precio',
       payload: {
         orderBy: { field: 'precio_base', direction: 'desc' },
         limit: 20,
@@ -263,6 +266,162 @@ const ENTITY_PRESETS: Record<string, EntityPreset[]> = {
   ],
 };
 
+// =============================================================================
+// SUB-COMPONENTE: GRAFICA DE PICOS (PEAK / AREA CHART CON CURVA Y CRESTAS)
+// =============================================================================
+interface PeakPoint {
+  name: string;
+  total: number;
+}
+
+const PeakChartView: React.FC<{ data: PeakPoint[] }> = ({ data }) => {
+  if (!data || data.length === 0) return null;
+
+  const points = data.slice(0, 16);
+  const totals = points.map((p) => Number(p.total) || 0);
+  const minVal = Math.min(...totals);
+  const maxVal = Math.max(...totals, 1);
+  const range = maxVal - minVal || 1;
+
+  const width = 820;
+  const height = 240;
+  const padLeft = 70;
+  const padRight = 35;
+  const padTop = 38;
+  const padBottom = 48;
+
+  const plotW = width - padLeft - padRight;
+  const plotH = height - padTop - padBottom;
+
+  const coords = points.map((p, idx) => {
+    const x = padLeft + (points.length > 1 ? (idx / (points.length - 1)) * plotW : plotW / 2);
+    const val = Number(p.total) || 0;
+    const y = padTop + plotH - ((val - minVal) / range) * plotH;
+    return { x, y, val, name: p.name };
+  });
+
+  // Curva Bezier suave que conecta los picos
+  const linePath = coords.reduce((acc, pt, idx) => {
+    if (idx === 0) return `M ${pt.x} ${pt.y}`;
+    const prev = coords[idx - 1];
+    const cx = (prev.x + pt.x) / 2;
+    return `${acc} C ${cx} ${prev.y}, ${cx} ${pt.y}, ${pt.x} ${pt.y}`;
+  }, '');
+
+  // Area sombreada bajo la curva
+  const areaPath = `${linePath} L ${coords[coords.length - 1].x} ${padTop + plotH} L ${coords[0].x} ${padTop + plotH} Z`;
+
+  // Indice del pico maximo
+  const peakIdx = totals.indexOf(maxVal);
+
+  const gridSteps = [0, 0.33, 0.66, 1];
+
+  return (
+    <div style={{ width: '100%', overflowX: 'auto', padding: '0.5rem 0' }}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width: '100%', minWidth: '650px', height: 'auto', display: 'block' }}
+      >
+        <defs>
+          <linearGradient id="qbePeakGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#8C5E35" stopOpacity="0.45" />
+            <stop offset="65%" stopColor="#8C5E35" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#8C5E35" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Lineas de guia horizontal */}
+        {gridSteps.map((step, i) => {
+          const y = padTop + plotH * (1 - step);
+          const valLabel = Math.round(minVal + range * step);
+          return (
+            <g key={i}>
+              <line
+                x1={padLeft}
+                y1={y}
+                x2={width - padRight}
+                y2={y}
+                stroke="#EAE6DF"
+                strokeDasharray="4 4"
+                strokeWidth="1"
+              />
+              <text
+                x={padLeft - 10}
+                y={y + 4}
+                textAnchor="end"
+                fontSize="10"
+                fill="#8A8279"
+                fontWeight="500"
+              >
+                {valLabel.toLocaleString('es-BO')}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Area bajo la curva con gradiente */}
+        <path d={areaPath} fill="url(#qbePeakGradient)" />
+
+        {/* Trazo continuo de la curva de picos */}
+        <path d={linePath} fill="none" stroke="#8C5E35" strokeWidth="2.75" />
+
+        {/* Marcadores de picos y valles */}
+        {coords.map((pt, idx) => {
+          const isPeak = idx === peakIdx;
+          return (
+            <g key={idx}>
+              <circle
+                cx={pt.x}
+                cy={pt.y}
+                r={isPeak ? 6 : 3.5}
+                fill={isPeak ? '#1C1510' : '#FFFFFF'}
+                stroke={isPeak ? '#C4956A' : '#8C5E35'}
+                strokeWidth={isPeak ? 2.5 : 2}
+              />
+              {isPeak && (
+                <g transform={`translate(${pt.x}, ${pt.y - 14})`}>
+                  <rect
+                    x="-46"
+                    y="-19"
+                    width="92"
+                    height="19"
+                    rx="4"
+                    fill="#1C1510"
+                  />
+                  <text
+                    x="0"
+                    y="-6"
+                    textAnchor="middle"
+                    fontSize="9.5"
+                    fill="#FFFFFF"
+                    fontWeight="700"
+                  >
+                    Pico: {pt.val.toLocaleString('es-BO')}
+                  </text>
+                </g>
+              )}
+              {/* Etiqueta en el eje horizontal */}
+              <text
+                x={pt.x}
+                y={padTop + plotH + 18}
+                textAnchor="middle"
+                fontSize="10"
+                fill="#4B433B"
+                fontWeight={isPeak ? '700' : '500'}
+              >
+                {pt.name.length > 13 ? pt.name.slice(0, 12) + '..' : pt.name}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+// =============================================================================
+// COMPONENTE PRINCIPAL: QBE TAB (ARMADOR DE CONSULTAS EN TIEMPO REAL)
+// =============================================================================
 export const QbeTab: React.FC = () => {
   const [metadata, setMetadata] = useState<QbeMetadata | null>(null);
   const [loadingMeta, setLoadingMeta] = useState<boolean>(true);
@@ -275,10 +434,13 @@ export const QbeTab: React.FC = () => {
   const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('desc');
   const [limit, setLimit] = useState<number>(100);
 
+  // Modo de Grafica: 'peak' (Picos/Area), 'bar' (Barras), 'donut' (Circular)
+  const [chartMode, setChartMode] = useState<'peak' | 'bar' | 'donut'>('peak');
+
   // Pildora de consulta rapida activa
   const [activePresetId, setActivePresetId] = useState<string>('todas');
 
-  // Filtros interactivos por ejemplo en cabecera de tabla (Verdadero QBE)
+  // Filtros interactivos por ejemplo en cabecera de tabla
   const [columnExamples, setColumnExamples] = useState<Record<string, string>>({});
 
   // Resultados
@@ -287,18 +449,17 @@ export const QbeTab: React.FC = () => {
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Tabla local
+  // Tabla local y paginacion
   const [tableSearch, setTableSearch] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(15);
-  const [chartMode, setChartMode] = useState<'bar' | 'donut'>('bar');
 
-  // Estado de Lenguaje Natural y Asistente
+  // Asistente Opcional de Lenguaje Natural / IA
+  const [showAiAssistant, setShowAiAssistant] = useState<boolean>(false);
   const [nlPrompt, setNlPrompt] = useState<string>('');
   const [interpreting, setInterpreting] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [interpretationResult, setInterpretationResult] = useState<InterpretedQbeResponse | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -313,7 +474,7 @@ export const QbeTab: React.FC = () => {
         try {
           recognitionRef.current.abort();
         } catch {
-          // ignore cleanup error
+          // ignore
         }
       }
     };
@@ -328,10 +489,15 @@ export const QbeTab: React.FC = () => {
       setResults(res);
       setCurrentPage(1);
       setTableSearch('');
-      if (res.chartSuggestion) {
-        setChartMode(res.chartSuggestion === 'pie' ? 'donut' : 'bar');
+
+      // Si no hay modo explícito, preferir 'peak' si hay datos numéricos suficientes o 'bar'
+      if (res.chartData && res.chartData.length >= 4) {
+        setChartMode('peak');
+      } else if (res.chartSuggestion === 'pie') {
+        setChartMode('donut');
       }
-      // Generar diagnostico de IA si hay datos
+
+      // Diagnostico automatico opcional de Gemini
       if (res && res.rows && res.rows.length > 0) {
         handleGenerateAiAnalysis(res);
       }
@@ -343,7 +509,7 @@ export const QbeTab: React.FC = () => {
     }
   };
 
-  // Cargar metadatos iniciales Y EJECUTAR AUTO-QUERY DE INMEDIATO
+  // Cargar metadatos iniciales y lanzar la primera consulta al instante
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -359,7 +525,7 @@ export const QbeTab: React.FC = () => {
             setSelectedFields(defaultFields);
             setActivePresetId('todas');
 
-            // AUTO-QUERY INICIAL: Cargar datos reales sin forzar ningun filtro
+            // Carga inicial en tiempo real
             executePayload({
               entity: first.id,
               fields: defaultFields,
@@ -386,7 +552,7 @@ export const QbeTab: React.FC = () => {
     return metadata?.entities.find((e) => e.id === selectedEntityId);
   }, [metadata, selectedEntityId]);
 
-  // Cambiar de entidad CON AUTO-QUERY INMEDIATO (cero pantallas en blanco)
+  // Cambiar de entidad en tiempo real (cero pantallas vacias)
   const handleSelectEntity = (entityId: string, customPreset?: Partial<QbeQueryPayload>) => {
     setSelectedEntityId(entityId);
     const ent = metadata?.entities.find((e) => e.id === entityId);
@@ -404,7 +570,9 @@ export const QbeTab: React.FC = () => {
 
     const presetsForEntity = ENTITY_PRESETS[entityId] || [];
     const firstPreset = presetsForEntity[0];
-    const targetPresetId = customPreset ? (presetsForEntity.find((p) => p.payload === customPreset)?.id || '') : (firstPreset?.id || 'todos');
+    const targetPresetId = customPreset
+      ? presetsForEntity.find((p) => p.payload === customPreset)?.id || ''
+      : firstPreset?.id || 'todos';
     setActivePresetId(targetPresetId);
 
     const mergedPayload: QbeQueryPayload = {
@@ -419,7 +587,7 @@ export const QbeTab: React.FC = () => {
     executePayload(mergedPayload);
   };
 
-  // Aplicar una pildora de consulta rapida (one-click preset)
+  // Aplicar un preset rapido
   const handleApplyPreset = (preset: EntityPreset) => {
     setActivePresetId(preset.id);
     setColumnExamples({});
@@ -429,7 +597,6 @@ export const QbeTab: React.FC = () => {
     const ent = metadata?.entities.find((e) => e.id === selectedEntityId);
     const defaultFields = ent ? ent.fields.slice(0, 6).map((f) => f.id) : [];
 
-    // Actualizar controles si el preset incluye filtros o agrupaciones
     if (preset.payload.filters) setFilters(preset.payload.filters);
     else setFilters([]);
 
@@ -458,11 +625,13 @@ export const QbeTab: React.FC = () => {
     executePayload(payload);
   };
 
-  // Toggle de columnas
+  // Toggle de columnas en el armador visual
   const toggleField = (fieldId: string) => {
-    setSelectedFields((prev) =>
-      prev.includes(fieldId) ? prev.filter((id) => id !== fieldId) : [...prev, fieldId],
-    );
+    setSelectedFields((prev) => {
+      const next = prev.includes(fieldId) ? prev.filter((id) => id !== fieldId) : [...prev, fieldId];
+      // Si el usuario desmarca todo, retener al menos 1
+      return next.length > 0 ? next : [fieldId];
+    });
   };
 
   const selectAllFields = () => {
@@ -471,7 +640,7 @@ export const QbeTab: React.FC = () => {
   };
 
   const clearAllFields = () => {
-    if (!activeEntity) return;
+    if (!activeEntity || activeEntity.fields.length === 0) return;
     setSelectedFields([activeEntity.fields[0].id]);
   };
 
@@ -531,7 +700,7 @@ export const QbeTab: React.FC = () => {
     setAggregations((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Generar Diagnostico e Insights con IA
+  // Diagnostico e Insights con IA
   const handleGenerateAiAnalysis = async (customResults?: QbeQueryResult) => {
     const data = customResults || results;
     if (!data || !data.rows || data.rows.length === 0) return;
@@ -551,8 +720,8 @@ export const QbeTab: React.FC = () => {
     }
   };
 
-  // Ejecutar Consulta QBE manual desde controles avanzados
-  const handleExecute = async () => {
+  // Ejecutar Consulta QBE manual armada a mano
+  const handleExecuteManualQuery = async () => {
     if (selectedFields.length === 0 && !groupByField) {
       setErrorMsg('Debes seleccionar al menos una columna para visualizar.');
       return;
@@ -574,7 +743,7 @@ export const QbeTab: React.FC = () => {
     await executePayload(payload);
   };
 
-  // Aplica los parametros interpretados por NLP a los controles
+  // Aplica los parametros interpretados a los controles
   const applyPayloadToControls = (payload: QbeQueryPayload) => {
     if (payload.entity) setSelectedEntityId(payload.entity);
     if (payload.fields && payload.fields.length > 0) setSelectedFields(payload.fields);
@@ -591,38 +760,7 @@ export const QbeTab: React.FC = () => {
     if (payload.limit) setLimit(payload.limit);
   };
 
-  // Escuchar eventos de ejecucion externa desde el Asistente IA
-  useEffect(() => {
-    const handleQbeEvent = (e: any) => {
-      const payload: QbeQueryPayload = e.detail;
-      if (payload && payload.entity) {
-        applyPayloadToControls(payload);
-        executePayload(payload);
-      }
-    };
-
-    window.addEventListener('dressly:execute-qbe', handleQbeEvent);
-
-    const pending = sessionStorage.getItem('dressly_pending_qbe');
-    if (pending) {
-      sessionStorage.removeItem('dressly_pending_qbe');
-      try {
-        const payload: QbeQueryPayload = JSON.parse(pending);
-        if (payload && payload.entity) {
-          applyPayloadToControls(payload);
-          executePayload(payload);
-        }
-      } catch (err) {
-        console.error('Error al parsear dressly_pending_qbe:', err);
-      }
-    }
-
-    return () => {
-      window.removeEventListener('dressly:execute-qbe', handleQbeEvent);
-    };
-  }, []);
-
-  // Interpreta la consulta en lenguaje natural y la ejecuta de inmediato
+  // Interpreta la consulta en lenguaje natural
   const handleInterpretQuery = async (overridePrompt?: string) => {
     const textToInterpret = (overridePrompt ?? nlPrompt).trim();
     if (!textToInterpret) return;
@@ -643,16 +781,14 @@ export const QbeTab: React.FC = () => {
     }
   };
 
-  // Reconocimiento de voz nativo (CU33 - Web Speech API)
+  // Reconocimiento de voz nativo (CU33)
   const handleToggleVoice = () => {
     setVoiceError(null);
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setVoiceError(
-        'Tu navegador actual no soporta Web Speech API. Te recomendamos Google Chrome o Microsoft Edge.',
-      );
+      setVoiceError('Tu navegador actual no soporta Web Speech API.');
       return;
     }
 
@@ -661,7 +797,7 @@ export const QbeTab: React.FC = () => {
         try {
           recognitionRef.current.stop();
         } catch {
-          // ignore stop error
+          // ignore
         }
       }
       setIsListening(false);
@@ -673,7 +809,7 @@ export const QbeTab: React.FC = () => {
         try {
           recognitionRef.current.abort();
         } catch {
-          // ignore abort error
+          // ignore
         }
       }
 
@@ -710,19 +846,8 @@ export const QbeTab: React.FC = () => {
       };
 
       recognition.onerror = (event: any) => {
-        console.warn('SpeechRecognition error:', event.error);
         setIsListening(false);
-        const errType = event.error;
-
-        if (errType === 'not-allowed' || errType === 'service-not-allowed') {
-          setVoiceError('Permiso de microfono bloqueado en el navegador.');
-        } else if (errType === 'network') {
-          setVoiceError('Error de conexion con el servicio de voz.');
-        } else if (errType === 'no-speech') {
-          setVoiceError('No se detecto sonido o voz. Intenta hablar mas cerca del microfono.');
-        } else if (errType !== 'aborted') {
-          setVoiceError(`Aviso de voz: ${errType}`);
-        }
+        setVoiceError(`Aviso de voz: ${event.error}`);
       };
 
       recognition.onend = () => {
@@ -734,35 +859,11 @@ export const QbeTab: React.FC = () => {
 
       recognition.start();
     } catch (err: any) {
-      console.error('Error al iniciar reconocimiento de voz:', err);
+      console.error('Error al iniciar voz:', err);
       setIsListening(false);
       setVoiceError('No se pudo activar el microfono.');
     }
   };
-
-  // Plantillas de sugerencia rapida
-  const promptSuggestions = [
-    {
-      label: 'Ventas por sucursal',
-      prompt: 'Ventas de este mes por sucursal con el total vendido',
-    },
-    {
-      label: 'Prendas con stock bajo',
-      prompt: 'Productos con stock menor a 15 por sucursal ordenados por menor stock',
-    },
-    {
-      label: 'Clientes VIP (+150 pts)',
-      prompt: 'Clientes con mas de 150 puntos ordenados por mayores puntos',
-    },
-    {
-      label: 'Prendas de mayor precio',
-      prompt: 'Top 10 prendas mas caras de catalogo',
-    },
-    {
-      label: 'Reservas pendientes',
-      prompt: 'Reservas pendientes ordenadas por fecha',
-    },
-  ];
 
   // Exportar Consulta QBE
   const handleExport = async (format: 'csv' | 'pdf' | 'excel') => {
@@ -786,12 +887,11 @@ export const QbeTab: React.FC = () => {
     }
   };
 
-  // Filtrado local e interactivo por ejemplo en cabecera de tabla (Verdadero QBE)
+  // Filtrado local e interactivo por ejemplo en cabecera de tabla
   const filteredRows = useMemo(() => {
     if (!results || !results.rows) return [];
     let rows = results.rows;
 
-    // 1. Busqueda rapida general
     if (tableSearch.trim()) {
       const q = tableSearch.toLowerCase();
       rows = rows.filter((row) =>
@@ -799,7 +899,6 @@ export const QbeTab: React.FC = () => {
       );
     }
 
-    // 2. Filtros por ejemplo de cada columna (QBE Directo)
     const activeColFilters = Object.entries(columnExamples).filter(
       ([_, ex]) => ex && ex.trim() !== '',
     );
@@ -811,7 +910,6 @@ export const QbeTab: React.FC = () => {
           if (cellVal === undefined || cellVal === null) return false;
           const ex = exampleRaw.trim();
 
-          // Comparadores numericos: > X, >= X, < X, <= X, = X
           const numMatch = ex.match(/^([><]=?|=)\s*([0-9]+(?:\.[0-9]+)?)$/);
           if (numMatch) {
             const op = numMatch[1];
@@ -829,7 +927,6 @@ export const QbeTab: React.FC = () => {
             if (op === '=') return cellNum === targetNum;
           }
 
-          // Rango numerico: X..Y
           const rangeMatch = ex.match(/^([0-9]+(?:\.[0-9]+)?)\s*\.\.\s*([0-9]+(?:\.[0-9]+)?)$/);
           if (rangeMatch) {
             const min = parseFloat(rangeMatch[1]);
@@ -842,7 +939,6 @@ export const QbeTab: React.FC = () => {
             return cellNum >= min && cellNum <= max;
           }
 
-          // Coincidencia de texto (contains)
           return String(cellVal).toLowerCase().includes(ex.toLowerCase());
         });
       });
@@ -857,7 +953,6 @@ export const QbeTab: React.FC = () => {
     return filteredRows.slice(start, start + pageSize);
   }, [filteredRows, currentPage, pageSize]);
 
-  // Cantidad de columnas con ejemplo activo
   const activeExamplesCount = useMemo(() => {
     return Object.values(columnExamples).filter((ex) => ex && ex.trim() !== '').length;
   }, [columnExamples]);
@@ -875,7 +970,7 @@ export const QbeTab: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', color: '#1C1510' }}>
       {/* ========================================================================= */}
-      {/* 1. HERO EJECUTIVO: BARRA DE CONSULTA CON LENGUAJE NATURAL Y VOZ */}
+      {/* 1. CABECERA PRINCIPAL: ARMADOR VISUAL DE CONSULTAS A MANO */}
       {/* ========================================================================= */}
       <div
         style={{
@@ -886,393 +981,236 @@ export const QbeTab: React.FC = () => {
           boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
         }}
       >
-        <div style={{ marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-            <span
-              style={{
-                backgroundColor: '#F4ECE1',
-                color: '#8C5E35',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                padding: '0.15rem 0.5rem',
-                borderRadius: '5px',
-                letterSpacing: '0.04em',
-              }}
-            >
-              QUERY BY EXAMPLE
-            </span>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#1C1510' }}>
-              Consultas Analiticas sin Filtros Obligatorios
-            </h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <span
+                style={{
+                  backgroundColor: '#F4ECE1',
+                  color: '#8C5E35',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '5px',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                QUERY BUILDER VISUAL
+              </span>
+              <h2 style={{ fontSize: '1.18rem', fontWeight: 700, margin: 0, color: '#1C1510' }}>
+                Armador de Consultas Dinamicas en Tiempo Real
+              </h2>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.84rem', color: '#736B63' }}>
+              Arma tu consulta a mano seleccionando campos, condiciones y agrupaciones. Visualiza los datos y la grafica de picos al instante.
+            </p>
           </div>
-          <p style={{ margin: 0, fontSize: '0.84rem', color: '#736B63' }}>
-            Explora cualquier entidad al instante. Puedes cambiar de coleccion, hacer clic en una pildora de ejemplo o dictar lo que necesitas.
-          </p>
-        </div>
 
-        {/* Input Inteligente de Lenguaje Natural */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.65rem',
-            backgroundColor: '#FAF8F5',
-            border: isListening ? '2px solid #DC2626' : '1px solid #D1C9BE',
-            borderRadius: '10px',
-            padding: '0.45rem 0.65rem 0.45rem 1rem',
-            boxShadow: isListening ? '0 0 0 3px rgba(220, 38, 38, 0.15)' : 'none',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <Sparkles size={18} color="#8C5E35" style={{ flexShrink: 0 }} />
-          <input
-            type="text"
-            value={nlPrompt}
-            onChange={(e) => setNlPrompt(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleInterpretQuery();
-              }
-            }}
-            placeholder={
-              isListening
-                ? 'Escuchando tu voz... Habla con naturalidad...'
-                : 'Escribe tu consulta (ej: Ventas de este mes por sucursal con total)...'
-            }
-            disabled={interpreting || loadingQuery}
-            style={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              fontSize: '0.9rem',
-              color: '#1C1510',
-              backgroundColor: 'transparent',
-            }}
-          />
-
-          {/* Microfono nativo */}
+          {/* Toggle para Asistente IA (Opcional) */}
           <button
             type="button"
-            onClick={handleToggleVoice}
-            title={isListening ? 'Detener dictado' : 'Dictar consulta por voz (CU33)'}
+            onClick={() => setShowAiAssistant(!showAiAssistant)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              width: '36px',
-              height: '36px',
-              borderRadius: '7px',
-              border: 'none',
-              backgroundColor: isListening ? '#FEE2E2' : '#FFFFFF',
-              color: isListening ? '#DC2626' : '#8C5E35',
+              gap: '0.4rem',
+              backgroundColor: showAiAssistant ? '#F4ECE1' : '#FAF8F5',
+              border: showAiAssistant ? '1px solid #8C5E35' : '1px solid #D1C9BE',
+              color: showAiAssistant ? '#8C5E35' : '#4B433B',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '8px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
           >
-            {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-          </button>
-
-          {/* Boton Consultar */}
-          <button
-            type="button"
-            onClick={() => handleInterpretQuery()}
-            disabled={interpreting || loadingQuery || !nlPrompt.trim()}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              backgroundColor: nlPrompt.trim() ? '#1C1510' : '#D1C9BE',
-              color: '#FFFFFF',
-              border: 'none',
-              padding: '0.55rem 1.15rem',
-              borderRadius: '8px',
-              fontSize: '0.84rem',
-              fontWeight: 600,
-              cursor: nlPrompt.trim() && !interpreting && !loadingQuery ? 'pointer' : 'not-allowed',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Send size={14} />
-            <span>{interpreting || loadingQuery ? 'Consultando...' : 'Consultar'}</span>
+            <Sparkles size={14} color="#8C5E35" />
+            <span>{showAiAssistant ? 'Ocultar Asistente IA' : 'Consultar por Voz o IA (Opcional)'}</span>
+            {showAiAssistant ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
         </div>
 
-        {/* Notificacion de Voz si ocurre algun bloqueo */}
-        {voiceError && (
+        {/* Panel Desplegable de Consulta por Voz o IA (Solo si el usuario lo desea) */}
+        {showAiAssistant && (
           <div
             style={{
-              marginTop: '0.75rem',
-              padding: '0.65rem 0.85rem',
-              backgroundColor: '#FEF2F2',
-              borderRadius: '8px',
-              border: '1px solid #FECACA',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.5rem',
-              fontSize: '0.82rem',
-              color: '#991B1B',
+              marginBottom: '1rem',
+              padding: '0.85rem 1rem',
+              backgroundColor: '#FAF8F5',
+              borderRadius: '10px',
+              border: '1px solid #EAE6DF',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertCircle size={15} style={{ flexShrink: 0 }} />
-              <span>{voiceError}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setVoiceError(null)}
-              style={{ background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer' }}
-              aria-label="Cerrar notificacion de voz"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
-
-        {/* Sugerencias de Consultas Rapidas */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-          <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#8C5E35', marginRight: '0.2rem' }}>
-            Consultas guiadas:
-          </span>
-          {promptSuggestions.map((item, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setNlPrompt(item.prompt);
-                handleInterpretQuery(item.prompt);
-              }}
-              disabled={interpreting || loadingQuery}
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E5E0D8',
-                borderRadius: '6px',
-                padding: '0.25rem 0.6rem',
-                fontSize: '0.76rem',
-                color: '#4B433B',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ========================================================================= */}
-        {/* BARRA DE ENTIDADES Y PILDORAS DE CONSULTA DIRECTA (ONE-CLICK PRESETS) */}
-        {/* ========================================================================= */}
-        <div
-          style={{
-            marginTop: '1rem',
-            paddingTop: '0.85rem',
-            borderTop: '1px solid #F0ECE4',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.65rem',
-          }}
-        >
-          {/* Fila 1: Selector de Entidad + Opciones Avanzadas + Limite */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Layers size={15} color="#8C5E35" />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4B433B' }}>Entidad:</span>
-              </div>
-              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-                {metadata?.entities.map((e) => {
-                  const isCurrent = e.id === selectedEntityId;
-                  return (
-                    <button
-                      key={e.id}
-                      type="button"
-                      onClick={() => handleSelectEntity(e.id)}
-                      style={{
-                        padding: '0.35rem 0.75rem',
-                        borderRadius: '7px',
-                        border: isCurrent ? '1px solid #1C1510' : '1px solid #D1C9BE',
-                        backgroundColor: isCurrent ? '#1C1510' : '#FFFFFF',
-                        color: isCurrent ? '#FFFFFF' : '#4B433B',
-                        fontSize: '0.8rem',
-                        fontWeight: isCurrent ? 700 : 500,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {e.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <input
+                type="text"
+                value={nlPrompt}
+                onChange={(e) => setNlPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleInterpretQuery();
+                  }
+                }}
+                placeholder={
+                  isListening
+                    ? 'Escuchando tu voz... Habla ahora...'
+                    : 'Si prefieres dictar o pedir algo especifico (ej: Ventas de este mes por sucursal)...'
+                }
+                style={{
+                  flex: 1,
+                  border: '1px solid #D1C9BE',
+                  borderRadius: '7px',
+                  padding: '0.45rem 0.75rem',
+                  fontSize: '0.84rem',
+                  color: '#1C1510',
+                  backgroundColor: '#FFFFFF',
+                  outline: 'none',
+                }}
+              />
               <button
                 type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
+                onClick={handleToggleVoice}
+                title={isListening ? 'Detener dictado' : 'Dictar por voz'}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '7px',
+                  border: '1px solid #D1C9BE',
+                  backgroundColor: isListening ? '#FEE2E2' : '#FFFFFF',
+                  color: isListening ? '#DC2626' : '#8C5E35',
+                  cursor: 'pointer',
+                }}
+              >
+                {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleInterpretQuery()}
+                disabled={interpreting || !nlPrompt.trim()}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.35rem',
-                  padding: '0.35rem 0.75rem',
+                  backgroundColor: '#8C5E35',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '0.45rem 0.95rem',
                   borderRadius: '7px',
-                  border: showAdvanced ? '1px solid #8C5E35' : '1px solid #D1C9BE',
-                  backgroundColor: showAdvanced ? '#F4ECE1' : '#FFFFFF',
-                  color: showAdvanced ? '#8C5E35' : '#4B433B',
-                  fontSize: '0.78rem',
+                  fontSize: '0.82rem',
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: nlPrompt.trim() ? 'pointer' : 'not-allowed',
                 }}
               >
-                <SlidersHorizontal size={13} />
-                <span>{showAdvanced ? 'Ocultar Proyeccion' : 'Personalizar Columnas (Opcional)'}</span>
-                {(filters.length > 0 || groupByField) && (
-                  <span
-                    style={{
-                      backgroundColor: '#8C5E35',
-                      color: '#FFFFFF',
-                      fontSize: '0.68rem',
-                      padding: '0.05rem 0.4rem',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    {filters.length + (groupByField ? 1 : 0)}
-                  </span>
-                )}
+                <Send size={13} />
+                <span>Interpretar</span>
               </button>
+            </div>
 
-              <select
-                value={limit}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setLimit(val);
-                  if (results) {
-                    executePayload({
-                      entity: selectedEntityId,
-                      fields: selectedFields,
-                      filters: filters.filter((f) => f.value !== '' && f.value !== undefined),
-                      groupBy: groupByField ? [groupByField] : undefined,
-                      aggregations: groupByField && aggregations.length > 0 ? aggregations : undefined,
-                      orderBy: orderByField ? { field: orderByField, direction: orderDirection } : undefined,
-                      limit: val,
-                    });
-                  }
-                }}
+            {voiceError && (
+              <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.76rem', color: '#DC2626' }}>{voiceError}</p>
+            )}
+
+            {interpretationResult && (
+              <div
                 style={{
-                  padding: '0.35rem 0.5rem',
-                  borderRadius: '7px',
-                  border: '1px solid #D1C9BE',
+                  marginTop: '0.65rem',
+                  padding: '0.45rem 0.75rem',
+                  backgroundColor: '#F0FDF4',
+                  borderRadius: '6px',
+                  border: '1px solid #BBF7D0',
                   fontSize: '0.78rem',
-                  color: '#4B433B',
-                  backgroundColor: '#FFFFFF',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value={50}>50 registros</option>
-                <option value={100}>100 registros</option>
-                <option value={250}>250 registros</option>
-                <option value={500}>500 registros</option>
-              </select>
-
-              <button
-                type="button"
-                onClick={() => handleSelectEntity(selectedEntityId)}
-                title="Restablecer vista inicial"
-                style={{
+                  color: '#166534',
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '0.3rem',
-                  padding: '0.35rem 0.65rem',
-                  borderRadius: '7px',
-                  border: '1px solid #D1C9BE',
-                  backgroundColor: '#FAF8F5',
-                  color: '#736B63',
-                  fontSize: '0.78rem',
-                  cursor: 'pointer',
                 }}
               >
-                <RotateCcw size={13} />
-                <span>Reiniciar</span>
-              </button>
-            </div>
+                <span>{interpretationResult.explanation}</span>
+                <button
+                  type="button"
+                  onClick={() => setInterpretationResult(null)}
+                  style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer' }}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            )}
           </div>
+        )}
 
-          {/* Fila 2: Pildoras contextuales de consulta directa (One-Click Chips) */}
-          {presetsForCurrentEntity.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#736B63' }}>
-                Ejemplos directos:
-              </span>
-              {presetsForCurrentEntity.map((preset) => {
-                const isActive = activePresetId === preset.id;
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => handleApplyPreset(preset)}
-                    disabled={loadingQuery}
-                    title={preset.description}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                      padding: '0.25rem 0.65rem',
-                      borderRadius: '6px',
-                      border: isActive ? '1px solid #8C5E35' : '1px solid #E5E0D8',
-                      backgroundColor: isActive ? '#FAF6F0' : '#FFFFFF',
-                      color: isActive ? '#8C5E35' : '#4B433B',
-                      fontSize: '0.76rem',
-                      fontWeight: isActive ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {isActive && <Check size={12} color="#8C5E35" />}
-                    <span>{preset.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+        {/* ========================================================================= */}
+        {/* SELECTOR DE ENTIDAD / COLECCION */}
+        {/* ========================================================================= */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Layers size={15} color="#8C5E35" />
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4B433B' }}>Coleccion:</span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+            {metadata?.entities.map((e) => {
+              const isCurrent = e.id === selectedEntityId;
+              return (
+                <button
+                  key={e.id}
+                  type="button"
+                  onClick={() => handleSelectEntity(e.id)}
+                  style={{
+                    padding: '0.4rem 0.85rem',
+                    borderRadius: '8px',
+                    border: isCurrent ? '1px solid #1C1510' : '1px solid #D1C9BE',
+                    backgroundColor: isCurrent ? '#1C1510' : '#FFFFFF',
+                    color: isCurrent ? '#FFFFFF' : '#4B433B',
+                    fontSize: '0.82rem',
+                    fontWeight: isCurrent ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {e.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Feedback visual de interpretacion en lenguaje natural */}
-        {interpretationResult && (
-          <div
-            style={{
-              marginTop: '0.85rem',
-              padding: '0.6rem 0.85rem',
-              backgroundColor: '#F0FDF4',
-              borderRadius: '8px',
-              border: '1px solid #BBF7D0',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '0.82rem',
-              color: '#166534',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <CheckCircle2 size={15} />
-              <span>{interpretationResult.explanation}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setInterpretationResult(null)}
-              style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer' }}
-              aria-label="Cerrar explicacion"
-            >
-              <X size={14} />
-            </button>
+        {/* Pildoras Contextuales de Consulta Rapida */}
+        {presetsForCurrentEntity.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+            <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#736B63' }}>Plantillas rapidas:</span>
+            {presetsForCurrentEntity.map((preset) => {
+              const isActive = activePresetId === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleApplyPreset(preset)}
+                  disabled={loadingQuery}
+                  title={preset.description}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    padding: '0.25rem 0.65rem',
+                    borderRadius: '6px',
+                    border: isActive ? '1px solid #8C5E35' : '1px solid #E5E0D8',
+                    backgroundColor: isActive ? '#FAF6F0' : '#FFFFFF',
+                    color: isActive ? '#8C5E35' : '#4B433B',
+                    fontSize: '0.76rem',
+                    fontWeight: isActive ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {isActive && <Check size={12} color="#8C5E35" />}
+                  <span>{preset.label}</span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -1298,9 +1236,9 @@ export const QbeTab: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. PANEL OPCIONAL DE PROYECCION AVANZADA (COLAPSADO POR DEFECTO) */}
+      {/* 2. ARMADOR VISUAL DE CONSULTAS A MANO (ESTRUCTURADO Y ORDENADO) */}
       {/* ========================================================================= */}
-      {showAdvanced && activeEntity && (
+      {activeEntity && (
         <div
           style={{
             backgroundColor: '#FFFFFF',
@@ -1313,43 +1251,11 @@ export const QbeTab: React.FC = () => {
             gap: '1.25rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#1C1510' }}>
-                Personalizar Proyeccion de Columnas y Reglas Avanzadas
-              </h4>
-              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.76rem', color: '#736B63' }}>
-                Estas configuraciones son 100% opcionales. Puedes ajustar que columnas visualizar o forzar agrupaciones manuales.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleExecute}
-              disabled={loadingQuery}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                backgroundColor: '#1C1510',
-                color: '#FFFFFF',
-                padding: '0.4rem 0.9rem',
-                borderRadius: '7px',
-                border: 'none',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: loadingQuery ? 'not-allowed' : 'pointer',
-              }}
-            >
-              <Play size={12} fill="#FFFFFF" />
-              <span>Aplicar Proyeccion</span>
-            </button>
-          </div>
-
-          {/* Columnas a Visualizar */}
+          {/* BLOQUE A: SELECCION DE COLUMNAS A PROYECTAR */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1C1510' }}>
-                Columnas a Visualizar:
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1C1510' }}>
+                1. Columnas a Proyectar (SELECT):
               </span>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
@@ -1397,12 +1303,17 @@ export const QbeTab: React.FC = () => {
             </div>
           </div>
 
-          {/* Filtros Manuales Opcionales */}
-          <div>
+          {/* BLOQUE B: FILTROS Y CONDICIONES (WHERE) */}
+          <div style={{ borderTop: '1px solid #F0ECE4', paddingTop: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1C1510' }}>
-                Condiciones de Fondo (Opcional):
-              </span>
+              <div>
+                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1C1510' }}>
+                  2. Filtros y Criterios de la Consulta (WHERE):
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#736B63', marginLeft: '0.5rem' }}>
+                  (Opcionales - sin filtros se consultan todos los registros)
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={addFilter}
@@ -1410,28 +1321,28 @@ export const QbeTab: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.3rem',
-                  background: 'none',
-                  border: 'none',
+                  backgroundColor: '#FAF8F5',
+                  border: '1px solid #8C5E35',
                   color: '#8C5E35',
+                  padding: '0.3rem 0.65rem',
+                  borderRadius: '6px',
                   fontSize: '0.76rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                 }}
               >
-                <Plus size={13} /> Anadir Regla Manual
+                <Plus size={13} /> Anadir Condicion
               </button>
             </div>
 
             {filters.length === 0 ? (
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#8A8279' }}>
-                Sin reglas manuales adicionales. La consulta trae todos los registros con su limite respectivo.
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#8A8279', backgroundColor: '#FAF8F5', padding: '0.65rem 0.85rem', borderRadius: '7px' }}>
+                Sin condiciones aplicadas. La consulta proyectara todos los registros disponibles de {activeEntity.name}.
               </p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                 {filters.map((filter, idx) => {
                   const fieldMeta = activeEntity.fields.find((f) => f.id === filter.field);
-                  const opList = metadata?.operators[fieldMeta?.type || 'string'] || [];
-
                   return (
                     <div
                       key={idx}
@@ -1451,14 +1362,13 @@ export const QbeTab: React.FC = () => {
                         onChange={(e) => {
                           const newField = e.target.value;
                           const fm = activeEntity.fields.find((f) => f.id === newField);
-                          const ops = metadata?.operators[fm?.type || 'string'] || [];
                           updateFilter(idx, {
                             field: newField,
-                            operator: ops[0]?.id || 'eq',
+                            operator: fm?.type === 'string' ? 'contains' : 'eq',
                             value: '',
                           });
                         }}
-                        style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem' }}
+                        style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem', backgroundColor: '#FFFFFF' }}
                       >
                         {activeEntity.fields.map((f) => (
                           <option key={f.id} value={f.id}>
@@ -1469,22 +1379,25 @@ export const QbeTab: React.FC = () => {
 
                       <select
                         value={filter.operator}
-                        onChange={(e) => updateFilter(idx, { operator: e.target.value })}
-                        style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem' }}
+                        onChange={(e) => updateFilter(idx, { operator: e.target.value as any })}
+                        style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem', backgroundColor: '#FFFFFF' }}
                       >
-                        {opList.map((op) => (
-                          <option key={op.id} value={op.id}>
-                            {op.label}
-                          </option>
-                        ))}
+                        <option value="eq">= Igual a</option>
+                        <option value="neq">!= Diferente de</option>
+                        <option value="gt">&gt; Mayor que</option>
+                        <option value="gte">&gt;= Mayor o igual</option>
+                        <option value="lt">&lt; Menor que</option>
+                        <option value="lte">&lt;= Menor o igual</option>
+                        <option value="contains">Contiene texto</option>
+                        <option value="startsWith">Comienza con</option>
                       </select>
 
                       <input
                         type={fieldMeta?.type === 'number' || fieldMeta?.type === 'currency' ? 'number' : fieldMeta?.type === 'date' ? 'date' : 'text'}
-                        placeholder="Valor de busqueda..."
+                        placeholder="Valor de comparacion..."
                         value={filter.value}
                         onChange={(e) => updateFilter(idx, { value: e.target.value })}
-                        style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem' }}
+                        style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem', backgroundColor: '#FFFFFF' }}
                       />
 
                       <button
@@ -1501,106 +1414,48 @@ export const QbeTab: React.FC = () => {
             )}
           </div>
 
-          {/* Agrupacion Manual */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #F0ECE4' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#736B63', marginBottom: '0.3rem' }}>
-                Agrupar por (GROUP BY):
-              </label>
-              <select
-                value={groupByField}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setGroupByField(val);
-                  if (val && aggregations.length === 0) {
-                    addAggregation();
-                  }
-                }}
-                style={{ width: '100%', padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem' }}
-              >
-                <option value="">-- Sin agrupacion (Vista Plana) --</option>
-                {activeEntity.fields.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* BLOQUE C: AGRUPACION, METRICA Y ORDEN (GROUP BY & ORDER BY) */}
+          <div style={{ borderTop: '1px solid #F0ECE4', paddingTop: '1rem' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1C1510', display: 'block', marginBottom: '0.65rem' }}>
+              3. Agrupacion, Metricas y Ordenamiento (GROUP BY / ORDER BY):
+            </span>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#736B63', marginBottom: '0.3rem' }}>
-                Ordenar por:
-              </label>
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#736B63', marginBottom: '0.25rem' }}>
+                  Agrupar por (GROUP BY):
+                </label>
                 <select
-                  value={orderByField}
-                  onChange={(e) => setOrderByField(e.target.value)}
-                  style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem' }}
+                  value={groupByField}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setGroupByField(val);
+                    if (val && aggregations.length === 0) {
+                      addAggregation();
+                    }
+                  }}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem', backgroundColor: '#FFFFFF' }}
                 >
-                  <option value="">-- Orden predeterminado --</option>
+                  <option value="">-- Sin agrupacion (Registros planos) --</option>
                   {activeEntity.fields.map((f) => (
                     <option key={f.id} value={f.id}>
                       {f.label}
                     </option>
                   ))}
                 </select>
-                <select
-                  value={orderDirection}
-                  onChange={(e) => setOrderDirection(e.target.value as 'asc' | 'desc')}
-                  style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem' }}
-                >
-                  <option value="desc">DESC</option>
-                  <option value="asc">ASC</option>
-                </select>
               </div>
-            </div>
-          </div>
 
-          {/* Editor de Agregaciones y Metricas si hay Agrupacion */}
-          {groupByField && (
-            <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #F0ECE4' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1C1510' }}>
-                  Metricas y Agregaciones (SUM, COUNT, AVG, MIN, MAX):
-                </span>
-                <button
-                  type="button"
-                  onClick={addAggregation}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    background: 'none',
-                    border: 'none',
-                    color: '#8C5E35',
-                    fontSize: '0.76rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Plus size={13} /> Anadir Metrica
-                </button>
-              </div>
-              {aggregations.map((agg, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '180px 140px 1fr 34px',
-                    gap: '0.5rem',
-                    alignItems: 'center',
-                    backgroundColor: '#FAF8F5',
-                    padding: '0.45rem 0.65rem',
-                    borderRadius: '7px',
-                    border: '1px solid #EAE6DF',
-                    marginBottom: '0.4rem',
-                  }}
-                >
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#736B63', marginBottom: '0.25rem' }}>
+                  Ordenar por:
+                </label>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
                   <select
-                    value={agg.field}
-                    onChange={(e) => updateAggregation(idx, { field: e.target.value })}
-                    style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem' }}
+                    value={orderByField}
+                    onChange={(e) => setOrderByField(e.target.value)}
+                    style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem', backgroundColor: '#FFFFFF' }}
                   >
+                    <option value="">-- Orden predeterminado --</option>
                     {activeEntity.fields.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.label}
@@ -1608,39 +1463,156 @@ export const QbeTab: React.FC = () => {
                     ))}
                   </select>
                   <select
-                    value={agg.func}
-                    onChange={(e) => updateAggregation(idx, { func: e.target.value as any })}
-                    style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem' }}
+                    value={orderDirection}
+                    onChange={(e) => setOrderDirection(e.target.value as 'asc' | 'desc')}
+                    style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem', backgroundColor: '#FFFFFF' }}
                   >
-                    <option value="SUM">SUM (Suma)</option>
-                    <option value="COUNT">COUNT (Cantidad)</option>
-                    <option value="AVG">AVG (Promedio)</option>
-                    <option value="MIN">MIN (Minimo)</option>
-                    <option value="MAX">MAX (Maximo)</option>
+                    <option value="desc">DESC</option>
+                    <option value="asc">ASC</option>
                   </select>
-                  <input
-                    type="text"
-                    placeholder="Etiqueta / Alias..."
-                    value={agg.alias || ''}
-                    onChange={(e) => updateAggregation(idx, { alias: e.target.value })}
-                    style={{ padding: '0.35rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.8rem' }}
-                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#736B63', marginBottom: '0.25rem' }}>
+                  Limite de filas:
+                </label>
+                <select
+                  value={limit}
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                  style={{ width: '100%', padding: '0.4rem', borderRadius: '6px', border: '1px solid #D1C9BE', fontSize: '0.82rem', backgroundColor: '#FFFFFF' }}
+                >
+                  <option value={50}>Top 50 filas</option>
+                  <option value={100}>Top 100 filas</option>
+                  <option value={250}>Top 250 filas</option>
+                  <option value={500}>Top 500 filas</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Agregaciones si hay agrupacion activa */}
+            {groupByField && (
+              <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px dashed #EAE6DF' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#8C5E35' }}>
+                    Metricas de la Agrupacion (SUM, COUNT, AVG, MIN, MAX):
+                  </span>
                   <button
                     type="button"
-                    onClick={() => removeAggregation(idx)}
-                    style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    onClick={addAggregation}
+                    style={{ background: 'none', border: 'none', color: '#8C5E35', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                   >
-                    <Trash2 size={15} />
+                    + Agregar otra metrica
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {aggregations.map((agg, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '180px 140px 1fr 34px',
+                      gap: '0.5rem',
+                      alignItems: 'center',
+                      backgroundColor: '#FAF8F5',
+                      padding: '0.4rem 0.6rem',
+                      borderRadius: '6px',
+                      border: '1px solid #EAE6DF',
+                      marginBottom: '0.35rem',
+                    }}
+                  >
+                    <select
+                      value={agg.field}
+                      onChange={(e) => updateAggregation(idx, { field: e.target.value })}
+                      style={{ padding: '0.3rem', borderRadius: '5px', border: '1px solid #D1C9BE', fontSize: '0.78rem' }}
+                    >
+                      {activeEntity.fields.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.label}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={agg.func}
+                      onChange={(e) => updateAggregation(idx, { func: e.target.value as any })}
+                      style={{ padding: '0.3rem', borderRadius: '5px', border: '1px solid #D1C9BE', fontSize: '0.78rem' }}
+                    >
+                      <option value="SUM">SUM (Suma)</option>
+                      <option value="COUNT">COUNT (Conteo)</option>
+                      <option value="AVG">AVG (Promedio)</option>
+                      <option value="MIN">MIN (Minimo)</option>
+                      <option value="MAX">MAX (Maximo)</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Nombre de la metrica..."
+                      value={agg.alias || ''}
+                      onChange={(e) => updateAggregation(idx, { alias: e.target.value })}
+                      style={{ padding: '0.3rem', borderRadius: '5px', border: '1px solid #D1C9BE', fontSize: '0.78rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeAggregation(idx)}
+                      style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer' }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* BOTON DE ACCION CENTRAL: EJECUTAR CONSULTA EN TIEMPO REAL */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.65rem', borderTop: '1px solid #F0ECE4', paddingTop: '0.85rem' }}>
+            <button
+              type="button"
+              onClick={() => handleSelectEntity(selectedEntityId)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.45rem 0.85rem',
+                borderRadius: '8px',
+                border: '1px solid #D1C9BE',
+                backgroundColor: '#FAF8F5',
+                color: '#736B63',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+              }}
+            >
+              <RotateCcw size={14} />
+              <span>Limpiar y Restablecer</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExecuteManualQuery}
+              disabled={loadingQuery}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                backgroundColor: '#1C1510',
+                color: '#FFFFFF',
+                padding: '0.55rem 1.35rem',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                cursor: loadingQuery ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              }}
+            >
+              <Play size={14} fill="#FFFFFF" />
+              <span>{loadingQuery ? 'Consultando en BD...' : 'Ejecutar Consulta en Tiempo Real'}</span>
+            </button>
+          </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 3. RESULTADOS DE LA CONSULTA QBE (ESQUELETO Y TABLA INTERACTIVA) */}
+      {/* 3. VISUALIZACION GRAFICA Y RESULTADOS EN TIEMPO REAL */}
       {/* ========================================================================= */}
       {loadingQuery && !results && (
         <div
@@ -1654,7 +1626,7 @@ export const QbeTab: React.FC = () => {
           }}
         >
           <div style={{ display: 'inline-block', width: '28px', height: '28px', border: '3px solid #EAE6DF', borderTopColor: '#8C5E35', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '0.75rem' }} />
-          <p style={{ fontWeight: 600, margin: 0, fontSize: '0.88rem' }}>Cargando registros de la entidad...</p>
+          <p style={{ fontWeight: 600, margin: 0, fontSize: '0.88rem' }}>Consultando base de datos en tiempo real...</p>
         </div>
       )}
 
@@ -1916,12 +1888,14 @@ export const QbeTab: React.FC = () => {
             </div>
           )}
 
-          {/* Visualizacion Grafica si hay agrupaciones o sugerencia */}
+          {/* ========================================================================= */}
+          {/* VISUALIZACION GRAFICA MULTIMODAL (CON GRAFICA DE PICOS) */}
+          {/* ========================================================================= */}
           {results.chartData && results.chartData.length > 0 && (
             <div
               style={{
                 backgroundColor: '#FAF8F5',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 border: '1px solid #EAE6DF',
                 padding: '1.25rem',
                 marginBottom: '1.5rem',
@@ -1933,51 +1907,89 @@ export const QbeTab: React.FC = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: '1rem',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <TrendingUp size={16} color="#8C5E35" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1C1510' }}>
-                    Distribucion Visual de Resultados
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1C1510' }}>
+                    Comportamiento Grafico de la Consulta
                   </span>
                 </div>
+
+                {/* Selector de Tipo de Grafica: Picos | Barras | Circular */}
                 <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setChartMode('peak')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      padding: '0.3rem 0.65rem',
+                      borderRadius: '6px',
+                      border: chartMode === 'peak' ? '1px solid #8C5E35' : '1px solid #D1C9BE',
+                      backgroundColor: chartMode === 'peak' ? '#8C5E35' : '#FFFFFF',
+                      color: chartMode === 'peak' ? '#FFFFFF' : '#4B433B',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Activity size={13} />
+                    <span>Grafica de Picos</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => setChartMode('bar')}
                     style={{
-                      padding: '0.25rem 0.55rem',
-                      borderRadius: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      padding: '0.3rem 0.65rem',
+                      borderRadius: '6px',
                       border: chartMode === 'bar' ? '1px solid #8C5E35' : '1px solid #D1C9BE',
                       backgroundColor: chartMode === 'bar' ? '#8C5E35' : '#FFFFFF',
                       color: chartMode === 'bar' ? '#FFFFFF' : '#4B433B',
-                      fontSize: '0.74rem',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                     }}
                   >
-                    Barras
+                    <BarChart2 size={13} />
+                    <span>Barras</span>
                   </button>
+
                   <button
                     type="button"
                     onClick={() => setChartMode('donut')}
                     style={{
-                      padding: '0.25rem 0.55rem',
-                      borderRadius: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      padding: '0.3rem 0.65rem',
+                      borderRadius: '6px',
                       border: chartMode === 'donut' ? '1px solid #8C5E35' : '1px solid #D1C9BE',
                       backgroundColor: chartMode === 'donut' ? '#8C5E35' : '#FFFFFF',
                       color: chartMode === 'donut' ? '#FFFFFF' : '#4B433B',
-                      fontSize: '0.74rem',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                     }}
                   >
-                    Circular
+                    <PieChart size={13} />
+                    <span>Circular</span>
                   </button>
                 </div>
               </div>
 
-              {chartMode === 'bar' ? (
+              {/* MODO 1: GRAFICA DE PICOS (PEAK / AREA CHART) */}
+              {chartMode === 'peak' && <PeakChartView data={results.chartData} />}
+
+              {/* MODO 2: GRAFICA DE BARRAS */}
+              {chartMode === 'bar' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                   {(() => {
                     const maxVal = Math.max(...results.chartData.map((d) => Number(d.total) || 0), 1);
@@ -2018,7 +2030,10 @@ export const QbeTab: React.FC = () => {
                     });
                   })()}
                 </div>
-              ) : (
+              )}
+
+              {/* MODO 3: GRAFICA CIRCULAR */}
+              {chartMode === 'donut' && (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', padding: '1rem 0' }}>
                   <svg width="140" height="140" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                     {(() => {
@@ -2067,7 +2082,7 @@ export const QbeTab: React.FC = () => {
           )}
 
           {/* ========================================================================= */}
-          {/* BARRA DE HERRAMIENTAS Y AVISO DE FILTRADO POR EJEMPLO */}
+          {/* TABLA DE RESULTADOS INTERACTIVA CON CELDAS DE EJEMPLO QBE */}
           {/* ========================================================================= */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.65rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
@@ -2087,7 +2102,7 @@ export const QbeTab: React.FC = () => {
 
               {activeExamplesCount > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', backgroundColor: '#FAF6F0', border: '1px solid #8C5E35', borderRadius: '6px', padding: '0.25rem 0.55rem', fontSize: '0.76rem', color: '#8C5E35', fontWeight: 600 }}>
-                  <span>{activeExamplesCount} {activeExamplesCount === 1 ? 'filtro por ejemplo activo' : 'filtros por ejemplo activos'}</span>
+                  <span>{activeExamplesCount} {activeExamplesCount === 1 ? 'filtro por celda activo' : 'filtros por celda activos'}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -2122,13 +2137,11 @@ export const QbeTab: React.FC = () => {
             </div>
           </div>
 
-          {/* ========================================================================= */}
-          {/* TABLA DE RESULTADOS CON FILTRADO POR EJEMPLO EN CABECERA (VERDADERO QBE) */}
-          {/* ========================================================================= */}
+          {/* Tabla de Resultados con Filtro QBE en Cabecera */}
           <div style={{ overflowX: 'auto', border: '1px solid #EAE6DF', borderRadius: '8px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
               <thead>
-                {/* Fila 1: Nombre de la Columna */}
+                {/* Fila 1: Nombres de Columna */}
                 <tr style={{ backgroundColor: '#F8F6F2', borderBottom: '1px solid #EAE6DF' }}>
                   {results.columns.map((col) => (
                     <th key={col.key} style={{ padding: '0.65rem 0.85rem', fontWeight: 700, color: '#4B433B', whiteSpace: 'nowrap' }}>
@@ -2137,7 +2150,7 @@ export const QbeTab: React.FC = () => {
                   ))}
                 </tr>
 
-                {/* Fila 2: Celdas de Ejemplo QBE (filtro directo en tabla) */}
+                {/* Fila 2: Celdas de Ejemplo QBE Directo */}
                 <tr style={{ backgroundColor: '#FAF9F6', borderBottom: '2px solid #EAE6DF' }}>
                   {results.columns.map((col) => {
                     const isFiltered = !!columnExamples[col.key];
@@ -2159,7 +2172,7 @@ export const QbeTab: React.FC = () => {
                               setCurrentPage(1);
                             }}
                             placeholder={placeholder}
-                            title={`Escribe un ejemplo para filtrar ${col.label}. Numeros admiten: > X, < X, o rango X..Y`}
+                            title={`Filtra por ejemplo ${col.label}. En numeros admite: > X, < X, o rango X..Y`}
                             style={{
                               width: '100%',
                               minWidth: '95px',

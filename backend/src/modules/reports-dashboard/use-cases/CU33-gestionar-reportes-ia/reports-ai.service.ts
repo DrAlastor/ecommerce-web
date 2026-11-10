@@ -188,7 +188,7 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
   "entity": "venta | producto | inventario_sucursal | cliente | reserva | movimiento_inventario",
   "fields": ["campo1", "campo2"],
   "filters": [
-    { "field": "campo", "operator": "equals|contains|greater_than|less_than|between|in", "value": "valor" }
+    { "field": "campo", "operator": "eq|neq|gt|gte|lt|lte|contains|between|in", "value": "valor" }
   ],
   "groupBy": ["campo_agrupador"],
   "aggregations": [
@@ -219,7 +219,24 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
             const suggestedPayload: ExecuteQbeQueryDto = {
               entity: parsed.entity,
               fields: parsed.fields.length > 0 ? parsed.fields : ['id_venta', 'total'],
-              filters: Array.isArray(parsed.filters) ? parsed.filters : [],
+              filters: Array.isArray(parsed.filters)
+                ? parsed.filters.map((f: any) => {
+                    let op = String(f.operator || 'eq').toLowerCase().trim();
+                    if (op === 'less_than' || op === '<') op = 'lt';
+                    if (op === 'less_than_or_equal' || op === '<=' || op === 'lte') op = 'lte';
+                    if (op === 'greater_than' || op === 'more_than' || op === '>') op = 'gt';
+                    if (op === 'greater_than_or_equal' || op === '>=' || op === 'gte') op = 'gte';
+                    if (op === 'equals' || op === 'equal' || op === '=') op = 'eq';
+                    if (op === 'not_equals' || op === '!=' || op === '<>') op = 'neq';
+                    if (op === 'like') op = 'contains';
+                    return {
+                      field: f.field,
+                      operator: op,
+                      value: f.value,
+                      value2: f.value2,
+                    };
+                  })
+                : [],
               groupBy: Array.isArray(parsed.groupBy) && parsed.groupBy.length > 0 ? parsed.groupBy : undefined,
               aggregations: Array.isArray(parsed.aggregations) && parsed.aggregations.length > 0
                 ? parsed.aggregations.map((a: any) => ({

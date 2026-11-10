@@ -31,6 +31,17 @@ export class QbeFilterDto {
   field!: string;
 
   @IsString()
+  @Transform(({ value }) => {
+    const val = String(value || '').toLowerCase().trim();
+    if (val === 'less_than' || val === '<') return 'lt';
+    if (val === 'less_than_or_equal' || val === '<=' || val === 'lte') return 'lte';
+    if (val === 'greater_than' || val === 'more_than' || val === '>') return 'gt';
+    if (val === 'greater_than_or_equal' || val === '>=' || val === 'gte') return 'gte';
+    if (val === 'equals' || val === 'equal' || val === '=') return 'eq';
+    if (val === 'not_equals' || val === '!=' || val === '<>') return 'neq';
+    if (val === 'like') return 'contains';
+    return val;
+  })
   @IsIn([
     'eq',
     'neq',
