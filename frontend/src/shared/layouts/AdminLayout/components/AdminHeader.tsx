@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../../../modules/users-security/shared/components/AuthContext';
-import { LogOut, User, ChevronDown, Menu, Sparkles } from 'lucide-react';
+import { LogOut, User, ChevronDown, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminHeaderProps {
@@ -36,16 +36,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
       </div>
 
       <div className="admin-header-actions">
-        <button
-          type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent('dressly:open-ai-chat'))}
-          className="admin-header-ai-btn"
-          title="Abrir Asistente IA para reportes y consultas del sistema (CU33)"
-        >
-          <Sparkles size={15} style={{ color: '#C4956A' }} />
-          <span>Asistente IA</span>
-        </button>
-
         <div 
           className="admin-user-profile" 
           onClick={() => setShowDropdown(!showDropdown)}
