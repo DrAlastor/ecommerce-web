@@ -18,6 +18,7 @@ import { ReportSelectorGrid } from '../components/ReportSelectorGrid';
 import { ReportFiltersBar } from '../components/ReportFiltersBar';
 import { ReportPreviewTable } from '../components/ReportPreviewTable';
 import { QbeTab } from '../components/QbeTab';
+import { VoiceReportsTab } from '../components/VoiceReportsTab';
 import type { TabType } from '../types/reports.types';
 
 interface ReportsDashboardPageProps {
@@ -404,9 +405,14 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
       )}
 
       {/* ========================================================================= */}
-      {/* VISTA 3: CONSULTAS DINÁMICAS QBE & REPORTES POR VOZ CON IA */}
+      {/* VISTA 3: CONSULTAS DINÁMICAS QBE (CU32) */}
       {/* ========================================================================= */}
-      {(activeTab === 'qbe' || activeTab === 'voz') && <QbeTab />}
+      {activeTab === 'qbe' && <QbeTab />}
+
+      {/* ========================================================================= */}
+      {/* VISTA 4: REPORTES POR VOZ CON IA (CU33) */}
+      {/* ========================================================================= */}
+      {activeTab === 'voz' && <VoiceReportsTab />}
     </div>
   );
 };

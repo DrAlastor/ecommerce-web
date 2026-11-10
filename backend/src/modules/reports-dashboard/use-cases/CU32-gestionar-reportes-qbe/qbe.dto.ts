@@ -8,7 +8,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ExportFormat } from '../../dto/query-reports.dto.js';
 
 export type QbeOperator =
@@ -58,7 +58,8 @@ export class QbeAggregationDto {
   field!: string;
 
   @IsString()
-  @IsIn(['SUM', 'AVG', 'COUNT', 'MIN', 'MAX'])
+  @Transform(({ value }) => String(value || 'SUM').toUpperCase().trim())
+  @IsIn(['SUM', 'AVG', 'COUNT', 'MIN', 'MAX', 'sum', 'avg', 'count', 'min', 'max'])
   func!: QbeAggFunction;
 
   @IsOptional()

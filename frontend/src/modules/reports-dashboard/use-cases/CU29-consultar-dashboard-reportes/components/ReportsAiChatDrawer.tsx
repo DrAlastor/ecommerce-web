@@ -415,25 +415,26 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                     overflowX: 'hidden',
                   }}
                 >
-                  <p
+                  <div
                     style={{
                       margin: 0,
-                      whiteSpace: 'pre-wrap',
+                      whiteSpace: 'pre-line',
                       wordBreak: 'break-word',
                       overflowWrap: 'anywhere',
                       minWidth: 0,
                       maxWidth: '100%',
+                      lineHeight: '1.6',
                     }}
                   >
                     {msg.content}
-                  </p>
+                  </div>
 
                   {/* Tarjetas de Métricas consolidadas del reporte */}
                   {msg.keyMetrics && msg.keyMetrics.length > 0 && (
                     <div
                       style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
                         gap: '0.45rem',
                         marginTop: '0.75rem',
                         paddingTop: '0.75rem',
@@ -447,8 +448,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                         <div
                           key={kIdx}
                           style={{
-                            flex: '1 1 calc(50% - 0.45rem)',
-                            minWidth: '120px',
+                            minWidth: 0,
                             maxWidth: '100%',
                             backgroundColor: msg.role === 'user' ? '#2A2018' : '#FAF8F5',
                             padding: '0.45rem 0.6rem',
@@ -519,9 +519,9 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
             borderTop: '1px solid #F0ECE4',
             backgroundColor: '#FAF8F5',
             display: 'flex',
+            flexWrap: 'wrap',
             gap: '0.4rem',
-            overflowX: 'auto',
-            whiteSpace: 'nowrap',
+            overflowX: 'hidden',
             boxSizing: 'border-box',
             maxWidth: '100%',
           }}
@@ -536,11 +536,13 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                 backgroundColor: '#FFFFFF',
                 border: '1px solid #E0DAD0',
                 borderRadius: '6px',
-                padding: '0.25rem 0.55rem',
+                padding: '0.3rem 0.55rem',
                 fontSize: '0.74rem',
                 color: '#4B433B',
                 cursor: 'pointer',
-                flexShrink: 0,
+                textAlign: 'left',
+                lineHeight: 1.3,
+                wordBreak: 'break-word',
               }}
             >
               {p}

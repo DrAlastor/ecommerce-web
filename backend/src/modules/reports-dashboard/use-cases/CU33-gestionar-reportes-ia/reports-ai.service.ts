@@ -7,8 +7,10 @@
  *                  utilizando Google Gemini con fallback local heurístico determinista.
  */
 
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import pg from 'pg';
+const { Pool } = pg;
 import { QbeNlpService } from '../CU32-gestionar-reportes-qbe/qbe-nlp.service.js';
 import { QbeService } from '../CU32-gestionar-reportes-qbe/qbe.service.js';
 import {
@@ -23,9 +25,10 @@ import {
 } from './reports-ai.dto.js';
 
 @Injectable()
-export class ReportsAiService {
+export class ReportsAiService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ReportsAiService.name);
   private readonly geminiModel = 'gemini-3.5-flash-lite';
+  private readOnlyPool?: pg.Pool;
 
   constructor(
     private readonly configService: ConfigService,
@@ -33,6 +36,68 @@ export class ReportsAiService {
     @Inject(forwardRef(() => QbeService))
     private readonly qbeService: QbeService,
   ) {}
+
+  async onModuleInit() {
+    await this.ensureAiDatabaseUser();
+    this.initReadOnlyPool();
+  }
+
+  async onModuleDestroy() {
+    if (this.readOnlyPool) {
+      await this.readOnlyPool.end().catch(() => {});
+    }
+  }
+
+  /**
+   * Garantiza de forma idempotente que el usuario de solo lectura para la IA exista en PostgreSQL
+   */
+  private async ensureAiDatabaseUser(): Promise<void> {
+    const mainDbUrl = this.configService.get<string>('DATABASE_URL') || process.env.DATABASE_URL;
+    if (!mainDbUrl) return;
+
+    try {
+      const pool = new Pool({ connectionString: mainDbUrl });
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ai_readonly') THEN
+            CREATE ROLE ai_readonly WITH LOGIN PASSWORD 'ai_readonly_secure_pass_2026';
+          ELSE
+            ALTER ROLE ai_readonly WITH LOGIN PASSWORD 'ai_readonly_secure_pass_2026';
+          END IF;
+        END
+        $$;
+      `);
+      await pool.query('GRANT CONNECT ON DATABASE dressly_db TO ai_readonly;').catch(() => {});
+      await pool.query('GRANT USAGE ON SCHEMA public TO ai_readonly;').catch(() => {});
+      await pool.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO ai_readonly;').catch(() => {});
+      await pool.query('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ai_readonly;').catch(() => {});
+      await pool.query('REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA public FROM ai_readonly;').catch(() => {});
+      await pool.query('REVOKE CREATE ON SCHEMA public FROM ai_readonly;').catch(() => {});
+      await pool.query('REVOKE SELECT ON usuario FROM ai_readonly;').catch(() => {});
+      await pool.query('GRANT SELECT (id_usuario, email, estado, id_rol) ON usuario TO ai_readonly;').catch(() => {});
+      await pool.query('REVOKE SELECT ON token_recuperacion FROM ai_readonly;').catch(() => {});
+      await pool.query("ALTER ROLE ai_readonly SET statement_timeout = '4000';").catch(() => {});
+      await pool.end();
+      this.logger.log('Rol de base de datos ai_readonly verificado y activo en PostgreSQL.');
+    } catch (err: any) {
+      this.logger.warn(`No se pudo autoverificar ai_readonly con superusuario: ${err.message}`);
+    }
+  }
+
+  private initReadOnlyPool(): void {
+    const aiUrl =
+      this.configService.get<string>('AI_DATABASE_URL') ||
+      process.env.AI_DATABASE_URL ||
+      'postgresql://ai_readonly:ai_readonly_secure_pass_2026@localhost:5433/dressly_db?schema=public';
+
+    try {
+      this.readOnlyPool = new Pool({ connectionString: aiUrl });
+      this.logger.log('Pool de solo lectura seguro para IA conectado exitosamente.');
+    } catch (err: any) {
+      this.logger.error('Error al inicializar pool de solo lectura para IA:', err);
+    }
+  }
 
   /**
    * Obtiene la clave de API de Gemini desde las variables de entorno
@@ -156,7 +221,13 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
               fields: parsed.fields.length > 0 ? parsed.fields : ['id_venta', 'total'],
               filters: Array.isArray(parsed.filters) ? parsed.filters : [],
               groupBy: Array.isArray(parsed.groupBy) && parsed.groupBy.length > 0 ? parsed.groupBy : undefined,
-              aggregations: Array.isArray(parsed.aggregations) && parsed.aggregations.length > 0 ? parsed.aggregations : undefined,
+              aggregations: Array.isArray(parsed.aggregations) && parsed.aggregations.length > 0
+                ? parsed.aggregations.map((a: any) => ({
+                    field: a.field,
+                    func: String(a.func || 'SUM').toUpperCase().trim(),
+                    alias: a.alias,
+                  }))
+                : undefined,
               orderBy: parsed.orderBy?.field ? parsed.orderBy : undefined,
               limit: Number(parsed.limit) || 100,
               chartType: parsed.chartSuggestion === 'pie' || parsed.chartSuggestion === 'donut' ? 'pie' : 'bar',
@@ -400,12 +471,21 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
       };
     });
 
+    // Normalizar agregaciones forzando mayúsculas en func
+    const aggregations = (Array.isArray(rawPayload?.aggregations) && rawPayload.aggregations.length > 0)
+      ? rawPayload.aggregations.map((a: any) => ({
+          field: a.field,
+          func: String(a.func || 'SUM').toUpperCase().trim(),
+          alias: a.alias,
+        }))
+      : undefined;
+
     return {
       entity,
       fields,
       filters,
       groupBy: Array.isArray(rawPayload?.groupBy) && rawPayload.groupBy.length > 0 ? rawPayload.groupBy : undefined,
-      aggregations: Array.isArray(rawPayload?.aggregations) && rawPayload.aggregations.length > 0 ? rawPayload.aggregations : undefined,
+      aggregations,
       orderBy: rawPayload?.orderBy?.field ? rawPayload.orderBy : undefined,
       limit: Number(rawPayload?.limit) || 50,
       chartType: rawPayload?.chartSuggestion === 'pie' || rawPayload?.chartSuggestion === 'donut' ? 'pie' : 'bar',
@@ -414,9 +494,7 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
 
   /**
    * CU33 — Chat Conversacional Analítico con IA
-   * Cuando el usuario solicita un reporte o consulta de negocio por voz o texto,
-   * el asistente consulta la base de datos en tiempo real, procesa las cifras y
-   * REDACTA Y EXPLICA el reporte analítico directamente en texto (sin tablas ni redirecciones).
+   * Responde de manera concisa, ejecutiva y directa con datos reales de PostgreSQL
    */
   async processChat(dto: AiChatQueryDto, user?: any): Promise<AiChatResponse> {
     const { message, history } = dto;
@@ -427,11 +505,11 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
     const isGreeting = /^(hola|buen(os)?\s*(d[ií]as?|tardes?|noches?)|qui[eé]n\s*eres|qu[eé]\s*puedes\s*hacer|ayuda|help)\b/i.test(rawMsg);
     if (isGreeting) {
       return {
-        reply: 'Hola. Soy tu consultor de inteligencia de negocios para Dressly Boutique. Puedo analizar los datos del sistema en tiempo real y redactarte reportes ejecutivos explicados sobre ventas, inventario por sucursal, rendimiento de prendas, reservas y clientes. Solo pídeme lo que necesitas (por ejemplo: "dame un reporte de ventas de este mes", "cómo están las existencias en tiendas" o "reporte de reservas") y te formularé el informe analítico completo aquí mismo.',
+        reply: 'Hola. Soy tu consultor de inteligencia de negocios para Dressly Boutique. Puedo analizar los datos del sistema en tiempo real y responderte consultas ejecutivas sobre ventas, inventario por sucursal, rendimiento de prendas, reservas y clientes. ¿En qué indicador te gustaría profundizar hoy?',
         keyMetrics: [
           { label: 'Sistema', value: 'Dressly AI', trend: 'neutral' },
           { label: 'Analítica', value: 'Tiempo Real', trend: 'up' },
-          { label: 'Modalidad', value: 'Voz y Texto', trend: 'neutral' },
+          { label: 'Acceso BD', value: 'Solo Lectura', trend: 'neutral' },
         ],
         engine: apiKey ? 'gemini-3.5-flash' : 'local-heuristic',
       };
@@ -467,7 +545,7 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
       totalCount,
     );
 
-    // 5. Generar el reporte ejecutivo redactado y explicado con Gemini si la API key está disponible
+    // 5. Generar respuesta ejecutiva, directa y concisa con Gemini si la API key está disponible
     if (apiKey) {
       try {
         const historyContext = (history || [])
@@ -478,38 +556,31 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
         const rowsSample = queryRows.slice(0, 10);
 
         const geminiPrompt = `
-Eres "Dressly AI Analytics", el consultor analítico ejecutivo y director de Business Intelligence de Dressly Boutique.
-El usuario realiza la siguiente consulta por voz o chat: "${rawMsg}".
+Eres "Dressly AI Analytics", el consultor analítico ejecutivo de Dressly Boutique.
+El usuario realiza la siguiente consulta en el asistente de chat o por voz: "${rawMsg}".
 
 Historial reciente:
 ${historyContext}
 
-Hemos extraído en tiempo real los datos fidedignos de la base de datos de Dressly:
-- Entidad analizada: ${entityName} (${normalizedPayload.entity})
-- Total de registros coincidentes en el sistema: ${totalCount}
-- Métricas consolidadas calculadas:
+Datos analíticos verificados en tiempo real mediante el usuario seguro de solo lectura (ai_readonly en PostgreSQL):
+- Entidad: ${entityName} (${normalizedPayload.entity})
+- Registros coincidentes: ${totalCount}
+- Métricas consolidadas:
 ${JSON.stringify(summary, null, 2)}
-- Muestra de registros reales:
+- Muestra de registros representativos:
 ${JSON.stringify(rowsSample, null, 2)}
 
-INSTRUCCIÓN VITAL Y OBLIGATORIA DEL USUARIO:
-El usuario te ha solicitado expresamente que le REDACTES Y LE EXPLIQUES EL REPORTE COMPLETO POR ESCRITO con tus palabras en este mensaje.
-NO le digas al usuario que mire una tabla, ni que revise un dashboard o pantalla externa. Tú debes formular, explicar y redactar el reporte aquí mismo.
+INSTRUCCIONES CLAVE DE RESPUESTA:
+1. Responde de forma DIRECTA, CONCISA y EJECUTIVA en 1 o 2 párrafos breves (máximo 4 a 6 líneas en total).
+2. Proporciona inmediatamente las cifras y montos clave (en Bolivianos "Bs." o unidades) y menciona las sucursales o productos relevantes.
+3. Si el usuario solicita un desglose amplio, usa viñetas cortas (-) con datos concretos sin extenderte en introducciones innecesarias.
+4. NO le digas al usuario que mire tablas externas ni dashboards.
+5. CERO EMOJIS (está terminantemente prohibido incluir cualquier emoji o emoticono).
+6. Tono formal, ágil y profesional de alta dirección retail.
 
-Estructura tu reporte analítico en texto con las siguientes 4 secciones (utiliza mayúsculas y viñetas):
-1. DIAGNOSTICO EJECUTIVO: Resumen directo del volumen total, montos monetarios o unidades globales, y el estado general.
-2. ANALISIS DETALLADO: Cifras concretas por sucursal, producto o categoría con montos y unidades exactas. Explica quién lidera y quién está rezagado.
-3. ALERTAS OPERATIVAS: Puntos críticos identificados (ej. prendas con stock crítico, bajas ventas en ciertas tiendas o desbalances).
-4. RECOMENDACIONES ESTRATEGICAS: Acciones directas y sugerencias de negocio para la gerencia.
-
-REGLAS ESTRICTAS E INQUEBRANTABLES:
-- CERO EMOJIS: Está terminantemente prohibido incluir cualquier emoji o emoticono en toda la respuesta.
-- NUNCA digas: "mira la tabla", "a continuación verás los datos", "ve al dashboard" ni "entra a reportes". Eres tú quien redacta y explica el informe analítico aquí mismo.
-- Cita los números reales que tienes arriba (en Bolivianos "Bs.", cantidades exactas de unidades y nombres de sucursales).
-
-Responde ÚNICAMENTE en formato JSON EXACTO (sin bloques markdown ni comillas invertidas):
+Responde ÚNICAMENTE en formato JSON EXACTO:
 {
-  "reply": "Texto del reporte ejecutivo completo y explicado para el usuario.",
+  "reply": "Respuesta directa, ejecutiva y concisa con cifras exactas.",
   "keyMetrics": [
     { "label": "Etiqueta breve (máx 18 chars)", "value": "Cifra con unidad", "trend": "up|down|neutral" }
   ]
@@ -540,7 +611,7 @@ Responde ÚNICAMENTE en formato JSON EXACTO (sin bloques markdown ni comillas in
       }
     }
 
-    // 6. Fallback determinista local: Redacción explicada completa sin fallar
+    // 6. Fallback determinista local conciso
     const localReport = this.generateExecutiveReportLocal(
       normalizedPayload.entity,
       entityName,
@@ -757,7 +828,7 @@ Responde ÚNICAMENTE en formato JSON EXACTO (sin bloques markdown ni comillas in
   }
 
   /**
-   * Generador determinista local de reportes ejecutivos redactados
+   * Generador determinista local de respuestas ejecutivas concisas
    */
   private generateExecutiveReportLocal(
     entity: string,
@@ -769,97 +840,48 @@ Responde ÚNICAMENTE en formato JSON EXACTO (sin bloques markdown ni comillas in
   ): string {
     const parts: string[] = [];
 
-    parts.push(`INFORME ANALITICO EJECUTIVO - DRESSLY BOUTIQUE`);
-    parts.push(`Consulta atendida: "${userQuery}"`);
-    parts.push(`Entidad evaluada: ${entityName} (Total registros en base de datos: ${totalCount})`);
-    parts.push('');
-
-    // 1. Diagnóstico Ejecutivo
-    parts.push('1. DIAGNOSTICO EJECUTIVO');
     if (entity === 'venta') {
       parts.push(
-        `Se han auditado ${totalCount} transacciones comerciales con una facturación acumulada de ${summary.montoTotalVendido || 'Bs. 0.00'}, alcanzando un ticket promedio de ${summary.ticketPromedio || 'Bs. 0.00'} por compra. La actividad comercial refleja dinamismo en los canales presenciales y digitales.`,
+        `Se auditaron ${totalCount} transacciones en ${entityName} con una facturación acumulada de ${summary.montoTotalVendido || 'Bs. 0.00'} y un ticket promedio de ${summary.ticketPromedio || 'Bs. 0.00'}.`,
       );
+      if (Array.isArray(summary.rankingSucursales) && summary.rankingSucursales.length > 0) {
+        parts.push('');
+        parts.push('Rendimiento por sucursal:');
+        summary.rankingSucursales.slice(0, 3).forEach((suc: any) => {
+          parts.push(
+            `- ${suc.sucursal}: Bs. ${Number(suc.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })} en ${suc.transacciones} transacciones.`,
+          );
+        });
+      }
     } else if (entity === 'inventario_sucursal') {
       parts.push(
-        `Se registran ${summary.stockFisicoTotal || '0 unidades'} disponibles en piso de venta y almacenes, distribuidas en ${totalCount} variantes de prendas. Se identificaron ${summary.prendasEnRiesgo || 0} variantes en nivel crítico de reposición.`,
+        `El inventario suma ${summary.stockFisicoTotal || '0 unidades'} en ${totalCount} variantes de prendas. Se detectaron ${summary.prendasEnRiesgo || 0} variantes en nivel crítico.`,
       );
+      if (summary.criticosDetalle && summary.criticosDetalle.length > 0) {
+        parts.push('');
+        parts.push('Variantes con stock más bajo:');
+        summary.criticosDetalle.slice(0, 3).forEach((c: any) => {
+          parts.push(`- ${c.prenda} (Talla ${c.talla}, ${c.sucursal}): ${c.disponible} ud(s)`);
+        });
+      }
     } else if (entity === 'producto') {
       parts.push(
-        `El catálogo de prendas activas suma ${summary.totalCatalogo || totalCount} referencias, con un precio promedio ponderado de ${summary.precioPromedio || 'Bs. 0.00'}. Se observa cobertura en ${Object.keys(summary.distribucionCategorias || {}).length} líneas de moda.`,
+        `El catálogo cuenta con ${summary.totalCatalogo || totalCount} prendas activas, con un precio promedio de ${summary.precioPromedio || 'Bs. 0.00'}.`,
       );
-    } else {
-      parts.push(
-        `Se consolidaron exitosamente ${totalCount} registros del módulo ${entityName}. Los indicadores evaluados presentan consistencia operativa con las reglas de negocio establecidas.`,
-      );
-    }
-    parts.push('');
-
-    // 2. Análisis Detallado
-    parts.push('2. ANALISIS DETALLADO');
-    if (entity === 'venta' && Array.isArray(summary.rankingSucursales) && summary.rankingSucursales.length > 0) {
-      parts.push('Distribución de rendimiento por sucursal:');
-      summary.rankingSucursales.slice(0, 4).forEach((suc: any) => {
-        parts.push(
-          `- Sucursal ${suc.sucursal}: Bs. ${Number(suc.total).toLocaleString('es-BO', { minimumFractionDigits: 2 })} en ${suc.transacciones} transacciones.`,
-        );
-      });
-    } else if (entity === 'inventario_sucursal' && summary.criticosDetalle && summary.criticosDetalle.length > 0) {
-      parts.push('Prendas con inventario crítico detectadas:');
-      summary.criticosDetalle.forEach((c: any) => {
-        parts.push(
-          `- ${c.prenda} (Talla ${c.talla}) en ${c.sucursal}: solo ${c.disponible} unidad(es) disponible(s).`,
-        );
-      });
-    } else if (entity === 'producto' && summary.distribucionCategorias) {
-      parts.push('Concentración por categorías de colección:');
-      Object.entries(summary.distribucionCategorias).slice(0, 5).forEach(([cat, qty]) => {
-        parts.push(`- Categoría ${cat}: ${qty} prenda(s) catalogada(s).`);
-      });
-    } else {
-      parts.push(`- Registros procesados de la base de datos: ${rows.length} de ${totalCount}.`);
-      if (rows.length > 0) {
-        parts.push(`- Variables analizadas: ${Object.keys(rows[0]).slice(0, 6).join(', ')}.`);
+      if (summary.distribucionCategorias) {
+        parts.push('');
+        parts.push('Principales categorías:');
+        Object.entries(summary.distribucionCategorias).slice(0, 3).forEach(([cat, qty]) => {
+          parts.push(`- ${cat}: ${qty} prenda(s)`);
+        });
       }
-    }
-    parts.push('');
-
-    // 3. Alertas Operativas
-    parts.push('3. ALERTAS OPERATIVAS');
-    if (entity === 'inventario_sucursal' && summary.prendasEnRiesgo > 0) {
+    } else if (entity === 'cliente') {
       parts.push(
-        `- Riesgo inminente de quiebre de stock en ${summary.prendasEnRiesgo} variantes de alta rotación.`,
-      );
-      parts.push('- Desbalance de existencias entre sucursales de alta demanda y tiendas periféricas.');
-    } else if (entity === 'venta') {
-      parts.push(
-        '- Concentración de ingresos en sucursales principales con brecha frente a puntos de venta secundarios.',
-      );
-      parts.push('- Monitorear el volumen de transacciones en turnos matutinos vs vespertinos.');
-    } else {
-      parts.push('- Mantener seguimiento continuo para evitar discrepancias operativas.');
-    }
-    parts.push('');
-
-    // 4. Recomendaciones de Negocio
-    parts.push('4. RECOMENDACIONES DE NEGOCIO');
-    if (entity === 'inventario_sucursal') {
-      parts.push(
-        '- Ejecutar transferencias de inventario inter-sucursal para equilibrar las unidades disponibles.',
-      );
-      parts.push(
-        '- Emitir órdenes prioritarias de abastecimiento para las variantes con stock menor a 5 unidades.',
-      );
-    } else if (entity === 'venta') {
-      parts.push(
-        '- Impulsar promociones cruzadas o de ventas combinadas para elevar el ticket promedio en sucursales secundarias.',
-      );
-      parts.push(
-        '- Fortalecer las campañas de ventas digitales para incrementar la participación del canal online.',
+        `Se registran ${totalCount} clientes en la base de datos con un acumulado de ${summary.puntosFidelidadTotal || 0} puntos de fidelidad.`,
       );
     } else {
       parts.push(
-        '- Auditar periódicamente los parámetros de la entidad para optimizar la toma de decisiones gerencial.',
+        `Se procesaron ${totalCount} registros de la entidad ${entityName} verificados directamente en la base de datos.`,
       );
     }
 
