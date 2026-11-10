@@ -249,6 +249,35 @@
   flex-shrink: 0;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-header-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #1C1510;
+  color: #FFFFFF;
+  border: 1px solid #C4956A;
+  padding: 0.35rem 0.75rem;
+  border-radius: 7px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+}
+
+.admin-header-ai-btn:hover {
+  background-color: #2D231B;
+  border-color: #DFB58E;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
 .admin-user-profile {
   display: flex;
   align-items: center;
@@ -334,7 +363,7 @@
 /* Main Content con Scroll Independiente */
 .admin-main-content {
   flex: 1;
-  padding: 1.75rem 2rem;
+  padding: 1.2rem 1.5rem;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
@@ -356,6 +385,109 @@
 
 .admin-main-content::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.28);
+}
+
+/* ================================================
+   ENCABEZADOS Y NAVEGACIÓN COMPACTA EN TODAS LAS PÁGINAS
+   ================================================ */
+.admin-main-content .admin-page-header,
+.admin-main-content .page-header,
+.admin-main-content .roles-header,
+.admin-main-content .bitacora-header,
+.admin-main-content .inv-header,
+.admin-main-content .header-section,
+.admin-main-content .branches-header,
+.admin-main-content .settings-header {
+  margin-bottom: 0.85rem !important;
+  padding-bottom: 0.45rem !important;
+}
+
+.admin-main-content .admin-page-title,
+.admin-main-content .page-header h1,
+.admin-main-content .roles-header-title h1,
+.admin-main-content .bitacora-header-title h1,
+.admin-main-content .inv-header-title,
+.admin-main-content .header-title,
+.admin-main-content .settings-title {
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 0 0.15rem 0 !important;
+  line-height: 1.25 !important;
+}
+
+.admin-main-content .admin-page-subtitle,
+.admin-main-content .page-header p,
+.admin-main-content .roles-header p,
+.admin-main-content .bitacora-header-title p,
+.admin-main-content .inv-header p,
+.admin-main-content .settings-subtitle {
+  font-size: 0.82rem !important;
+  color: var(--text-secondary, #6B7280) !important;
+  margin: 0 !important;
+  line-height: 1.35 !important;
+}
+
+/* Dashboard de Inicio Compacto */
+.admin-main-content .dashboard-index-container {
+  padding: 0 !important;
+}
+
+.admin-main-content .dashboard-hero-card {
+  padding: 1.25rem 1.5rem !important;
+  margin-bottom: 1rem !important;
+  border-radius: 12px !important;
+}
+
+.admin-main-content .dashboard-hero-title {
+  font-size: 1.45rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.admin-main-content .dashboard-hero-subtitle {
+  font-size: 0.84rem !important;
+  line-height: 1.4 !important;
+}
+
+.admin-main-content .dashboard-hero-badge {
+  margin-bottom: 0.5rem !important;
+  padding: 0.25rem 0.65rem !important;
+  font-size: 0.74rem !important;
+}
+
+/* Pestañas y barras de navegación compactas */
+.admin-main-content .catalog-admin-tabs,
+.admin-main-content .settings-tabs-nav,
+.admin-main-content .admin-tabs-nav,
+.admin-main-content .tabs-nav {
+  margin-bottom: 0.85rem !important;
+  gap: 0.35rem !important;
+}
+
+.admin-main-content .catalog-tab-btn,
+.admin-main-content .settings-tab-btn,
+.admin-main-content .admin-tab-btn,
+.admin-main-content .tab-btn {
+  padding: 0.38rem 0.75rem !important;
+  font-size: 0.8rem !important;
+  border-radius: 6px !important;
+}
+
+.admin-main-content .catalog-tab-btn svg,
+.admin-main-content .tab-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Filtros y barras de herramientas compactas */
+.admin-main-content .filters-bar,
+.admin-main-content .admin-controls-bar,
+.admin-main-content .admin-table-toolbar,
+.admin-main-content .toolbar-search-filter,
+.admin-main-content .bitacora-toolbar {
+  margin-bottom: 0.85rem !important;
+  padding: 0.45rem 0.75rem !important;
+  gap: 0.5rem !important;
 }
 
 .admin-header-left {

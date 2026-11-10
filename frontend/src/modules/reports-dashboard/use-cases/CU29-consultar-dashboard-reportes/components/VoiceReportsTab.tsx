@@ -393,8 +393,8 @@ export const VoiceReportsTab: React.FC = () => {
         }
       `}</style>
 
-      {/* Encabezado del Entorno de Voz */}
-      <div style={{ textAlign: 'center', marginBottom: '2.5rem', maxWidth: '720px' }}>
+      {/* Encabezado del Entorno de Voz Compacto */}
+      <div style={{ textAlign: 'center', marginBottom: '1.25rem', maxWidth: '680px' }}>
         <div
           style={{
             display: 'inline-flex',
@@ -402,31 +402,31 @@ export const VoiceReportsTab: React.FC = () => {
             gap: '0.45rem',
             backgroundColor: '#FAF5EE',
             border: '1px solid #E4D7C5',
-            padding: '0.35rem 0.85rem',
+            padding: '0.25rem 0.75rem',
             borderRadius: '9999px',
-            fontSize: '0.78rem',
+            fontSize: '0.74rem',
             fontWeight: 700,
             color: '#8C5E35',
-            marginBottom: '0.9rem',
+            marginBottom: '0.45rem',
           }}
         >
-          <Sparkles size={14} color="#C4956A" />
+          <Sparkles size={13} color="#C4956A" />
           <span>Caso de Uso CU33 — Consulta y Explicación de Reportes por Voz</span>
         </div>
 
         <h2
           style={{
-            fontSize: '1.9rem',
+            fontSize: '1.38rem',
             fontWeight: 800,
             color: '#1C1510',
-            margin: '0 0 0.6rem 0',
+            margin: '0 0 0.35rem 0',
             letterSpacing: '-0.02em',
             fontFamily: 'var(--font-display, Georgia, serif)',
           }}
         >
           Asistente de Voz Inteligente para Reportes
         </h2>
-        <p style={{ color: '#736B63', fontSize: '0.94rem', margin: 0, lineHeight: 1.6 }}>
+        <p style={{ color: '#736B63', fontSize: '0.84rem', margin: 0, lineHeight: 1.5 }}>
           Interactúa 100% mediante voz. Realiza tu pregunta hablando al micrófono y la inteligencia
           artificial consultará los datos en vivo para explicártelo con voz audible y métricas
           precisas.
