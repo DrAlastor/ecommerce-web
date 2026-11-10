@@ -33,6 +33,7 @@ export const VoiceReportsTab: React.FC = () => {
 
   const recognitionRef = useRef<any>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   // Inicializar y chequear soporte de Speech API
   useEffect(() => {
@@ -58,10 +59,50 @@ export const VoiceReportsTab: React.FC = () => {
     };
   }, []);
 
+  // Función para reproducir el audio generado en el backend (fallback universal garantizado)
+  const speakWithBackendFallback = async (cleanSpeech: string) => {
+    try {
+      setVoiceState('speaking');
+      const blob = await reportsService.getSpeechAudio(cleanSpeech);
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audioPlayerRef.current = audio;
+
+      audio.onended = () => {
+        setVoiceState('idle');
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = (e) => {
+        console.warn('Audio element error:', e);
+        setVoiceState('idle');
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.warn('Fallo en síntesis de audio del backend:', err);
+      setVoiceState('idle');
+    }
+  };
+
   // Función para detener la síntesis de voz (TTS)
   const stopSpeechSynthesis = () => {
+    if (audioPlayerRef.current) {
+      try {
+        audioPlayerRef.current.pause();
+        audioPlayerRef.current.currentTime = 0;
+      } catch {
+        // ignore
+      }
+      audioPlayerRef.current = null;
+    }
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
     }
     if (voiceState === 'speaking') {
       setVoiceState('idle');
@@ -69,13 +110,11 @@ export const VoiceReportsTab: React.FC = () => {
   };
 
   // Función para hablar el texto (TTS)
-  const speakText = (text: string) => {
-    if (!('speechSynthesis' in window)) return;
+  const speakText = async (text: string) => {
+    if (!text) return;
 
-    window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    }
+    // Detener cualquier audio previo
+    stopSpeechSynthesis();
 
     // Limpieza de markdown para que la pronunciación sea fluida y natural
     const cleanSpeech = text
@@ -86,36 +125,59 @@ export const VoiceReportsTab: React.FC = () => {
 
     if (!cleanSpeech) return;
 
-    const utterance = new SpeechSynthesisUtterance(cleanSpeech);
-    utteranceRef.current = utterance;
+    // Verificar si el navegador tiene soporte nativo funcional con voces disponibles
+    const hasSpeechSynthesis = 'speechSynthesis' in window;
+    const voices = hasSpeechSynthesis ? window.speechSynthesis.getVoices() : [];
+    const hasLocalVoices = voices && voices.length > 0;
 
-    const voices = window.speechSynthesis.getVoices();
-    const esVoice =
-      voices.find((v) => v.lang.startsWith('es-BO')) ||
-      voices.find((v) => v.lang.startsWith('es-')) ||
-      voices.find((v) => v.lang.includes('es'));
-
-    if (esVoice) {
-      utterance.voice = esVoice;
+    // Si el navegador no tiene voces locales (caso de Chromium/Brave en Linux sin flags),
+    // usamos de forma transparente el sintetizador del backend que funciona al 100%
+    if (!hasSpeechSynthesis || !hasLocalVoices) {
+      await speakWithBackendFallback(cleanSpeech);
+      return;
     }
-    utterance.lang = esVoice ? esVoice.lang : 'es-419';
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
 
-    utterance.onstart = () => {
-      setVoiceState('speaking');
-    };
+    try {
+      const utterance = new SpeechSynthesisUtterance(cleanSpeech);
+      utteranceRef.current = utterance;
 
-    utterance.onend = () => {
-      setVoiceState('idle');
-    };
+      const esVoice =
+        voices.find((v) => v.lang.startsWith('es-BO')) ||
+        voices.find((v) => v.lang.startsWith('es-')) ||
+        voices.find((v) => v.lang.includes('es'));
 
-    utterance.onerror = (e) => {
-      console.warn('SpeechSynthesis error:', e);
-      setVoiceState('idle');
-    };
+      if (esVoice) {
+        utterance.voice = esVoice;
+        utterance.lang = esVoice.lang;
+      } else {
+        utterance.lang = 'es-ES';
+      }
 
-    window.speechSynthesis.speak(utterance);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      utterance.onstart = () => {
+        setVoiceState('speaking');
+      };
+
+      utterance.onend = () => {
+        setVoiceState('idle');
+      };
+
+      utterance.onerror = async (e) => {
+        console.warn('SpeechSynthesis error en navegador, activando fallback de backend:', e);
+        // Si el navegador falla por política de autoplay o error de socket, usamos el fallback
+        await speakWithBackendFallback(cleanSpeech);
+      };
+
+      // Pequeño retardo para evitar la condición de carrera en Chromium al cancelar
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+    } catch (err) {
+      console.warn('Error al iniciar SpeechSynthesis, usando backend:', err);
+      await speakWithBackendFallback(cleanSpeech);
+    }
   };
 
   // Detener reconocimiento de voz
@@ -607,7 +669,7 @@ export const VoiceReportsTab: React.FC = () => {
               }}
             >
               <Volume2 size={16} color="#8C5E35" />
-              <span>Repetir informe en audio</span>
+              <span>Escuchar de nuevo (Audio)</span>
             </button>
 
             {voiceState === 'speaking' && (

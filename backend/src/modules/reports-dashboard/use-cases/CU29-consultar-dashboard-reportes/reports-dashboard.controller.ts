@@ -14,7 +14,9 @@ import {
   Req,
   Res,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
+import { spawn } from 'child_process';
 import type { Response } from 'express';
 import { FunctionRequired } from '../../../users-security/shared/decorators/function-required.decorator.js';
 import { FunctionGuard } from '../../../users-security/shared/guards/function.guard.js';
@@ -41,6 +43,8 @@ import {
 @Controller('reports')
 @UseGuards(JwtAuthGuard, FunctionGuard)
 export class ReportsDashboardController {
+  private readonly logger = new Logger(ReportsDashboardController.name);
+
   constructor(
     private readonly reportsService: ReportsDashboardService,
     private readonly exporterService: ReportExporterService,
@@ -201,5 +205,40 @@ export class ReportsDashboardController {
   @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
   async processAiChat(@Req() req: any, @Body() dto: AiChatQueryDto) {
     return this.reportsAiService.processChat(dto, req.user);
+  }
+
+  /**
+   * CU33 — Síntesis de Voz (TTS) como respaldo universal para navegadores sin motor local
+   */
+  @Post('ai/tts')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async synthesizeVoice(
+    @Body('text') text: string,
+    @Res() res: Response,
+  ) {
+    const cleanText = (text || '')
+      .replace(/[*_#`]/g, '')
+      .replace(/\n+/g, '. ')
+      .replace(/--+/g, '')
+      .trim()
+      .slice(0, 1500);
+
+    if (!cleanText) {
+      return res.status(400).send('Texto vacío');
+    }
+
+    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Cache-Control', 'no-cache');
+
+    const child = spawn('espeak-ng', ['-v', 'es', '-s', '150', '--stdout', cleanText]);
+
+    child.stdout.pipe(res);
+
+    child.on('error', (err) => {
+      this.logger.error('Error al invocar espeak-ng para TTS:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Error en síntesis de voz');
+      }
+    });
   }
 }

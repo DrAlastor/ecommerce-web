@@ -208,4 +208,14 @@ export const reportsService = {
     const res = await api.post<AiChatResponse>('/reports/ai/chat', payload);
     return res.data;
   },
+
+  /**
+   * CU33 — Síntesis de voz directa desde el backend (audio/wav streaming)
+   */
+  async getSpeechAudio(text: string): Promise<Blob> {
+    const res = await api.post('/reports/ai/tts', { text }, {
+      responseType: 'blob',
+    });
+    return res.data;
+  },
 };
