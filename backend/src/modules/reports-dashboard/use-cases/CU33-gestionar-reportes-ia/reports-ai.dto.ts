@@ -31,7 +31,7 @@ export interface AiReportAnalysis {
   alerts: string[];
   recommendations: string[];
   generatedAt: string;
-  engine: 'gemini-3.5-flash' | 'local-heuristic';
+  engine: string;
 }
 
 export class AiChatMessageDto {
@@ -80,6 +80,6 @@ export interface AiChatResponse {
     columns: { key: string; label: string }[];
     rows: Record<string, any>[];
   };
-  engine: 'gemini-3.5-flash' | 'local-heuristic';
+  engine: string;
 }
 

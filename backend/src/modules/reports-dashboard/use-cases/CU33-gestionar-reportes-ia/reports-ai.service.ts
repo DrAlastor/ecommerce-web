@@ -113,7 +113,7 @@ export class ReportsAiService implements OnModuleInit, OnModuleDestroy {
   /**
    * Realiza una llamada HTTP POST a la API de Google Gemini con timeout controlado
    */
-  private async callGemini(prompt: string, timeoutMs = 8000): Promise<string | null> {
+  private async callGemini(prompt: string, timeoutMs = 12000): Promise<string | null> {
     const apiKey = this.getApiKey();
     if (!apiKey) return null;
 
@@ -493,6 +493,179 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
   }
 
   /**
+   * Ejecuta una consulta analítica directa en PostgreSQL con el usuario ai_readonly
+   */
+  private async executeDirectAiQuery(rawMsg: string): Promise<{
+    rows: any[];
+    sqlUsed: string;
+    intent: string;
+    keyMetrics: { label: string; value: string | number; trend?: 'up' | 'down' | 'neutral' }[];
+    executiveSummary: string;
+  } | null> {
+    if (!this.readOnlyPool) {
+      return null;
+    }
+
+    const norm = rawMsg.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    let sql = '';
+    let intent = '';
+
+    if (/(prenda|ropa|producto)s?.*(cara|caro|costos|mayor precio|mas car|alta gama)/.test(norm) || /mas caras?/.test(norm)) {
+      sql = `SELECT p.id_producto, p.nombre, p.precio_base, COALESCE(c.nombre, 'General') as categoria, p.estado 
+             FROM producto p 
+             LEFT JOIN categoria c ON p.id_categoria = c.id_categoria 
+             ORDER BY p.precio_base DESC 
+             LIMIT 10;`;
+      intent = 'productos_caros';
+    } else if (/(prenda|ropa|producto)s?.*(barat|econom|menor precio|mas barat|bajo costo)/.test(norm) || /mas baratas?/.test(norm)) {
+      sql = `SELECT p.id_producto, p.nombre, p.precio_base, COALESCE(c.nombre, 'General') as categoria, p.estado 
+             FROM producto p 
+             LEFT JOIN categoria c ON p.id_categoria = c.id_categoria 
+             ORDER BY p.precio_base ASC 
+             LIMIT 10;`;
+      intent = 'productos_baratos';
+    } else if (/(stock|inventario).*?(bajo|critic|quiebre|poco|escas)/.test(norm) || /(prenda|variante)s?.*?(bajo|sin stock)/.test(norm)) {
+      sql = `SELECT p.nombre as prenda, t.codigo as talla, s.nombre as sucursal, inv.stock_disponible, inv.stock_minimo 
+             FROM inventario_sucursal inv 
+             JOIN producto_variante pv ON inv.id_producto_variante = pv.id_producto_variante 
+             JOIN producto p ON pv.id_producto = p.id_producto 
+             JOIN talla t ON pv.id_talla = t.id_talla 
+             JOIN sucursal s ON inv.id_sucursal = s.id_sucursal 
+             WHERE inv.stock_disponible <= 15 
+             ORDER BY inv.stock_disponible ASC 
+             LIMIT 10;`;
+      intent = 'inventario_bajo';
+    } else if (/(inventario|stock).*?(sucursal|tienda)/.test(norm)) {
+      sql = `SELECT s.nombre as sucursal, SUM(inv.stock_disponible)::int as total_unidades, COUNT(DISTINCT inv.id_producto_variante)::int as variantes_distintas 
+             FROM sucursal s 
+             JOIN inventario_sucursal inv ON s.id_sucursal = inv.id_sucursal 
+             GROUP BY s.nombre 
+             ORDER BY total_unidades DESC;`;
+      intent = 'inventario_sucursal';
+    } else if (/(cliente|comprador)s?.*?(compra|frecuente|fidelidad|puntos|mejor)/.test(norm)) {
+      sql = `SELECT c.nombre || ' ' || c.apellido as cliente, c.ci, c.puntos_fidelidad, COUNT(v.id_venta)::int as compras_registradas 
+             FROM cliente c 
+             LEFT JOIN venta v ON c.id_cliente = v.id_cliente 
+             GROUP BY c.id_cliente, c.nombre, c.apellido, c.ci, c.puntos_fidelidad 
+             ORDER BY c.puntos_fidelidad DESC 
+             LIMIT 10;`;
+      intent = 'top_clientes';
+    } else if (/(venta|ingreso|facturad)s?.*?(sucursal|tienda|mes|acumulad)/.test(norm) || /rendimiento comercial/.test(norm)) {
+      sql = `SELECT COALESCE(s.nombre, 'Venta General') as sucursal, COUNT(v.id_venta)::int as transacciones, COALESCE(SUM(v.total), 0)::numeric as total_ventas 
+             FROM sucursal s 
+             LEFT JOIN empleado_sucursal es ON s.id_sucursal = es.id_sucursal 
+             LEFT JOIN empleado e ON es.id_empleado = e.id_empleado 
+             LEFT JOIN venta v ON e.id_empleado = v.id_empleado 
+             GROUP BY s.nombre 
+             ORDER BY total_ventas DESC;`;
+      intent = 'ventas_sucursal';
+    } else if (/(reserva|apartad)s?/.test(norm)) {
+      sql = `SELECT r.codigo, r.estado, s.nombre as sucursal, c.nombre || ' ' || c.apellido as cliente, r.fecha_reserva 
+             FROM reserva r 
+             JOIN sucursal s ON r.id_sucursal = s.id_sucursal 
+             JOIN cliente c ON r.id_cliente = c.id_cliente 
+             ORDER BY r.fecha_reserva DESC 
+             LIMIT 10;`;
+      intent = 'reservas';
+    }
+
+    if (!sql) return null;
+
+    try {
+      const res = await this.readOnlyPool.query(sql);
+      const rows = res.rows || [];
+
+      const keyMetrics: { label: string; value: string | number; trend?: 'up' | 'down' | 'neutral' }[] = [];
+      const lines: string[] = [];
+
+      if (intent === 'productos_caros') {
+        const maxPrice = Number(rows[0]?.precio_base || 0);
+        const top5 = rows.slice(0, 5);
+        const avgTop = top5.reduce((acc, r) => acc + (Number(r.precio_base) || 0), 0) / (top5.length || 1);
+
+        lines.push('Las prendas con mayor precio registradas en la base de datos son:');
+        top5.forEach((p) => {
+          lines.push(`- ${p.nombre}: Bs. ${Number(p.precio_base).toFixed(2)} (${p.categoria})`);
+        });
+        lines.push('');
+        lines.push(`El precio más alto alcanza Bs. ${maxPrice.toFixed(2)}, con un promedio de Bs. ${avgTop.toFixed(2)} en las variantes más exclusivas.`);
+
+        keyMetrics.push({ label: 'Prenda Más Cara', value: `Bs. ${maxPrice.toFixed(2)}`, trend: 'up' });
+        keyMetrics.push({ label: 'Top 5 Promedio', value: `Bs. ${avgTop.toFixed(2)}`, trend: 'neutral' });
+        keyMetrics.push({ label: 'Registros BD', value: `${rows.length} prendas`, trend: 'neutral' });
+      } else if (intent === 'productos_baratos') {
+        const minPrice = Number(rows[0]?.precio_base || 0);
+        const top5 = rows.slice(0, 5);
+
+        lines.push('Las prendas más accesibles del catálogo son:');
+        top5.forEach((p) => {
+          lines.push(`- ${p.nombre}: Bs. ${Number(p.precio_base).toFixed(2)} (${p.categoria})`);
+        });
+        lines.push('');
+        lines.push(`El precio de entrada más bajo es de Bs. ${minPrice.toFixed(2)}.`);
+
+        keyMetrics.push({ label: 'Precio Mínimo', value: `Bs. ${minPrice.toFixed(2)}`, trend: 'down' });
+        keyMetrics.push({ label: 'Prendas Listadas', value: top5.length, trend: 'neutral' });
+      } else if (intent === 'inventario_bajo') {
+        lines.push('Prendas con inventario crítico identificadas en tiendas:');
+        rows.slice(0, 5).forEach((r) => {
+          lines.push(`- ${r.prenda} (Talla ${r.talla}, Sucursal ${r.sucursal}): solo ${r.stock_disponible} unidad(es) disponible(s).`);
+        });
+        lines.push('');
+        lines.push('Se recomienda gestionar transferencias inter-sucursales o reposición para prevenir quiebres de venta.');
+
+        keyMetrics.push({ label: 'Variantes Críticas', value: rows.length, trend: 'down' });
+        keyMetrics.push({ label: 'Menor Stock', value: `${rows[0]?.stock_disponible || 0} uds`, trend: 'down' });
+      } else if (intent === 'inventario_sucursal') {
+        const totalAll = rows.reduce((acc, r) => acc + (Number(r.total_unidades) || 0), 0);
+        lines.push('Distribución del inventario físico consolidado por sucursal:');
+        rows.forEach((r) => {
+          lines.push(`- Sucursal ${r.sucursal}: ${r.total_unidades} prendas disponibles (${r.variantes_distintas} variantes activas).`);
+        });
+        lines.push('');
+        lines.push(`Inventario total disponible en la red de sucursales: ${totalAll} prendas.`);
+
+        keyMetrics.push({ label: 'Stock Total Red', value: `${totalAll} uds`, trend: 'neutral' });
+        keyMetrics.push({ label: 'Sucursales', value: rows.length, trend: 'neutral' });
+      } else if (intent === 'top_clientes') {
+        lines.push('Clientes con mayor puntaje en el programa de fidelización:');
+        rows.slice(0, 5).forEach((c) => {
+          lines.push(`- ${c.cliente} (CI ${c.ci}): ${c.puntos_fidelidad} puntos acumulados.`);
+        });
+
+        keyMetrics.push({ label: 'Mayor Puntaje', value: `${rows[0]?.puntos_fidelidad || 0} pts`, trend: 'up' });
+        keyMetrics.push({ label: 'Clientes Evaluados', value: rows.length, trend: 'neutral' });
+      } else if (intent === 'ventas_sucursal') {
+        if (rows.length === 0 || rows.every((r) => Number(r.total_ventas) === 0)) {
+          lines.push('No se registran transacciones de venta completadas en el periodo actual.');
+          lines.push('El sistema se encuentra a la espera del procesamiento de las primeras ventas de las sucursales.');
+          keyMetrics.push({ label: 'Ventas Totales', value: 'Bs. 0.00', trend: 'neutral' });
+          keyMetrics.push({ label: 'Transacciones', value: 0, trend: 'neutral' });
+        } else {
+          lines.push('Rendimiento comercial por sucursal verificado en tiempo real:');
+          rows.forEach((r) => {
+            lines.push(`- ${r.sucursal}: Bs. ${Number(r.total_ventas).toLocaleString('es-BO', { minimumFractionDigits: 2 })} (${r.transacciones} ventas).`);
+          });
+          const totalV = rows.reduce((acc, r) => acc + Number(r.total_ventas || 0), 0);
+          keyMetrics.push({ label: 'Ventas Totales', value: `Bs. ${totalV.toFixed(2)}`, trend: 'up' });
+        }
+      }
+
+      return {
+        rows,
+        sqlUsed: sql,
+        intent,
+        keyMetrics,
+        executiveSummary: lines.join('\n'),
+      };
+    } catch (err: any) {
+      this.logger.warn(`Error executing direct analytical SQL: ${err.message}`);
+      return null;
+    }
+  }
+
+  /**
    * CU33 — Chat Conversacional Analítico con IA
    * Responde de manera concisa, ejecutiva y directa con datos reales de PostgreSQL
    */
@@ -515,7 +688,62 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
       };
     }
 
-    // 2. Interpretar la consulta analítica para mapear entidad, campos y filtros
+    // 2. Intentar ejecución directa en PostgreSQL con el usuario ai_readonly (0ms latencia, datos reales)
+    const directResult = await this.executeDirectAiQuery(rawMsg);
+    if (directResult) {
+      if (apiKey) {
+        try {
+          const geminiPrompt = `
+Eres "Dressly AI Analytics", consultor analítico ejecutivo de Dressly Boutique.
+El usuario realiza la siguiente consulta: "${rawMsg}".
+Datos reales extraídos de PostgreSQL mediante el usuario ai_readonly:
+${JSON.stringify(directResult.rows.slice(0, 10), null, 2)}
+
+INSTRUCCIONES CLAVE:
+1. Responde de forma DIRECTA, CONCISA y EJECUTIVA.
+2. OBLIGATORIO: Presenta las 3 a 5 prendas, sucursales o clientes destacados en viñetas (-) con su nombre exacto y valor en Bs. (por ejemplo: "- Abrigo Largo de Lana: Bs. 890.00 (Chaquetas)").
+3. Incluye una breve conclusión gerencial al final (máximo 2 líneas).
+4. CERO EMOJIS (terminantemente prohibido cualquier emoji o emoticono).
+5. Responde ÚNICAMENTE en JSON:
+{
+  "reply": "Texto con la respuesta ejecutiva y las viñetas con datos reales.",
+  "keyMetrics": [
+    { "label": "Etiqueta breve", "value": "Cifra con unidad", "trend": "up|down|neutral" }
+  ]
+}
+`;
+          const responseText = await this.callGemini(geminiPrompt, 12000);
+          if (responseText) {
+            const cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanJson);
+            if (parsed && parsed.reply) {
+              let finalReply = parsed.reply;
+              if (!finalReply.includes('-') && directResult.executiveSummary.includes('-')) {
+                finalReply = `${finalReply}\n\n${directResult.executiveSummary}`;
+              }
+              return {
+                reply: finalReply,
+                keyMetrics:
+                  Array.isArray(parsed.keyMetrics) && parsed.keyMetrics.length > 0
+                    ? parsed.keyMetrics
+                    : directResult.keyMetrics,
+                engine: 'Gemini 3.5 Flash Lite + ai_readonly DB',
+              };
+            }
+          }
+        } catch (err: any) {
+          this.logger.warn(`Gemini enrichment failed, using local DB synthesis: ${err.message}`);
+        }
+      }
+
+      return {
+        reply: directResult.executiveSummary,
+        keyMetrics: directResult.keyMetrics,
+        engine: 'PostgreSQL ai_readonly (Consulta real en BD)',
+      };
+    }
+
+    // 3. Fallback a interpretación analítica QBE estándar
     const interpreted = await this.interpretNaturalQuery(rawMsg);
     const normalizedPayload = this.normalizeQbePayload(interpreted.suggestedPayload);
 
@@ -865,15 +1093,39 @@ Responde ÚNICAMENTE en formato JSON EXACTO:
         });
       }
     } else if (entity === 'producto') {
-      parts.push(
-        `El catálogo cuenta con ${summary.totalCatalogo || totalCount} prendas activas, con un precio promedio de ${summary.precioPromedio || 'Bs. 0.00'}.`,
-      );
-      if (summary.distribucionCategorias) {
-        parts.push('');
-        parts.push('Principales categorías:');
-        Object.entries(summary.distribucionCategorias).slice(0, 3).forEach(([cat, qty]) => {
-          parts.push(`- ${cat}: ${qty} prenda(s)`);
+      const isCaras = /(cara|caro|costos|mayor precio|mas car|alta gama)/i.test(userQuery);
+      const isBaratas = /(barat|econom|menor precio|mas barat|bajo costo)/i.test(userQuery);
+
+      if (isCaras && rows.length > 0) {
+        const sorted = [...rows].sort((a, b) => (Number(b.precio_base) || 0) - (Number(a.precio_base) || 0)).slice(0, 5);
+        parts.push('Las prendas con mayor precio registradas en la base de datos son:');
+        sorted.forEach((p) => {
+          parts.push(`- ${p.nombre}: Bs. ${Number(p.precio_base || 0).toFixed(2)} (${p.categoria || 'General'})`);
         });
+        const maxPrice = Number(sorted[0]?.precio_base || 0);
+        const avgTop = sorted.reduce((acc, p) => acc + (Number(p.precio_base) || 0), 0) / (sorted.length || 1);
+        parts.push('');
+        parts.push(`El precio más alto alcanza Bs. ${maxPrice.toFixed(2)}, con un promedio de Bs. ${avgTop.toFixed(2)} en las prendas destacadas.`);
+      } else if (isBaratas && rows.length > 0) {
+        const sorted = [...rows].sort((a, b) => (Number(a.precio_base) || 0) - (Number(b.precio_base) || 0)).slice(0, 5);
+        parts.push('Las prendas más accesibles del catálogo son:');
+        sorted.forEach((p) => {
+          parts.push(`- ${p.nombre}: Bs. ${Number(p.precio_base || 0).toFixed(2)} (${p.categoria || 'General'})`);
+        });
+        const minPrice = Number(sorted[0]?.precio_base || 0);
+        parts.push('');
+        parts.push(`El precio de entrada más bajo es de Bs. ${minPrice.toFixed(2)}.`);
+      } else {
+        parts.push(
+          `El catálogo cuenta con ${summary.totalCatalogo || totalCount} prendas activas, con un precio promedio de ${summary.precioPromedio || 'Bs. 0.00'}.`,
+        );
+        if (summary.distribucionCategorias) {
+          parts.push('');
+          parts.push('Principales categorías:');
+          Object.entries(summary.distribucionCategorias).slice(0, 3).forEach(([cat, qty]) => {
+            parts.push(`- ${cat}: ${qty} prenda(s)`);
+          });
+        }
       }
     } else if (entity === 'cliente') {
       parts.push(

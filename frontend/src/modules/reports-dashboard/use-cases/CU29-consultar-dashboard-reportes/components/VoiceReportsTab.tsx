@@ -45,6 +45,13 @@ export const VoiceReportsTab: React.FC = () => {
       );
     }
 
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.getVoices();
+    }
+
     return () => {
       stopVoiceRecognition();
       stopSpeechSynthesis();
@@ -66,6 +73,9 @@ export const VoiceReportsTab: React.FC = () => {
     if (!('speechSynthesis' in window)) return;
 
     window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
 
     // Limpieza de markdown para que la pronunciación sea fluida y natural
     const cleanSpeech = text
@@ -206,11 +216,11 @@ export const VoiceReportsTab: React.FC = () => {
         console.warn('SpeechRecognition error:', event.error);
         if (event.error === 'not-allowed') {
           setErrorMessage(
-            'Permiso de micrófono denegado. Permite el acceso al micrófono en la barra de direcciones de tu navegador.',
+            'Permiso de micrófono denegado. Permite el acceso al micrófono en el icono de permisos de la barra de direcciones de tu navegador.',
           );
         } else if (event.error === 'network') {
           setErrorMessage(
-            'Error de conectividad en el servicio acústico de voz. Verifica tu conexión a internet.',
+            'Error de red en el servicio de voz. Si estás utilizando Brave Browser, ve a brave://settings/extensions y activa "Usar los servicios de Google para el reconocimiento de voz", o bien utiliza Google Chrome o Microsoft Edge.',
           );
         } else if (event.error !== 'aborted') {
           setErrorMessage(`Aviso del micrófono: ${event.error}`);
