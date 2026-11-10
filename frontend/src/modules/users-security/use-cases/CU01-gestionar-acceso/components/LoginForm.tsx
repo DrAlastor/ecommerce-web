@@ -101,28 +101,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const brandTitle = tenant === 'urbanly' ? 'Urbanly' : (tenant === 'aura-sport' ? 'Aura Sport' : 'Dressly');
   const brandTag = tenant === 'urbanly' ? 'Streetwear & Oversize' : (tenant === 'aura-sport' ? 'Athletics & Gear' : 'Fashion Store');
 
-  const demoAccounts = tenant === 'urbanly' ? [
-    { label: 'Admin', email: 'admin@urbanly.bo', pass: 'Admin123*' },
-    { label: 'Encargado', email: 'manager.lpz@urbanly.bo', pass: 'Encargado123*' },
-    { label: 'Cajero', email: 'cajero.sopocachi@urbanly.bo', pass: 'Cajero123*' },
-    { label: 'Cliente', email: 'santiago.street@gmail.com', pass: 'Cliente123*' },
-  ] : tenant === 'aura-sport' ? [
-    { label: 'Admin', email: 'admin@aurasport.bo', pass: 'Admin123*' },
-    { label: 'Encargado', email: 'encargado.scz@aurasport.bo', pass: 'Encargado123*' },
-    { label: 'Cajero', email: 'cajero.scz@aurasport.bo', pass: 'Cajero123*' },
-    { label: 'Cliente', email: 'mateo.running@gmail.com', pass: 'Cliente123*' },
-  ] : [
-    { label: 'Admin', email: 'admin@fashionstore.bo', pass: 'Admin123*' },
-    { label: 'Encargado', email: 'encargado.sc@fashionstore.bo', pass: 'Encargado123*' },
-    { label: 'Cajero', email: 'cajero.sc@fashionstore.bo', pass: 'Cajero123*' },
-    { label: 'Cliente', email: 'ana.rojas@example.com', pass: 'Cliente123*' },
-  ];
-
-  const handleFillDemo = (accEmail: string, accPass: string) => {
-    setEmail(accEmail);
-    setPassword(accPass);
-  };
-
   return (
     <div className="login-form-panel">
       <div className="login-form-container">
@@ -146,34 +124,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <div className="login-header">
           <h2>Bienvenido a {brandTitle}</h2>
           <p>Inicia sesión en tu cuenta de {brandTitle}</p>
-        </div>
-
-        {/* Acceso rápido a cuentas demo del tenant */}
-        <div style={{ marginBottom: '1.25rem', padding: '0.75rem', backgroundColor: '#F8F6F2', borderRadius: '8px', border: '1px solid #E5E0D8' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#736B63', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-            Acceso Rápido Demo ({brandTitle}):
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-            {demoAccounts.map((acc) => (
-              <button
-                key={acc.label}
-                type="button"
-                onClick={() => handleFillDemo(acc.email, acc.pass)}
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.3rem 0.6rem',
-                  borderRadius: '4px',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #D1C7BD',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  color: '#1A1A1A'
-                }}
-              >
-                {acc.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Alert de error general */}

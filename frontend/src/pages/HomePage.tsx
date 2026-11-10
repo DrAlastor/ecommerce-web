@@ -75,28 +75,35 @@ interface TenantCategory {
 
 const TENANT_CATEGORIES: Record<string, TenantCategory[]> = {
   'dressly': [
-    { id: '1', name: 'Blusas & Tops', slug: 'blusas', image: 'https://fashionstorestorages.blob.core.windows.net/productos/top_punto.jpg' },
-    { id: '2', name: 'Vestidos & Faldas', slug: 'vestidos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_sleep.jpg' },
-    { id: '3', name: 'Pantalones & Lino', slug: 'pantalones', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_palazo.png' },
-    { id: '4', name: 'Blazers & Chaquetas', slug: 'chaquetas', image: 'https://fashionstorestorages.blob.core.windows.net/productos/top_sweetra.png' },
-    { id: '5', name: 'Bolsos & Marroquinería', slug: 'accesorios', image: 'https://fashionstorestorages.blob.core.windows.net/productos/bolso_tote.png' },
-    { id: '6', name: 'Rebajas', slug: 'sale', image: '' },
+    { id: 'all', name: 'Todo', slug: 'all', image: 'https://fashionstorestorages.blob.core.windows.net/productos/conjunto_limono.png' },
+    { id: 'vestidos', name: 'Vestidos', slug: 'vestidos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_sleep.jpg' },
+    { id: 'blazers', name: 'Blazers & Abrigos', slug: 'blazers', image: 'https://fashionstorestorages.blob.core.windows.net/productos/chaleco_sastre.png' },
+    { id: 'tops', name: 'Tops & Blusas', slug: 'tops', image: 'https://fashionstorestorages.blob.core.windows.net/productos/top_punto.jpg' },
+    { id: 'pantalones', name: 'Pantalones & Faldas', slug: 'pantalones', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_palazo.png' },
+    { id: 'bolsos', name: 'Bolsos & Carteras', slug: 'bolsos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/bolso_tote.png' },
+    { id: 'calzado', name: 'Calzado & Mocasines', slug: 'calzado', image: 'https://fashionstorestorages.blob.core.windows.net/productos/mocasines_cuero.png' },
+    { id: 'accesorios', name: 'Accesorios & Joyería', slug: 'accesorios', image: 'https://fashionstorestorages.blob.core.windows.net/productos/cinturon_piel.png' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/vestido_noche.jpg' },
   ],
   'urbanly': [
-    { id: '1', name: 'Hoodies Boxy 500GSM', slug: 'hoodies', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png' },
-    { id: '2', name: 'Pantalones Cargo', slug: 'cargos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_cargo.png' },
-    { id: '3', name: 'Poleras Oversize', slug: 'poleras', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_oversize.png' },
-    { id: '4', name: 'Chaquetas MA-1', slug: 'chaquetas', image: 'https://fashionstorestorages.blob.core.windows.net/productos/chaqueta_bomberH.png' },
-    { id: '5', name: 'Jeans Wide-Leg', slug: 'jeans', image: 'https://fashionstorestorages.blob.core.windows.net/productos/jeans_wideleg.png' },
-    { id: '6', name: 'Rebajas', slug: 'sale', image: '' },
+    { id: 'all', name: 'Todo', slug: 'all', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png' },
+    { id: 'hoodies', name: 'Hoodies Boxy 500GSM', slug: 'hoodies', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png' },
+    { id: 'cargos', name: 'Pantalones Cargo', slug: 'cargos', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_cargo.png' },
+    { id: 'poleras', name: 'Poleras Oversize', slug: 'poleras', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_oversize.png' },
+    { id: 'chaquetas', name: 'Chaquetas MA-1', slug: 'chaquetas', image: 'https://fashionstorestorages.blob.core.windows.net/productos/chaqueta_bomberH.png' },
+    { id: 'jeans', name: 'Jeans Wide-Leg', slug: 'jeans', image: 'https://fashionstorestorages.blob.core.windows.net/productos/jeans_wideleg.png' },
+    { id: 'cropped', name: 'Hoodies Cropped', slug: 'cropped', image: 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_cropped.png' },
+    { id: 'parachute', name: 'Parachute Pants', slug: 'parachute', image: 'https://fashionstorestorages.blob.core.windows.net/productos/pantalon_parachute.png' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://fashionstorestorages.blob.core.windows.net/productos/polera_vintage.png' },
   ],
   'aura-sport': [
-    { id: '1', name: 'Leggings Seamless', slug: 'leggings', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400&auto=format&fit=crop' },
-    { id: '2', name: 'Tops & Bra Deportivo', slug: 'tops', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop' },
-    { id: '3', name: 'Running Shoes Pro', slug: 'calzado', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop' },
-    { id: '4', name: 'Shorts de Compresión', slug: 'shorts', image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop' },
-    { id: '5', name: 'Cortavientos Técnicos', slug: 'cortavientos', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
-    { id: '6', name: 'Rebajas', slug: 'sale', image: '' },
+    { id: 'all', name: 'Todo', slug: 'all', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
+    { id: 'leggings', name: 'Leggings Seamless', slug: 'leggings', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400&auto=format&fit=crop' },
+    { id: 'tops', name: 'Tops & Bra Deportivo', slug: 'tops', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop' },
+    { id: 'calzado', name: 'Running Shoes Pro', slug: 'calzado', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=400&auto=format&fit=crop' },
+    { id: 'shorts', name: 'Shorts de Compresión', slug: 'shorts', image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop' },
+    { id: 'cortavientos', name: 'Cortavientos Técnicos', slug: 'cortavientos', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
+    { id: 'sale', name: 'Ofertas', slug: 'sale', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=400&auto=format&fit=crop' },
   ],
 };
 
@@ -783,27 +790,29 @@ export const HomePage: React.FC = () => {
               />
             </div>
             <div className="newsletter-form-side">
-              <span className="newsletter-pre-title">OBTÉN 10% DE DESCUENTO EN TU PRIMER PEDIDO</span>
-              <h2 className="newsletter-main-title">Únete a {currentTheme.name}</h2>
+              <span className="newsletter-tag">OBTÉN 10% DE DESCUENTO EN TU PRIMER PEDIDO</span>
+              <h3 className="newsletter-title">Únete a {currentTheme.name}</h3>
               <p className="newsletter-desc">
                 Suscríbete para recibir lanzamientos exclusivos, drops de temporada e inspiración curada.
               </p>
 
               {newsletterSubscribed ? (
                 <div className="newsletter-success">
-                  <span>✓</span>
-                  <p>¡Gracias por unirte! Te hemos enviado tu cupón de bienvenida.</p>
+                  🎉 ¡Gracias por unirte! Usa el código <strong>{activeTenantKey === 'urbanly' ? 'URBANLY10' : 'DRESSLY10'}</strong> al pagar para tu 10% de descuento.
                 </div>
               ) : (
-                <form className="newsletter-input-group" onSubmit={handleNewsletterSubmit}>
+                <form className="newsletter-form" onSubmit={handleNewsletterSubmit}>
                   <input
                     type="email"
+                    required
                     placeholder="Introduce tu correo electrónico"
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
-                    required
+                    className="newsletter-input"
                   />
-                  <button type="submit">Suscribirse</button>
+                  <button type="submit" className="newsletter-submit-btn">
+                    Suscribirse
+                  </button>
                 </form>
               )}
             </div>
