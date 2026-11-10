@@ -357,7 +357,22 @@ export interface AiChatResponse {
   engine: 'gemini-3.5-flash' | 'local-heuristic';
 }
 
+export interface ExecutiveVerdict {
+  status: 'OPTIMO' | 'BUENO' | 'ALERTA_OPERATIVA' | 'CRITICO';
+  statusLabel: string;
+  verdictTitle: string;
+  summary: string;
+  scorePercent: number;
+  highlightMetric: {
+    label: string;
+    value: string;
+    description: string;
+  };
+  keyDecisions: string[];
+}
+
 export interface DemandPredictionResult {
+  executiveVerdict: ExecutiveVerdict;
   historicalWeeks: {
     weekLabel: string;
     actualUnits: number;
@@ -393,6 +408,7 @@ export interface DemandPredictionResult {
 }
 
 export interface RfmClusterResult {
+  executiveVerdict: ExecutiveVerdict;
   summary: {
     totalClientsAnalyzed: number;
     silhouetteScore: number;
@@ -437,6 +453,7 @@ export interface RfmClusterResult {
 }
 
 export interface MonteCarloScenarioResult {
+  executiveVerdict: ExecutiveVerdict;
   parameters: {
     horizonDays: number;
     growthRatePercent: number;

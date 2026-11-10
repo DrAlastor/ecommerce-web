@@ -16,7 +16,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 
+export interface ExecutiveVerdict {
+  status: 'OPTIMO' | 'BUENO' | 'ALERTA_OPERATIVA' | 'CRITICO';
+  statusLabel: string;
+  verdictTitle: string;
+  summary: string;
+  scorePercent: number;
+  highlightMetric: {
+    label: string;
+    value: string;
+    description: string;
+  };
+  keyDecisions: string[];
+}
+
 export interface DemandPredictionResult {
+  executiveVerdict: ExecutiveVerdict;
   historicalWeeks: {
     weekLabel: string;
     actualUnits: number;
@@ -52,6 +67,7 @@ export interface DemandPredictionResult {
 }
 
 export interface RfmClusterResult {
+  executiveVerdict: ExecutiveVerdict;
   summary: {
     totalClientsAnalyzed: number;
     silhouetteScore: number;
@@ -96,6 +112,7 @@ export interface RfmClusterResult {
 }
 
 export interface MonteCarloScenarioResult {
+  executiveVerdict: ExecutiveVerdict;
   parameters: {
     horizonDays: number;
     growthRatePercent: number;
@@ -416,7 +433,49 @@ export class NeuralAnalyticsService {
 
     replenishmentAlerts.sort((a, b) => a.diasCobertura - b.diasCobertura);
 
+    const criticosCount = replenishmentAlerts.filter((a) => a.urgencia === 'CRITICO').length;
+    const recomendadosCount = replenishmentAlerts.filter((a) => a.urgencia === 'RECOMENDADO').length;
+    const avgForecastUnits = Math.round(forecastWeeks.reduce((acc, f) => acc + f.predictedUnits, 0) / forecastWeeks.length);
+    const demandTrendPct = Math.round(((forecastWeeks[forecastWeeks.length - 1].predictedUnits - forecastWeeks[0].predictedUnits) / (forecastWeeks[0].predictedUnits || 1)) * 100);
+
+    let demandStatus: ExecutiveVerdict['status'] = 'OPTIMO';
+    let statusLabel = 'Abastecimiento Saludable';
+    let verdictTitle = 'Demanda Estable y Stock en Parámetros Óptimos';
+    let scorePercent = 94;
+
+    if (criticosCount >= 4) {
+      demandStatus = 'CRITICO';
+      statusLabel = 'Alerta Crítica de Quiebre';
+      verdictTitle = 'Riesgo Alto de Ventas Perdidas por Agotamiento';
+      scorePercent = 48;
+    } else if (criticosCount > 0 || recomendadosCount > 3) {
+      demandStatus = 'ALERTA_OPERATIVA';
+      statusLabel = 'Atención Operativa';
+      verdictTitle = 'Artículos Clave con Menos de 7 Días de Cobertura';
+      scorePercent = 72;
+    }
+
+    const executiveVerdict: ExecutiveVerdict = {
+      status: demandStatus,
+      statusLabel,
+      verdictTitle,
+      summary: `La red neuronal proyecta un promedio de ${avgForecastUnits} unidades por semana (${demandTrendPct >= 0 ? `+${demandTrendPct}% en tendencia` : `${demandTrendPct}% en tendencia`}). Existen ${criticosCount} artículos que requieren reposición prioritaria para evitar quiebre de inventario.`,
+      scorePercent,
+      highlightMetric: {
+        label: 'Artículos a Reponer Urgente',
+        value: `${criticosCount} artículos`,
+        description: criticosCount > 0 ? 'Existencias se agotarán en menos de 7 días' : 'Sin riesgo inmediato de desabastecimiento',
+      },
+      keyDecisions: [
+        criticosCount > 0
+          ? `Emitir orden de compra o transferencia inter-sucursal para los ${criticosCount} productos en estado CRÍTICO.`
+          : 'Mantener niveles de inventario de seguridad sin incurrir en compras extraordinarias.',
+        `Preparar stock de apoyo para la ${forecastWeeks[0]?.weekLabel || 'próxima semana'} estimada en ${forecastWeeks[0]?.predictedUnits || 0} unidades.`,
+      ],
+    };
+
     return {
+      executiveVerdict,
       historicalWeeks: sanitizedHistory,
       forecastWeeks,
       modelMetrics: {
@@ -649,7 +708,49 @@ export class NeuralAnalyticsService {
       }))
       .sort((a, b) => b.gastoHistorico - a.gastoHistorico);
 
+    const churnCount = churnRiskClients.length;
+    const churnRevenueLost = Math.round(churnRiskClients.reduce((acc: number, c: any) => acc + c.gastoHistorico, 0));
+    const vipCluster = clusters.find((c) => c.clusterId === 0);
+    const vipPercentage = vipCluster ? vipCluster.percentage : 25;
+
+    let rfmStatus: ExecutiveVerdict['status'] = 'OPTIMO';
+    let rfmStatusLabel = 'Retención Fuerte';
+    let rfmVerdictTitle = 'Cartera de Clientes Sólida y Lealtad Alta';
+    let rfmScore = 90;
+
+    if (churnCount >= 4 || churnRevenueLost > 10000) {
+      rfmStatus = 'CRITICO';
+      rfmStatusLabel = 'Alerta de Deserción';
+      rfmVerdictTitle = 'Fuga Inminente de Cuentas de Alto Valor';
+      rfmScore = 52;
+    } else if (churnCount > 0) {
+      rfmStatus = 'ALERTA_OPERATIVA';
+      rfmStatusLabel = 'Atención Preventiva';
+      rfmVerdictTitle = 'Clientes Históricos con Inactividad Prolongada';
+      rfmScore = 75;
+    }
+
+    const executiveVerdict: ExecutiveVerdict = {
+      status: rfmStatus,
+      statusLabel: rfmStatusLabel,
+      verdictTitle: rfmVerdictTitle,
+      summary: `El ${vipPercentage}% de los clientes impulsa el núcleo de facturación recurrente. Sin embargo, se identificaron ${churnCount} cuentas de alto valor inactivas (> 45 días) que representan un capital histórico en riesgo de Bs. ${churnRevenueLost.toLocaleString('es-BO')}.`,
+      scorePercent: rfmScore,
+      highlightMetric: {
+        label: 'Capital en Riesgo de Fuga',
+        value: `Bs. ${churnRevenueLost.toLocaleString('es-BO')}`,
+        description: `${churnCount} clientes VIP u ocasionales inactivos`,
+      },
+      keyDecisions: [
+        churnCount > 0
+          ? `Lanzar campaña inmediata de reactivación directa a los ${churnCount} clientes en riesgo con beneficio de recompra.`
+          : 'Mantener programas de lealtad y beneficios escalonados para clientes frecuentes.',
+        'Priorizar atención personalizada al segmento VIP Oro para asegurar la recurrencia mensual.',
+      ],
+    };
+
     return {
+      executiveVerdict,
       summary: {
         totalClientsAnalyzed: clientSegments.length,
         silhouetteScore: 0.74,
@@ -763,41 +864,83 @@ export class NeuralAnalyticsService {
       });
     }
 
+    const parameters = {
+      horizonDays,
+      growthRatePercent: Math.round(growthRate * 100),
+      simulationsCount: iterations,
+      dailyLambdaTransactions: Number(adjustedLambda.toFixed(1)),
+      averageTicketMean: Number(meanTicket.toFixed(2)),
+      averageTicketStdDev: Number(stdDevTicket.toFixed(2)),
+    };
+
+    const scenarios = {
+      conservativeP10: {
+        label: 'Escenario Conservador (Percentil 10)',
+        totalRevenue: revP10,
+        grossMarginEstimated: Number((revP10 * marginRatio).toFixed(2)),
+        projectedTransactions: transP10,
+        description: 'Piso de seguridad financiero al 90% de certeza estadística.',
+        strategicAdvice: 'Utilizar este monto para compromisos fijos ineludibles (alquileres y sueldos base). Evitar sobreendeudamiento.',
+      },
+      baseP50: {
+        label: 'Escenario Esperado (Percentil 50 / Mediana)',
+        totalRevenue: revP50,
+        grossMarginEstimated: Number((revP50 * marginRatio).toFixed(2)),
+        projectedTransactions: transP50,
+        description: 'Desempeño operativo esperado bajo condiciones habituales.',
+        strategicAdvice: 'Presupuestar reposición de stock estándar y ejecución del plan comercial programado.',
+      },
+      optimisticP90: {
+        label: 'Escenario Optimista (Percentil 90)',
+        totalRevenue: revP90,
+        grossMarginEstimated: Number((revP90 * marginRatio).toFixed(2)),
+        projectedTransactions: transP90,
+        description: 'Rendimiento en pico de demanda con alta afluencia y canasta completa.',
+        strategicAdvice: 'Oportunidad para adelantar pedidos de colección de temporada alta y considerar bonos de incentivo por metas.',
+      },
+    };
+
+    const marginP10 = Number((revP10 * marginRatio).toFixed(2));
+    const marginP50 = Number((revP50 * marginRatio).toFixed(2));
+
+    let monteStatus: ExecutiveVerdict['status'] = 'OPTIMO';
+    let monteStatusLabel = 'Negocio Resiliente';
+    let monteTitle = 'Piso Financiero Seguro ante Escenarios Adversos';
+    let monteScore = 88;
+
+    if (parameters.growthRatePercent < -15 || marginP10 < 3000) {
+      monteStatus = 'CRITICO';
+      monteStatusLabel = 'Riesgo de Déficit';
+      monteTitle = 'Margen Sensible ante Caídas de Demanda';
+      monteScore = 55;
+    } else if (parameters.growthRatePercent < 0) {
+      monteStatus = 'ALERTA_OPERATIVA';
+      monteStatusLabel = 'Rendimiento Ajustado';
+      monteTitle = 'Escenario Pesimista Requiere Control Estricto';
+      monteScore = 70;
+    }
+
+    const executiveVerdict: ExecutiveVerdict = {
+      status: monteStatus,
+      statusLabel: monteStatusLabel,
+      verdictTitle: monteTitle,
+      summary: `Con 1,000 corridas estocásticas, el 90% de las probabilidades sitúa la facturación por encima de Bs. ${revP10.toLocaleString('es-BO')} (P10) con margen bruto de Bs. ${marginP10.toLocaleString('es-BO')}. El escenario base proyecta Bs. ${revP50.toLocaleString('es-BO')}.`,
+      scorePercent: monteScore,
+      highlightMetric: {
+        label: 'Ingreso Mínimo Probable (P10)',
+        value: `Bs. ${revP10.toLocaleString('es-BO')}`,
+        description: 'Piso de seguridad con 90% de certeza estadística',
+      },
+      keyDecisions: [
+        `Presupuestar compras operativas alineadas al escenario base P50 (Bs. ${revP50.toLocaleString('es-BO')}) para prevenir sobrecostos.`,
+        `Garantizar un fondo de contingencia que amortigüe la variación entre P50 y P10 (Bs. ${(revP50 - revP10).toLocaleString('es-BO')}).`,
+      ],
+    };
+
     return {
-      parameters: {
-        horizonDays,
-        growthRatePercent: Math.round(growthRate * 100),
-        simulationsCount: iterations,
-        dailyLambdaTransactions: Number(adjustedLambda.toFixed(1)),
-        averageTicketMean: Number(meanTicket.toFixed(2)),
-        averageTicketStdDev: Number(stdDevTicket.toFixed(2)),
-      },
-      scenarios: {
-        conservativeP10: {
-          label: 'Escenario Conservador (Percentil 10)',
-          totalRevenue: revP10,
-          grossMarginEstimated: Number((revP10 * marginRatio).toFixed(2)),
-          projectedTransactions: transP10,
-          description: 'Piso de seguridad financiero al 90% de certeza estadística.',
-          strategicAdvice: 'Utilizar este monto para compromisos fijos ineludibles (alquileres y sueldos base). Evitar sobreendeudamiento.',
-        },
-        baseP50: {
-          label: 'Escenario Esperado (Percentil 50 / Mediana)',
-          totalRevenue: revP50,
-          grossMarginEstimated: Number((revP50 * marginRatio).toFixed(2)),
-          projectedTransactions: transP50,
-          description: 'Desempeño operativo esperado bajo condiciones habituales.',
-          strategicAdvice: 'Presupuestar reposición de stock estándar y ejecución del plan comercial programado.',
-        },
-        optimisticP90: {
-          label: 'Escenario Optimista (Percentil 90)',
-          totalRevenue: revP90,
-          grossMarginEstimated: Number((revP90 * marginRatio).toFixed(2)),
-          projectedTransactions: transP90,
-          description: 'Rendimiento en pico de demanda con alta afluencia y canasta completa.',
-          strategicAdvice: 'Oportunidad para adelantar pedidos de colección de temporada alta y considerar bonos de incentivo por metas.',
-        },
-      },
+      executiveVerdict,
+      parameters,
+      scenarios,
       densityCurvePoints: densityPoints,
     };
   }
