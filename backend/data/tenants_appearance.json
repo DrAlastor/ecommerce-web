@@ -33,16 +33,21 @@
   "urbanly": {
     "codigo_empresa": "urbanly",
     "primary_color": "#1A1918",
-    "secondary_color": "#8C7E72",
+    "secondary_color": "#C4B49E",
     "accent_color": "#4D5645",
     "font_family": "Inter, sans-serif",
-    "tagline": "STREETWEAR & OVERSIZE",
+    "tagline": "AESTHETIC STREETWEAR & ESSENTIALS",
     "hero_headline": "AESTHETIC T-SHIRTS &",
     "hero_subheadline": "OVERSIZED ESSENTIALS",
-    "hero_description": "Siluetas holgadas, tonos tierra neutros y algodón pesado 300 GSM diseñados para el movimiento de la ciudad.",
-    "hero_banner_url": "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1600&auto=format&fit=crop",
+    "hero_description": "Siluetas holgadas, tonos tierra neutros y algodón pesado 500 GSM diseñados para el movimiento contemporáneo.",
+    "hero_banner_url": "https://fashionstorestorages.blob.core.windows.net/portada/portada_uno.png",
+    "hero_banner_secondary_url": "https://fashionstorestorages.blob.core.windows.net/portada/portada_unodos.png",
+    "promo1_image_url": "https://fashionstorestorages.blob.core.windows.net/portada/portada_dos.png",
+    "promo2_image_url": "https://fashionstorestorages.blob.core.windows.net/portada/portada_tres.png",
+    "newsletter_banner_url": "https://fashionstorestorages.blob.core.windows.net/portada/portada_cuatro.png",
+    "logo_url": "https://fashionstorestorages.blob.core.windows.net/portada/Logo-Urbanly.png",
     "badge": "NEUTRAL TONES DROP",
-    "css_variables": "--color-primary: #1A1918; --color-secondary: #8C7E72; --color-accent: #4D5645;",
-    "fecha_modificacion": "2026-11-09T01:02:10.218Z"
+    "css_variables": ":root { --color-primary: #1A1918; --color-secondary: #C4B49E; --color-accent: #4D5645; --font-display: 'Inter', sans-serif; }",
+    "fecha_modificacion": "2026-11-09T18:10:00.000Z"
   }
 }

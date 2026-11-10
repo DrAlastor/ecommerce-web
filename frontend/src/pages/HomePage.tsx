@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { appearanceService } from '../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
 import type { AppearanceData } from '../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
+import { CatalogApi } from '../modules/catalog/services/catalog.api';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { CartDrawer } from '../components/shop/CartDrawer';
@@ -41,12 +42,12 @@ const TENANTS_THEME: Record<string, TenantTheme> = {
   },
   'urbanly': {
     name: 'Urbanly Fashion Store',
-    badge: 'OVERSIZED & STREETWEAR 2026',
-    headline: 'Estilo Urbano',
-    subheadline: 'Corte Oversize',
-    description: 'Streetwear contemporáneo para hombre y mujer: hoodies boxy-fit de 500 GSM, pantalones cargo tácticos, siluetas amplias y estética neutral tones.',
-    heroImage: 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg',
-    accentColor: '#F59E0B',
+    badge: 'AESTHETIC & STREETWEAR 2026',
+    headline: 'AESTHETIC T-SHIRTS &',
+    subheadline: 'OVERSIZED ESSENTIALS',
+    description: 'Streetwear contemporáneo para hombre y mujer: siluetas holgadas, hoodies boxy-fit de 500 GSM, pantalones cargo y estética neutral tones.',
+    heroImage: 'https://fashionstorestorages.blob.core.windows.net/portada/portada_uno.png',
+    accentColor: '#4D5645',
     trust1: { icon: '📦', title: 'Drop Nacional', desc: 'Despacho rápido express' },
     trust2: { icon: '⚡', title: '500 GSM Heavy', desc: 'Calidad superior de algodón' },
     trust3: { icon: '🛡️', title: 'Pago Seguro', desc: 'QR, Tarjeta & Bancos' },
@@ -84,13 +85,18 @@ export const HomePage: React.FC = () => {
   const [showLookbookModal, setShowLookbookModal] = useState(false);
   const navigate = useNavigate();
   const { tenant } = useParams<{ tenant?: string }>();
-  const resolvedTenant = tenant === 'subversive-urban' ? 'urbanly' : tenant;
-  const activeTenantKey = (resolvedTenant && TENANTS_THEME[resolvedTenant]) ? resolvedTenant : 'dressly';
+  const rawTenant = tenant || localStorage.getItem('tenantKey') || 'urbanly';
+  const resolvedTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
+    ? 'urbanly' 
+    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+  const activeTenantKey = (resolvedTenant && TENANTS_THEME[resolvedTenant]) ? resolvedTenant : 'urbanly';
   const currentTheme = TENANTS_THEME[activeTenantKey];
 
   const [appearance, setAppearance] = useState<AppearanceData | null>(null);
+  const [dynamicProducts, setDynamicProducts] = useState<Product[]>([]);
 
   useEffect(() => {
+    localStorage.setItem('tenantKey', activeTenantKey);
     appearanceService.getPublicAppearance(activeTenantKey).then((data) => {
       if (data) {
         setAppearance(data);
@@ -111,10 +117,34 @@ export const HomePage: React.FC = () => {
         }
       }
     }).catch((err) => console.warn('Usando tema predeterminado para vitrina:', err));
+
+    CatalogApi.getProducts({ limit: 10 })
+      .then((res) => {
+        if (res && res.data && res.data.length > 0) {
+          const mapped: Product[] = res.data.map((cp) => ({
+            id: cp.id_producto,
+            name: cp.nombre,
+            category: cp.categoria?.nombre || 'General',
+            categorySlug: cp.categoria?.nombre?.toLowerCase().replace(/\s+/g, '-') || 'general',
+            price: cp.precio_final,
+            originalPrice: cp.tiene_descuento ? cp.precio_base : undefined,
+            rating: 4.9,
+            reviewsCount: 16,
+            image: cp.imagen_principal || 'https://fashionstorestorages.blob.core.windows.net/productos/hoodie_boxy.png',
+            isNew: true,
+            isSale: cp.tiene_descuento,
+            description: cp.descripcion || '',
+            sizes: cp.tallas_disponibles.map((t) => t.codigo),
+            colors: cp.colores_disponibles.map((c) => c.nombre),
+          }));
+          setDynamicProducts(mapped);
+        }
+      })
+      .catch((err) => console.warn('Usando mock fallback para homepage:', err));
   }, [activeTenantKey]);
 
-  // Filtrar productos para la portada (solo novedades o aleatorios, máximo 10)
-  const homeProducts = PRODUCTS.slice(0, 10);
+  // Filtrar productos para la portada (de API con fallback a mock)
+  const homeProducts = dynamicProducts.length > 0 ? dynamicProducts : PRODUCTS.slice(0, 10);
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,7 +215,7 @@ export const HomePage: React.FC = () => {
               <button
                 className="hero-cta-btn"
                 style={{ backgroundColor: appearance?.primary_color || undefined }}
-                onClick={() => navigate('/catalog')}
+                onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
               >
                 <span>{appearance?.cta_primary_text || 'Comprar Ahora'}</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -237,7 +267,11 @@ export const HomePage: React.FC = () => {
           <div className="hero-image-wrapper">
             <div className="hero-image-container">
               <img
-                src={appearance?.hero_banner_url || currentTheme.heroImage}
+                src={
+                  activeSlide === 2
+                    ? (appearance?.hero_banner_secondary_url || 'https://fashionstorestorages.blob.core.windows.net/portada/portada_unodos.png')
+                    : (appearance?.hero_banner_url || currentTheme.heroImage)
+                }
                 alt={currentTheme.name}
                 className="hero-main-img"
               />
@@ -277,7 +311,7 @@ export const HomePage: React.FC = () => {
                   key={cat.id}
                   className={`category-circle-item ${isSelected ? 'selected' : ''}`}
                   onClick={() => {
-                    navigate(`/catalog?category=${cat.slug}`);
+                    navigate(`/store/${activeTenantKey}/catalog?category=${cat.slug}`);
                   }}
                 >
                   <div className="circle-image-wrapper">
@@ -305,7 +339,7 @@ export const HomePage: React.FC = () => {
             </div>
             <button
               className="view-all-link-btn"
-              onClick={() => navigate('/catalog')}
+              onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
             >
               Ver Todas las Categorías →
             </button>
@@ -316,7 +350,7 @@ export const HomePage: React.FC = () => {
               <div
                 key={col.id}
                 className="collection-card"
-                onClick={() => navigate(`/catalog?category=${col.categorySlug}`)}
+                onClick={() => navigate(`/store/${activeTenantKey}/catalog?category=${col.categorySlug}`)}
               >
                 <img src={col.image} alt={col.title} className="collection-card-img" />
                 <div className="collection-card-overlay">
@@ -345,15 +379,18 @@ export const HomePage: React.FC = () => {
                 <h3 className="promo-title">Lino Natural & Tonos Tierra</h3>
                 <button
                   className="promo-action-btn"
-                  onClick={() => navigate('/catalog?category=blazers')}
+                  onClick={() => navigate(activeTenantKey === 'urbanly' ? `/store/${activeTenantKey}/catalog?category=Streetwear` : `/store/${activeTenantKey}/catalog?category=blazers`)}
                 >
-                  Ver Colección Lino →
+                  {activeTenantKey === 'urbanly' ? 'Ver Colección Heavyweight →' : 'Ver Colección Lino →'}
                 </button>
               </div>
               <div className="promo-img-side">
                 <img
-                  src="https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg"
-                  alt="Colección Lino Natural Femenino"
+                  src={
+                    appearance?.promo1_image_url ||
+                    (activeTenantKey === 'urbanly' ? 'https://fashionstorestorages.blob.core.windows.net/portada/portada_dos.png' : 'https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg')
+                  }
+                  alt="Colección Destacada"
                 />
               </div>
             </div>
@@ -361,19 +398,26 @@ export const HomePage: React.FC = () => {
             {/* Promo 2: Fresh Styles */}
             <div className="promo-banner-card promo-fresh">
               <div className="promo-text-side">
-                <span className="promo-tag">MARROQUINERÍA & ACCESORIOS</span>
-                <h3 className="promo-title">Bolsos en Moca & Negro Profundo</h3>
+                <span className="promo-tag">
+                  {activeTenantKey === 'urbanly' ? 'STREETWEAR & HEAVYWEIGHT' : 'MARROQUINERÍA & ACCESORIOS'}
+                </span>
+                <h3 className="promo-title">
+                  {activeTenantKey === 'urbanly' ? 'Cargos & Outerwear Industrial' : 'Bolsos en Moca & Negro Profundo'}
+                </h3>
                 <button
                   className="promo-action-btn"
-                  onClick={() => navigate('/catalog?category=bolsos')}
+                  onClick={() => navigate(activeTenantKey === 'urbanly' ? `/store/${activeTenantKey}/catalog?category=Pantalones` : `/store/${activeTenantKey}/catalog?category=bolsos`)}
                 >
-                  Ver Accesorios →
+                  {activeTenantKey === 'urbanly' ? 'Ver Streetwear →' : 'Ver Accesorios →'}
                 </button>
               </div>
               <div className="promo-img-side">
                 <img
-                  src="https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg"
-                  alt="Bolsos y Accesorios de Lujo"
+                  src={
+                    appearance?.promo2_image_url ||
+                    (activeTenantKey === 'urbanly' ? 'https://fashionstorestorages.blob.core.windows.net/portada/portada_tres.png' : 'https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg')
+                  }
+                  alt="Accesorios y Prendas Destacadas"
                 />
               </div>
             </div>
@@ -391,7 +435,7 @@ export const HomePage: React.FC = () => {
             </div>
             <button
               className="view-all-link-btn"
-              onClick={() => navigate('/catalog')}
+              onClick={() => navigate(`/store/${activeTenantKey}/catalog`)}
             >
               Ver Todo el Catálogo →
             </button>
@@ -402,7 +446,12 @@ export const HomePage: React.FC = () => {
             {homeProducts.map((product) => {
                 const isFavorited = isInWishlist(product.id);
                 return (
-                  <div key={product.id} className="product-card">
+                  <div
+                    key={product.id}
+                    className="product-card"
+                    onClick={() => navigate(`/store/${activeTenantKey}/product/${product.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {/* Media container */}
                     <div className="product-card-media">
                       <img
@@ -504,8 +553,11 @@ export const HomePage: React.FC = () => {
           <div className="newsletter-card">
             <div className="newsletter-image-side">
               <img
-                src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg"
-                alt="Dressly Style Club"
+                src={
+                  appearance?.newsletter_banner_url ||
+                  (activeTenantKey === 'urbanly' ? 'https://fashionstorestorages.blob.core.windows.net/portada/portada_cuatro.png' : 'https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg')
+                }
+                alt="Style Club"
               />
             </div>
             <div className="newsletter-form-side">
@@ -545,10 +597,10 @@ export const HomePage: React.FC = () => {
           <div className="footer-top-grid">
             {/* Col 1: Brand */}
             <div className="footer-brand-col">
-              <span className="footer-brand-name">DRESSLY</span>
-              <span className="footer-brand-tagline">FASHION STORE</span>
+              <span className="footer-brand-name">{activeTenantKey === 'urbanly' ? 'URBANLY' : (activeTenantKey === 'aura-sport' ? 'AURA SPORT' : 'DRESSLY')}</span>
+              <span className="footer-brand-tagline">{appearance?.tagline || (activeTenantKey === 'urbanly' ? 'AESTHETIC STREETWEAR' : (activeTenantKey === 'aura-sport' ? 'ATHLETICS & GEAR' : 'FASHION STORE'))}</span>
               <p className="footer-brand-desc">
-                Moda femenina atemporal confeccionada en lino, seda y piel. Estilo sofisticado y minimalista diseñado para la mujer contemporánea.
+                {appearance?.hero_description || currentTheme.description}
               </p>
               <div className="footer-social-icons">
                 <span className="social-icon">📸</span>
@@ -560,13 +612,13 @@ export const HomePage: React.FC = () => {
 
             {/* Col 2: Tienda */}
             <div className="footer-links-col">
-              <h5>TIENDA FEMENINA</h5>
+              <h5>{activeTenantKey === 'urbanly' ? 'STREETWEAR ARCHIVE' : (activeTenantKey === 'aura-sport' ? 'COLECCIÓN ATLETA' : 'TIENDA OFICIAL')}</h5>
               <ul>
-                <li><Link to="/catalog" onClick={() => window.scrollTo(0, 0)}>Todas las Prendas</Link></li>
-                <li><Link to="/catalog?category=blazers" onClick={() => window.scrollTo(0, 0)}>Blazers & Trajes</Link></li>
-                <li><Link to="/catalog?category=vestidos" onClick={() => window.scrollTo(0, 0)}>Vestidos de Gala & Lino</Link></li>
-                <li><Link to="/catalog?category=bolsos" onClick={() => window.scrollTo(0, 0)}>Bolsos & Marroquinería</Link></li>
-                <li><Link to="/catalog?category=sale" onClick={() => window.scrollTo(0, 0)}>Rebajas Especiales</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog`} onClick={() => window.scrollTo(0, 0)}>Todas las Prendas</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?category=${activeTenantKey === 'urbanly' ? 'Hoodies' : 'blazers'}`} onClick={() => window.scrollTo(0, 0)}>{activeTenantKey === 'urbanly' ? 'Hoodies & Sudaderas' : 'Blazers & Trajes'}</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?category=${activeTenantKey === 'urbanly' ? 'Pantalones' : 'vestidos'}`} onClick={() => window.scrollTo(0, 0)}>{activeTenantKey === 'urbanly' ? 'Cargos & Parachutes' : 'Vestidos de Gala'}</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?category=${activeTenantKey === 'urbanly' ? 'Poleras' : 'bolsos'}`} onClick={() => window.scrollTo(0, 0)}>{activeTenantKey === 'urbanly' ? 'Poleras Oversize' : 'Bolsos & Marroquinería'}</Link></li>
+                <li><Link to={`/store/${activeTenantKey}/catalog?sale=true`} onClick={() => window.scrollTo(0, 0)}>Rebajas Especiales</Link></li>
               </ul>
             </div>
 
@@ -588,7 +640,7 @@ export const HomePage: React.FC = () => {
               <ul>
                 <li><a href="#story">Nuestra Historia</a></li>
                 <li><a href="#sustainability">Sostenibilidad</a></li>
-                <li><a href="#stores">Nuestras Sucursales</a></li>
+                <li><Link to={`/store/${activeTenantKey}/sucursales`}>Nuestras Sucursales</Link></li>
                 <li><a href="#press">Prensa & Moda</a></li>
                 <li><a href="#careers">Trabaja con Nosotros</a></li>
               </ul>
@@ -596,7 +648,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="footer-bottom-bar">
-            <p>© {new Date().getFullYear()} Dressly Fashion Store. Todos los derechos reservados.</p>
+            <p>© {new Date().getFullYear()} {currentTheme.name}. Todos los derechos reservados.</p>
             <div className="footer-legal-links">
               <a href="#privacy">Política de Privacidad</a>
               <span>•</span>
@@ -613,20 +665,20 @@ export const HomePage: React.FC = () => {
         <div className="lookbook-modal-overlay" onClick={() => setShowLookbookModal(false)}>
           <div className="lookbook-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="lookbook-modal-header">
-              <h3>Lookbook Primavera / Verano 2026</h3>
+              <h3>{currentTheme.lookbookTitle || 'Lookbook 2026'}</h3>
               <button className="lookbook-close" onClick={() => setShowLookbookModal(false)}>✕</button>
             </div>
             <div className="lookbook-gallery">
-              <img src="https://fashionstorestorages.blob.core.windows.net/productos/hero-model.jpg" alt="Look Sastrería & Lino" />
-              <img src="https://fashionstorestorages.blob.core.windows.net/productos/linen-collection.jpg" alt="Colección Lino Natural" />
-              <img src="https://fashionstorestorages.blob.core.windows.net/productos/accessories.jpg" alt="Marroquinería & Accesorios" />
+              <img src={appearance?.hero_banner_url || currentTheme.heroImage} alt="Look Principal" />
+              <img src={appearance?.promo1_image_url || 'https://fashionstorestorages.blob.core.windows.net/portada/portada_dos.png'} alt="Colección Destacada" />
+              <img src={appearance?.promo2_image_url || 'https://fashionstorestorages.blob.core.windows.net/portada/portada_tres.png'} alt="Drop de Temporada" />
             </div>
             <div className="lookbook-footer">
               <button
                 className="lookbook-shop-btn"
                 onClick={() => {
                   setShowLookbookModal(false);
-                  navigate('/catalog');
+                  navigate(`/store/${activeTenantKey}/catalog`);
                 }}
               >
                 Comprar Estos Looks →

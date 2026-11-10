@@ -6,6 +6,7 @@
  * @secuencia Cliente -> detalle del producto -> controlador de detalle -> servicios de catálogo e inventario -> Producto/Variante/Inventario/Sucursal.
  */
 import React, { useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { useProductDetail } from '../hooks/useProductDetail';
 import { ProductGallery } from '../components/ProductGallery/ProductGallery';
 import { ProductInfo } from '../components/ProductInfo/ProductInfo';
@@ -61,6 +62,20 @@ export const ProductDetailPage: React.FC = () => {
     navigate,
   } = useProductDetail();
 
+  const params = useParams<{ id: string; tenant?: string }>();
+  const location = useLocation();
+
+  const rawTenant = params.tenant || 
+    (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
+     (localStorage.getItem('tenantKey') || 'urbanly'));
+
+  const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive' 
+    ? 'urbanly' 
+    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+
+  const storeHome = `/store/${currentTenant}`;
+  const catalogUrl = `/store/${currentTenant}/catalog`;
+
   if (isLoading) {
     return (
       <div className="product-detail-page">
@@ -85,7 +100,7 @@ export const ProductDetailPage: React.FC = () => {
             <button type="button" className="btn-detail-retry" onClick={fetchProduct}>
               Reintentar
             </button>
-            <button type="button" className="btn-detail-back" onClick={() => navigate('/catalog')}>
+            <button type="button" className="btn-detail-back" onClick={() => navigate(catalogUrl)}>
               Volver al Catálogo
             </button>
           </div>
@@ -148,8 +163,8 @@ export const ProductDetailPage: React.FC = () => {
               hasDiscount={hasDiscount}
               discountPercent={discountPercent}
               selectedSku={selectedVariant?.sku}
-              onNavigateHome={() => navigate('/')}
-              onNavigateCatalog={() => navigate('/catalog')}
+              onNavigateHome={() => navigate(storeHome)}
+              onNavigateCatalog={() => navigate(catalogUrl)}
             />
 
             {/* Selector de Talla y Color */}

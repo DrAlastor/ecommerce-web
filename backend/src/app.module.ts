@@ -13,7 +13,7 @@
  * - ReportsDashboardModule: Dashboard gerencial, KPIs analíticos y exportadores PDF/Excel.
  */
 
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -25,6 +25,7 @@ import { ReservationsModule } from './modules/reservations/reservations.module.j
 import { SalesBillingModule } from './modules/sales-billing/sales-billing.module.js';
 import { MobileExperienceModule } from './modules/mobile-experience/mobile-experience.module.js';
 import { ReportsDashboardModule } from './modules/reports-dashboard/reports-dashboard.module.js';
+import { TenantMiddleware } from './common/tenant/tenant.middleware.js';
 
 @Module({
   imports: [
@@ -43,4 +44,8 @@ import { ReportsDashboardModule } from './modules/reports-dashboard/reports-dash
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TenantMiddleware).forRoutes('*');
+  }
+}

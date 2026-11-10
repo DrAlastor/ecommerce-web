@@ -152,6 +152,45 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
     }, 1500);
   };
 
+  const getHeaderInfo = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return {
+          title: 'Consultar Dashboard',
+          subtitle: isAdmin
+            ? 'Panel ejecutivo con visibilidad global consolidada y métricas de todas las sucursales.'
+            : 'Panel operativo restringido exclusivamente a tus sucursales autorizadas.',
+          icon: <LayoutDashboard size={24} style={{ color: '#8A5340' }} />,
+        };
+      case 'reports':
+        return {
+          title: 'Gestionar Reportes Predefinidos',
+          subtitle: 'Consultas analíticas consolidadas de ventas, inventario y finanzas exportables a PDF y Excel.',
+          icon: <FileBarChart2 size={24} style={{ color: '#8A5340' }} />,
+        };
+      case 'qbe':
+        return {
+          title: 'Gestionar Reportes QBE',
+          subtitle: 'Generador de consultas analíticas avanzadas y búsquedas personalizadas Query-By-Example.',
+          icon: <TableProperties size={24} style={{ color: '#8A5340' }} />,
+        };
+      case 'voz':
+        return {
+          title: 'Gestionar Reportes por Voz',
+          subtitle: 'Consultas analíticas inteligentes en lenguaje natural con procesamiento de voz y síntesis auditiva en tiempo real.',
+          icon: <Mic size={24} style={{ color: '#8A5340' }} />,
+        };
+      default:
+        return {
+          title: 'Inteligencia de Negocios y Reportes',
+          subtitle: 'Panel ejecutivo y reportes consolidados del sistema.',
+          icon: <LayoutDashboard size={24} style={{ color: '#8A5340' }} />,
+        };
+    }
+  };
+
+  const headerInfo = getHeaderInfo();
+
   return (
     <div style={{ padding: '2rem', maxWidth: '1440px', margin: '0 auto', color: '#1C1510' }}>
       {/* Cabecera Principal */}
@@ -165,124 +204,38 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
           marginBottom: '1.75rem',
         }}
       >
-        <div>
-          <h1
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div
             style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              margin: 0,
-              fontFamily: 'var(--font-display, Georgia, serif)',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Inteligencia de Negocios y Reportes
-          </h1>
-          <p style={{ color: '#736B63', fontSize: '0.95rem', margin: '0.25rem 0 0 0' }}>
-            {isAdmin
-              ? 'Panel ejecutivo con visibilidad global consolidada y métricas de todas las sucursales.'
-              : 'Panel operativo restringido exclusivamente a tus sucursales autorizadas.'}
-          </p>
-        </div>
-
-        {/* Switch de Pestañas Principales (Los 4 Casos de Uso del Módulo) */}
-        <div
-          style={{
-            display: 'flex',
-            backgroundColor: '#EFEBE4',
-            borderRadius: '12px',
-            padding: '4px',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04)',
-            flexWrap: 'wrap',
-            gap: '2px',
-          }}
-        >
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '12px',
+              backgroundColor: '#F5EBE6',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.6rem 1.1rem',
-              borderRadius: '9px',
-              border: 'none',
-              backgroundColor: activeTab === 'dashboard' ? '#FFFFFF' : 'transparent',
-              color: activeTab === 'dashboard' ? '#1C1510' : '#736B63',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: activeTab === 'dashboard' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <LayoutDashboard size={15} />
-            Dashboard General
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reports')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.6rem 1.1rem',
-              borderRadius: '9px',
-              border: 'none',
-              backgroundColor: activeTab === 'reports' ? '#FFFFFF' : 'transparent',
-              color: activeTab === 'reports' ? '#1C1510' : '#736B63',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: activeTab === 'reports' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <FileBarChart2 size={15} />
-            Reportes Predefinidos
-          </button>
-
-          <button
-            onClick={() => setActiveTab('qbe')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.6rem 1.1rem',
-              borderRadius: '9px',
-              border: 'none',
-              backgroundColor: activeTab === 'qbe' ? '#FFFFFF' : 'transparent',
-              color: activeTab === 'qbe' ? '#1C1510' : '#736B63',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: activeTab === 'qbe' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <TableProperties size={15} />
-            Reportes QBE
-          </button>
-
-          <button
-            onClick={() => setActiveTab('voz')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.6rem 1.1rem',
-              borderRadius: '9px',
-              border: 'none',
-              backgroundColor: activeTab === 'voz' ? '#FFFFFF' : 'transparent',
-              color: activeTab === 'voz' ? '#1C1510' : '#736B63',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              boxShadow: activeTab === 'voz' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Mic size={15} />
-            Reportes por Voz
-          </button>
+            {headerInfo.icon}
+          </div>
+          <div>
+            <h1
+              style={{
+                fontSize: '1.85rem',
+                fontWeight: 700,
+                margin: 0,
+                fontFamily: 'var(--font-display, Georgia, serif)',
+                letterSpacing: '-0.02em',
+                color: '#1C1510',
+              }}
+            >
+              {headerInfo.title}
+            </h1>
+            <p style={{ color: '#736B63', fontSize: '0.92rem', margin: '0.2rem 0 0 0' }}>
+              {headerInfo.subtitle}
+            </p>
+          </div>
         </div>
       </div>
 

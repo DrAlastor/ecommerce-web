@@ -6,10 +6,15 @@
 
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Permitir payloads de backup grandes (hasta 50mb)
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
 
   // Middleware para normalizar prefijo /api: permite que las solicitudes funcionen
   // tanto si el cliente apunta a '/api/recurso' como a '/recurso'.

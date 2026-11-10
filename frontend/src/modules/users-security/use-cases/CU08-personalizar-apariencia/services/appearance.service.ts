@@ -11,6 +11,11 @@ export interface AppearanceData {
   hero_subheadline: string;
   hero_description: string;
   hero_banner_url: string;
+  hero_banner_secondary_url?: string;
+  promo1_image_url?: string;
+  promo2_image_url?: string;
+  newsletter_banner_url?: string;
+  logo_url?: string;
   badge: string;
   cta_primary_text?: string;
   cta_secondary_text?: string;

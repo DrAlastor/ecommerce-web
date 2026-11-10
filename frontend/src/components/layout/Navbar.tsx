@@ -25,14 +25,38 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams<{ tenant?: string }>();
-  const currentTenant = params.tenant || (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 'dressly');
 
-  const tenantBranding = currentTenant === 'aura-sport'
-    ? { name: 'AURA SPORT', tagline: 'ATHLETICS & GEAR', storePath: '/store/aura-sport', club: 'Aura Athlete Club' }
-    : currentTenant === 'subversive-urban'
-    ? { name: 'SUBVERSIVE', tagline: 'STUDIO ARCHIVE', storePath: '/store/subversive-urban', club: 'Subversive Club' }
-    : { name: 'DRESSLY', tagline: 'FASHION STORE', storePath: '/store/dressly', club: 'Dressly Club' };
+  const rawTenant = params.tenant || 
+    (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
+     (localStorage.getItem('tenantKey') || 'urbanly'));
 
+  const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive' 
+    ? 'urbanly' 
+    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+
+  const TENANT_BRANDING: Record<string, { name: string; tagline: string; storePath: string; club: string; logoUrl?: string }> = {
+    'urbanly': { 
+      name: 'URBANLY', 
+      tagline: 'AESTHETIC STREETWEAR', 
+      storePath: '/store/urbanly', 
+      club: 'Urbanly Club',
+      logoUrl: 'https://fashionstorestorages.blob.core.windows.net/portada/Logo-Urbanly.png',
+    },
+    'aura-sport': { 
+      name: 'AURA SPORT', 
+      tagline: 'ATHLETICS & GEAR', 
+      storePath: '/store/aura-sport', 
+      club: 'Aura Athlete Club',
+    },
+    'dressly': { 
+      name: 'DRESSLY', 
+      tagline: 'FASHION STORE', 
+      storePath: '/store/dressly', 
+      club: 'Dressly Club',
+    },
+  };
+
+  const tenantBranding = TENANT_BRANDING[currentTenant] || TENANT_BRANDING['urbanly'];
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);
@@ -45,16 +69,18 @@ export const Navbar: React.FC = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/catalog?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/store/${currentTenant}/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
       setShowMobileNav(false);
     }
   };
 
   const scrollToSection = (id: string, category?: string) => {
     setShowMobileNav(false);
+    const storeHome = tenantBranding.storePath;
+
     if (id === 'hero-section') {
-      if (window.location.pathname !== '/') {
-        navigate('/');
+      if (location.pathname !== storeHome) {
+        navigate(storeHome);
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 100);
@@ -65,17 +91,19 @@ export const Navbar: React.FC = () => {
     }
 
     if (id === 'products-section') {
-      const url = category === 'sale' ? '/catalog?sale=true' : (category ? `/catalog?category=${category}` : '/catalog');
+      const url = category === 'sale'
+        ? `/store/${currentTenant}/catalog?sale=true`
+        : (category ? `/store/${currentTenant}/catalog?category=${encodeURIComponent(category)}` : `/store/${currentTenant}/catalog`);
       navigate(url);
     } else {
       if (category) {
         setSelectedCategory(category);
       }
       const element = document.getElementById(id);
-      if (element) {
+      if (element && location.pathname === storeHome) {
         element.scrollIntoView({ behavior: 'smooth' });
-      } else if (window.location.pathname !== '/') {
-        navigate(`/#${id}`);
+      } else {
+        navigate(`${storeHome}#${id}`);
       }
     }
   };
@@ -142,16 +170,16 @@ export const Navbar: React.FC = () => {
             <button onClick={() => scrollToSection('category-showcase')} className="nav-link">
               Colecciones
             </button>
-            <button onClick={() => scrollToSection('products-section')} className="nav-link">
+            <button onClick={() => navigate(`/store/${currentTenant}/catalog`)} className="nav-link">
               Catálogo
             </button>
-            <button onClick={() => navigate('/recommendations')} className="nav-link">
+            <button onClick={() => navigate(`/store/${currentTenant}/recommendations`)} className="nav-link">
               Recomendado para ti
             </button>
-            <button onClick={() => navigate('/sucursales')} className="nav-link">
+            <button onClick={() => navigate(`/store/${currentTenant}/sucursales`)} className="nav-link">
               Sucursales
             </button>
-            <button onClick={() => scrollToSection('products-section', 'sale')} className="nav-link nav-link-sale">
+            <button onClick={() => navigate(`/store/${currentTenant}/catalog?sale=true`)} className="nav-link nav-link-sale">
               Rebajas
             </button>
           </nav>
@@ -336,13 +364,19 @@ export const Navbar: React.FC = () => {
             <button onClick={() => scrollToSection('category-showcase')} className="mobile-nav-item">
               Colecciones
             </button>
-            <button onClick={() => scrollToSection('products-section')} className="mobile-nav-item">
+            <button 
+              onClick={() => {
+                setShowMobileNav(false);
+                navigate(`/store/${currentTenant}/catalog`);
+              }} 
+              className="mobile-nav-item"
+            >
               Catálogo de Productos
             </button>
             <button
               onClick={() => {
                 setShowMobileNav(false);
-                navigate('/recommendations');
+                navigate(`/store/${currentTenant}/recommendations`);
               }}
               className="mobile-nav-item"
             >
@@ -351,13 +385,19 @@ export const Navbar: React.FC = () => {
             <button
               onClick={() => {
                 setShowMobileNav(false);
-                navigate('/sucursales');
+                navigate(`/store/${currentTenant}/sucursales`);
               }}
               className="mobile-nav-item"
             >
               Sucursales & Boutiques
             </button>
-            <button onClick={() => scrollToSection('products-section', 'sale')} className="mobile-nav-item mobile-sale">
+            <button 
+              onClick={() => {
+                setShowMobileNav(false);
+                navigate(`/store/${currentTenant}/catalog?sale=true`);
+              }} 
+              className="mobile-nav-item mobile-sale"
+            >
               Rebajas de Temporada
             </button>
             {!isAuthenticated && (

@@ -62,6 +62,7 @@ function AlertIcon() {
 }
 
 interface LoginFormProps {
+  tenant?: string;
   email: string;
   setEmail: (val: string) => void;
   password: string;
@@ -80,6 +81,7 @@ interface LoginFormProps {
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
+  tenant = 'urbanly',
   email,
   setEmail,
   password,
@@ -96,29 +98,82 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   validatePassword,
   onSubmit,
 }) => {
+  const brandTitle = tenant === 'urbanly' ? 'Urbanly' : (tenant === 'aura-sport' ? 'Aura Sport' : 'Dressly');
+  const brandTag = tenant === 'urbanly' ? 'Streetwear & Oversize' : (tenant === 'aura-sport' ? 'Athletics & Gear' : 'Fashion Store');
+
+  const demoAccounts = tenant === 'urbanly' ? [
+    { label: 'Admin', email: 'admin@urbanly.bo', pass: 'Admin123*' },
+    { label: 'Encargado', email: 'manager.lpz@urbanly.bo', pass: 'Encargado123*' },
+    { label: 'Cajero', email: 'cajero.sopocachi@urbanly.bo', pass: 'Cajero123*' },
+    { label: 'Cliente', email: 'santiago.street@gmail.com', pass: 'Cliente123*' },
+  ] : tenant === 'aura-sport' ? [
+    { label: 'Admin', email: 'admin@aurasport.bo', pass: 'Admin123*' },
+    { label: 'Encargado', email: 'encargado.scz@aurasport.bo', pass: 'Encargado123*' },
+    { label: 'Cajero', email: 'cajero.scz@aurasport.bo', pass: 'Cajero123*' },
+    { label: 'Cliente', email: 'mateo.running@gmail.com', pass: 'Cliente123*' },
+  ] : [
+    { label: 'Admin', email: 'admin@fashionstore.bo', pass: 'Admin123*' },
+    { label: 'Encargado', email: 'encargado.sc@fashionstore.bo', pass: 'Encargado123*' },
+    { label: 'Cajero', email: 'cajero.sc@fashionstore.bo', pass: 'Cajero123*' },
+    { label: 'Cliente', email: 'ana.rojas@example.com', pass: 'Cliente123*' },
+  ];
+
+  const handleFillDemo = (accEmail: string, accPass: string) => {
+    setEmail(accEmail);
+    setPassword(accPass);
+  };
+
   return (
     <div className="login-form-panel">
       <div className="login-form-container">
         {/* Back button */}
         <div className="login-back-button-wrapper">
-          <Link to="/" className="login-back-button">
+          <Link to={`/store/${tenant}`} className="login-back-button">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            <span>Volver al inicio</span>
+            <span>Volver a la tienda</span>
           </Link>
         </div>
 
         {/* Logo móvil */}
         <div className="login-mobile-logo">
-          <h1>Dressly</h1>
-          <span>Fashion Store</span>
+          <h1>{brandTitle}</h1>
+          <span>{brandTag}</span>
         </div>
 
         {/* Header */}
         <div className="login-header">
-          <h2>Bienvenido de vuelta</h2>
-          <p>Inicia sesión para continuar con tu experiencia</p>
+          <h2>Bienvenido a {brandTitle}</h2>
+          <p>Inicia sesión en tu cuenta de {brandTitle}</p>
+        </div>
+
+        {/* Acceso rápido a cuentas demo del tenant */}
+        <div style={{ marginBottom: '1.25rem', padding: '0.75rem', backgroundColor: '#F8F6F2', borderRadius: '8px', border: '1px solid #E5E0D8' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#736B63', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+            Acceso Rápido Demo ({brandTitle}):
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+            {demoAccounts.map((acc) => (
+              <button
+                key={acc.label}
+                type="button"
+                onClick={() => handleFillDemo(acc.email, acc.pass)}
+                style={{
+                  fontSize: '0.75rem',
+                  padding: '0.3rem 0.6rem',
+                  borderRadius: '4px',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #D1C7BD',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  color: '#1A1A1A'
+                }}
+              >
+                {acc.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Alert de error general */}
@@ -207,7 +262,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           {/* Forgot password */}
           <div className="forgot-password-wrapper">
-            <Link to="/forgot-password" className="login-link">
+            <Link to={`/store/${tenant}/forgot-password`} className="login-link">
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
@@ -235,7 +290,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <p className="login-register-link">
           ¿No tienes una cuenta?
-          <Link to="/register">Crear cuenta</Link>
+          <Link to={`/store/${tenant}/register`}>Crear cuenta en {brandTitle}</Link>
         </p>
       </div>
     </div>

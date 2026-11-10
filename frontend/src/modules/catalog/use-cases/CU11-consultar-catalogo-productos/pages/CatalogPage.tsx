@@ -6,7 +6,7 @@
  * @secuencia Cliente -> catálogo y filtros -> controlador de catálogo -> servicio de catálogo -> Producto/Categoría/Colección/Promoción.
  */
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Navbar } from '../../../../../components/layout/Navbar';
 import { CartDrawer } from '../../../../../components/shop/CartDrawer';
 import { WishlistDrawer } from '../../../../../components/shop/WishlistDrawer';
@@ -22,6 +22,16 @@ import './CatalogPage.css';
 export const CatalogPage: React.FC = () => {
   const { toastMessage, setIsCartOpen } = useShop();
   const navigate = useNavigate();
+  const params = useParams<{ tenant?: string }>();
+  const location = useLocation();
+
+  const rawTenant = params.tenant || 
+    (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
+     (localStorage.getItem('tenantKey') || 'urbanly'));
+  const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive' 
+    ? 'urbanly' 
+    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+  const storeHome = `/store/${currentTenant}`;
 
   const {
     products,
@@ -80,7 +90,7 @@ export const CatalogPage: React.FC = () => {
       <main className="catalog-main">
         {/* Breadcrumbs */}
         <div className="catalog-breadcrumbs">
-          <span onClick={() => navigate('/')}>Inicio</span> /{' '}
+          <span onClick={() => navigate(storeHome)}>Inicio</span> /{' '}
           <span onClick={handleResetFilters}>Catálogo</span>
           {selectedCategory !== 'all' && (
             <>

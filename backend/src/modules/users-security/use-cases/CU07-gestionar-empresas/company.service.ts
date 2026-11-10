@@ -1,9 +1,12 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 import { UpdateCompanyDto } from './dto/company.dto.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import pkg from 'pg';
+const { Client } = pkg;
 
 export interface CompanyRecord {
   codigo_empresa: string;
@@ -82,8 +85,56 @@ export class CompanyService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bitacoraService: BitacoraService,
+    private readonly configService: ConfigService,
   ) {
     this.ensureStorage();
+  }
+
+  /**
+   * Aprovisiona físicamente una nueva base de datos para un nuevo Tenant en Azure PostgreSQL.
+   * Ejecuta la plantilla DDL EsquemaEcommerce.sql y crea el usuario administrador inicial.
+   */
+  private async provisionTenantDatabase(tenantKey: string, companyName: string): Promise<void> {
+    const dbName = `${tenantKey.replace(/[^a-z0-9_]/g, '_')}_db`;
+    const defaultUrl = this.configService.getOrThrow<string>('DATABASE_URL');
+    const urlObj = new URL(defaultUrl);
+    const serverUrl = `${urlObj.protocol}//${urlObj.username}:${encodeURIComponent(urlObj.password)}@${urlObj.host}/postgres?sslmode=require`;
+
+    const client = new Client({ connectionString: serverUrl });
+    try {
+      await client.connect();
+      const checkRes = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
+      if (checkRes.rowCount === 0) {
+        this.logger.log(`Aprovisionando base de datos física para nuevo inquilino: ${dbName}...`);
+        await client.query(`CREATE DATABASE "${dbName}";`);
+        this.logger.log(`Base de datos ${dbName} creada con éxito en Azure PostgreSQL.`);
+
+        // Cargar esquema estructural DDL de EsquemaEcommerce.sql
+        const ddlPath = path.resolve(process.cwd(), 'Base de Datos', 'EsquemaEcommerce.sql');
+        if (fs.existsSync(ddlPath)) {
+          const tenantDbClient = new Client({
+            connectionString: `${urlObj.protocol}//${urlObj.username}:${encodeURIComponent(urlObj.password)}@${urlObj.host}/${dbName}?sslmode=require`,
+          });
+          await tenantDbClient.connect();
+          const ddlSql = fs.readFileSync(ddlPath, 'utf8');
+          await tenantDbClient.query(ddlSql);
+
+          // Crear usuario administrador inicial para la nueva empresa
+          const adminEmail = `admin@${tenantKey}.bo`;
+          await tenantDbClient.query(`
+            INSERT INTO USUARIO (EMAIL, PASSWORD_HASH, ESTADO, ID_ROL)
+            VALUES ('${adminEmail}', '$2b$10$dncfzXeXm93/Ze23m.0H2e7c31fP4.CsYkJ0zQeY2BbdfPu9OEj4O', 'activo', 1)
+            ON CONFLICT (EMAIL) DO NOTHING;
+          `);
+          await tenantDbClient.end();
+          this.logger.log(`Esquema y administrador inicial (${adminEmail}) creados en ${dbName}.`);
+        }
+      }
+    } catch (err: any) {
+      this.logger.error(`Error aprovisionando base de datos para ${tenantKey}: ${err.message}`);
+    } finally {
+      await client.end().catch(() => {});
+    }
   }
 
   private ensureStorage() {
@@ -150,6 +201,7 @@ export class CompanyService {
   ): Promise<{ success: boolean; message: string; data: CompanyRecord }> {
     const key = (dto.codigo_empresa || tenantKey || 'dressly').toLowerCase().trim();
     const all = this.loadAll();
+    const isNewTenant = !all[key];
     const existing = all[key] || this.defaultCompanies[key] || this.defaultCompanies['dressly'];
 
     // Validar tamaño si logo es Base64
@@ -172,12 +224,17 @@ export class CompanyService {
     all[key] = updated;
     this.saveAll(all);
 
-    this.logger.log(`Empresa [${key}] actualizada con éxito por usuario ${userId}`);
+    // Si es un inquilino nuevo, aprovisionar automáticamente su base de datos física
+    if (isNewTenant) {
+      await this.provisionTenantDatabase(key, updated.nombre_comercial);
+    }
+
+    this.logger.log(`Empresa [${key}] ${isNewTenant ? 'registrada y aprovisionada' : 'actualizada'} con éxito por usuario ${userId}`);
 
     if (ip && userId) {
       await this.bitacoraService.logAction(
-        'Actualización de Datos Corporativos',
-        `Empresa: ${updated.nombre_comercial}`,
+        isNewTenant ? 'Registro y Aprovisionamiento de Nueva Empresa' : 'Actualización de Datos Corporativos',
+        `Empresa: ${updated.nombre_comercial} (Ruta: /store/${key})`,
         userId,
         ip,
       );
@@ -185,7 +242,7 @@ export class CompanyService {
 
     return {
       success: true,
-      message: `Información corporativa de ${updated.nombre_comercial} actualizada exitosamente.`,
+      message: `Empresa ${updated.nombre_comercial} ${isNewTenant ? 'creada y aprovisionada' : 'actualizada'} exitosamente con su ruta /store/${key}`,
       data: updated,
     };
   }
