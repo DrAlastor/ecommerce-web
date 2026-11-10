@@ -40,6 +40,7 @@ import {
   AiChatQueryDto,
   GenerateReportAiAnalysisDto,
 } from '../CU33-gestionar-reportes-ia/reports-ai.dto.js';
+import { NeuralAnalyticsService } from './neural-analytics.service.js';
 
 @Controller('reports')
 @UseGuards(JwtAuthGuard, FunctionGuard)
@@ -51,6 +52,7 @@ export class ReportsDashboardController {
     private readonly exporterService: ReportExporterService,
     private readonly qbeService: QbeService,
     private readonly reportsAiService: ReportsAiService,
+    private readonly neuralAnalyticsService: NeuralAnalyticsService,
   ) {}
 
   /**
@@ -320,6 +322,42 @@ export class ReportsDashboardController {
         req.destroy();
         resolve(null);
       });
+    });
+  }
+
+  /**
+   * Modelo Supervisado: Predicción de Demanda con Red Neuronal Artificial y Matriz de Abastecimiento
+   */
+  @Get('ai/predictions')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async getAiDemandPredictions(@Query('branchId') branchId?: string) {
+    const id = branchId ? parseInt(branchId, 10) : undefined;
+    return this.neuralAnalyticsService.getDemandForecasting(id);
+  }
+
+  /**
+   * Modelo No Supervisado: Segmentación de Clientes RFM con K-Means (k=4) y Detección de Abandono
+   */
+  @Get('ai/rfm-clusters')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async getAiRfmClusters() {
+    return this.neuralAnalyticsService.getRfmCustomerSegmentation();
+  }
+
+  /**
+   * Modelado Estocástico: Simulación de Monte Carlo (Poisson + Normal) para Escenarios de Decisión
+   */
+  @Get('ai/scenarios')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async getAiMonteCarloScenarios(
+    @Query('horizonDays') horizonDays?: string,
+    @Query('growthRatePercent') growthRatePercent?: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    return this.neuralAnalyticsService.getMonteCarloScenarios({
+      horizonDays: horizonDays ? parseInt(horizonDays, 10) : undefined,
+      growthRatePercent: growthRatePercent ? parseFloat(growthRatePercent) : undefined,
+      branchId: branchId ? parseInt(branchId, 10) : undefined,
     });
   }
 }

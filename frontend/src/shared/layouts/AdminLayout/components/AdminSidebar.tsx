@@ -33,7 +33,7 @@ const webPanelUseCaseIds = new Set([
   16, 18, 19,
   22,
   27, 28,
-  29, 30, 31, 32, 33
+  29, 30, 31, 32, 33, 34
 ]);
 
 const getModuleIcon = (modulo: string) => {
@@ -68,6 +68,7 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (norm.includes('inventario')) return '/admin/inventario';
   if (norm.includes('pos') || norm.includes('venta presencial') || norm.includes('caja')) return '/pos';
   if (norm.includes('voz')) return '/admin/reportes-voz';
+  if (norm.includes('ml') || norm.includes('neuronal') || norm.includes('decision')) return '/admin/reportes-ml';
   if (norm.includes('qbe')) return '/admin/reportes-qbe';
   if (norm.includes('predefinido')) return '/admin/reportes-predefinidos';
   if (norm.includes('dashboard')) return '/admin/dashboard';
@@ -90,6 +91,7 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (idFuncion === 6) return '/admin/empleados';
   if (idFuncion === 5) return '/admin/roles';
   if (idFuncion === 4) return '/admin/users';
+  if (idFuncion === 34) return '/admin/reportes-ml';
   if (idFuncion === 33) return '/admin/reportes-voz';
   if (idFuncion === 32) return '/admin/reportes-qbe';
   if (idFuncion === 31) return '/admin/reportes-predefinidos';
@@ -155,6 +157,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
           list.push({
             id_funcion: 33,
             nombre: 'Gestionar Reportes por Voz',
+            modulo: modulo,
+            nivel_acceso: 'Edición',
+          });
+        }
+        const hasMl = list.some((item) => normalize(item.nombre).includes('ml') || normalize(item.nombre).includes('decision'));
+        if (!hasMl) {
+          list.push({
+            id_funcion: 34,
+            nombre: 'Decisiones & Machine Learning',
             modulo: modulo,
             nivel_acceso: 'Edición',
           });

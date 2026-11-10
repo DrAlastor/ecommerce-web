@@ -20,8 +20,12 @@ export const useReportsDashboard = () => {
   const tabParam = searchParams.get('tab');
 
   const getValidTab = (tab: string | null): TabType => {
+    if (tab === 'dashboard') return 'dashboard';
+    if (tab === 'reports') return 'reports';
     if (tab === 'qbe') return 'qbe';
-    return 'reports';
+    if (tab === 'voz') return 'voz';
+    if (tab === 'ml') return 'ml';
+    return 'dashboard';
   };
 
   const [activeTab, setActiveTabState] = useState<TabType>(() => getValidTab(tabParam));

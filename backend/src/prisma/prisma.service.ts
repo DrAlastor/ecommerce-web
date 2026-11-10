@@ -24,6 +24,7 @@ export class PrismaService
     private readonly logger = new Logger(PrismaService.name);
     private readonly clients = new Map<string, PrismaClient>();
     private readonly baseConnectionUrl: string;
+    private readonly defaultSearch: string;
 
     /**
      * Inicializa la instancia base de PrismaClient y configura el enrutador multi-tenant.
@@ -41,6 +42,7 @@ export class PrismaService
         // Extraer credenciales y host para derivar cadenas de conexión de cada tenant
         const urlObj = new URL(defaultUrl);
         this.baseConnectionUrl = `${urlObj.protocol}//${urlObj.username}:${encodeURIComponent(urlObj.password)}@${urlObj.host}`;
+        this.defaultSearch = urlObj.search || '?schema=public';
 
         // Registrar cliente por defecto (dressly_db)
         this.clients.set('dressly', this);
@@ -52,6 +54,7 @@ export class PrismaService
             'onModuleDestroy',
             'getClientForTenant',
             'baseConnectionUrl',
+            'defaultSearch',
             'logger',
             'clients',
             'configService',
@@ -103,7 +106,7 @@ export class PrismaService
             dbName = `${key.replace(/[^a-z0-9_]/g, '_')}_db`;
         }
 
-        const tenantConnString = `${this.baseConnectionUrl}/${dbName}?sslmode=require`;
+        const tenantConnString = `${this.baseConnectionUrl}/${dbName}${this.defaultSearch}`;
         try {
             const adapter = new PrismaPg({ connectionString: tenantConnString });
             const client = new PrismaClient({ adapter });

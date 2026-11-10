@@ -16,11 +16,12 @@ import { ReportsDashboardService } from './use-cases/CU29-consultar-dashboard-re
 import { QbeService } from './use-cases/CU32-gestionar-reportes-qbe/qbe.service.js';
 import { QbeNlpService } from './use-cases/CU32-gestionar-reportes-qbe/qbe-nlp.service.js';
 import { ReportsAiService } from './use-cases/CU33-gestionar-reportes-ia/reports-ai.service.js';
+import { NeuralAnalyticsService } from './use-cases/CU29-consultar-dashboard-reportes/neural-analytics.service.js';
 
 @Module({
   imports: [PrismaModule, AuthModule, UsersSecurityModule],
   controllers: [ReportsDashboardController],
-  providers: [ReportsDashboardService, ReportExporterService, QbeService, QbeNlpService, ReportsAiService],
-  exports: [ReportsDashboardService, ReportExporterService, QbeService, QbeNlpService, ReportsAiService],
+  providers: [ReportsDashboardService, ReportExporterService, QbeService, QbeNlpService, ReportsAiService, NeuralAnalyticsService],
+  exports: [ReportsDashboardService, ReportExporterService, QbeService, QbeNlpService, ReportsAiService, NeuralAnalyticsService],
 })
 export class ReportsDashboardModule {}

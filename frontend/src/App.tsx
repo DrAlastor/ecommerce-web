@@ -211,6 +211,9 @@ function App() {
                 <Route path="gestionar-reportes-qbe" element={<ReportsDashboardPage defaultTab="qbe" />} />
                 <Route path="reportes-voz" element={<ReportsDashboardPage defaultTab="voz" />} />
                 <Route path="gestionar-reportes-voz" element={<ReportsDashboardPage defaultTab="voz" />} />
+                <Route path="reportes-ml" element={<ReportsDashboardPage defaultTab="ml" />} />
+                <Route path="gestionar-reportes-ml" element={<ReportsDashboardPage defaultTab="ml" />} />
+                <Route path="decisiones-ml" element={<ReportsDashboardPage defaultTab="ml" />} />
                 {/* Módulo 5 — Ventas y Devoluciones (CU26) */}
                 <Route path="devoluciones" element={<ManageReturnsPage />} />
                 <Route path="gestionar-devoluciones" element={<ManageReturnsPage />} />

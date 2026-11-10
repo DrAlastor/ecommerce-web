@@ -140,13 +140,21 @@ export class LoginService {
       nivel_acceso: rf.descripcion ?? 'Lectura',
     }));
 
-    // Garantizar disponibilidad de CU32 (Gestionar Reportes por Voz) si el rol cuenta con acceso a reportes o es Administrador
-    if (user.id_rol === 1 || funciones.some((f) => f.id_funcion === 29 || f.id_funcion === 30 || f.id_funcion === 31)) {
-      if (!funciones.some((f) => f.id_funcion === 32)) {
-        const repMod = funciones.find((f) => f.id_funcion === 29 || f.id_funcion === 30 || f.id_funcion === 31)?.modulo || 'Inteligencia de Negocios y Reportes';
+    // Garantizar disponibilidad de CU33 (Gestionar Reportes por Voz) y CU29 (Decisiones & Machine Learning) si el rol cuenta con acceso a reportes o es Administrador
+    if (user.id_rol === 1 || funciones.some((f) => f.id_funcion === 30 || f.id_funcion === 31 || f.id_funcion === 32)) {
+      const repMod = funciones.find((f) => f.id_funcion === 30 || f.id_funcion === 31 || f.id_funcion === 32)?.modulo || 'Inteligencia de Negocios y Reportes';
+      if (!funciones.some((f) => f.id_funcion === 33)) {
         funciones.push({
-          id_funcion: 32,
+          id_funcion: 33,
           nombre: 'Gestionar Reportes por Voz',
+          modulo: repMod,
+          nivel_acceso: 'Edición',
+        });
+      }
+      if (!funciones.some((f) => f.id_funcion === 34)) {
+        funciones.push({
+          id_funcion: 34,
+          nombre: 'Decisiones & Machine Learning',
           modulo: repMod,
           nivel_acceso: 'Edición',
         });

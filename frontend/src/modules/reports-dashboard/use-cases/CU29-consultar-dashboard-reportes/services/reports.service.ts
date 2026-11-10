@@ -10,12 +10,15 @@ import type {
   AiChatResponse,
   AiReportAnalysis,
   DashboardMetrics,
+  DemandPredictionResult,
   InterpretedQbeResponse,
+  MonteCarloScenarioResult,
   QbeMetadata,
   QbeQueryPayload,
   QbeQueryResult,
   ReportData,
   ReportFilters,
+  RfmClusterResult,
 } from '../types/reports.types';
 
 const dashboardCache = new Map<string, { data: DashboardMetrics; timestamp: number }>();
@@ -215,6 +218,38 @@ export const reportsService = {
   async getSpeechAudio(text: string): Promise<Blob> {
     const res = await api.post('/reports/ai/tts', { text }, {
       responseType: 'blob',
+    });
+    return res.data;
+  },
+
+  /**
+   * CU29 — Modelo Supervisado: Red Neuronal MLP para predicción de demanda y stock crítico
+   */
+  async getDemandPredictions(branchId?: number): Promise<DemandPredictionResult> {
+    const res = await api.get<DemandPredictionResult>('/reports/ai/predictions', {
+      params: branchId ? { branchId } : undefined,
+    });
+    return res.data;
+  },
+
+  /**
+   * CU29 — Modelo No Supervisado: K-Means RFM para segmentación y detección de riesgo de fuga
+   */
+  async getRfmClusters(): Promise<RfmClusterResult> {
+    const res = await api.get<RfmClusterResult>('/reports/ai/rfm-clusters');
+    return res.data;
+  },
+
+  /**
+   * CU29 — Simulación Estocástica: Monte Carlo para proyección probabilística de escenarios
+   */
+  async getMonteCarloScenarios(params?: {
+    horizonDays?: number;
+    growthRatePercent?: number;
+    branchId?: number;
+  }): Promise<MonteCarloScenarioResult> {
+    const res = await api.get<MonteCarloScenarioResult>('/reports/ai/scenarios', {
+      params,
     });
     return res.data;
   },

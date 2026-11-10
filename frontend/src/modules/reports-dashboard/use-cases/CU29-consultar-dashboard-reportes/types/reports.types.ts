@@ -7,7 +7,7 @@
  */
 import React from 'react';
 
-export type TabType = 'dashboard' | 'reports' | 'qbe' | 'voz';
+export type TabType = 'dashboard' | 'reports' | 'qbe' | 'voz' | 'ml';
 
 export interface RoleDashboardData {
   role: 'admin' | 'manager' | 'cashier' | 'customer';
@@ -355,6 +355,129 @@ export interface AiChatResponse {
     rows: Record<string, any>[];
   };
   engine: 'gemini-3.5-flash' | 'local-heuristic';
+}
+
+export interface DemandPredictionResult {
+  historicalWeeks: {
+    weekLabel: string;
+    actualUnits: number;
+    actualRevenue: number;
+  }[];
+  forecastWeeks: {
+    weekLabel: string;
+    predictedUnits: number;
+    confidenceLower: number;
+    confidenceUpper: number;
+    predictedRevenue: number;
+  }[];
+  modelMetrics: {
+    modelType: string;
+    epochsTrained: number;
+    mseLoss: number;
+    rmse: number;
+    r2Score: number;
+    trainingSamples: number;
+  };
+  replenishmentAlerts: {
+    id_producto: number;
+    productoNombre: string;
+    sku: string;
+    sucursalNombre: string;
+    stockActual: number;
+    stockMinimo: number;
+    demandaDiariaEstimada: number;
+    diasCobertura: number;
+    urgencia: 'CRITICO' | 'RECOMENDADO' | 'OPTIMO' | 'SOBRESTOCK';
+    unidadesSugeridasReorden: number;
+  }[];
+}
+
+export interface RfmClusterResult {
+  summary: {
+    totalClientsAnalyzed: number;
+    silhouetteScore: number;
+    inertia: number;
+  };
+  clusters: {
+    clusterId: number;
+    label: string;
+    description: string;
+    color: string;
+    clientCount: number;
+    percentage: number;
+    centroid: {
+      recencyDays: number;
+      frequencyCount: number;
+      monetaryTotal: number;
+    };
+    strategicAction: string;
+  }[];
+  clientSegments: {
+    id_cliente: number;
+    nombreCompleto: string;
+    email: string;
+    telefono: string;
+    recencyDays: number;
+    frequencyCount: number;
+    monetaryTotal: number;
+    clusterId: number;
+    clusterLabel: string;
+    puntosFidelidad: number;
+  }[];
+  churnRiskClients: {
+    id_cliente: number;
+    nombreCompleto: string;
+    email: string;
+    telefono: string;
+    diasSinCompra: number;
+    gastoHistorico: number;
+    comprasTotales: number;
+    accionRecomendada: string;
+  }[];
+}
+
+export interface MonteCarloScenarioResult {
+  parameters: {
+    horizonDays: number;
+    growthRatePercent: number;
+    simulationsCount: number;
+    dailyLambdaTransactions: number;
+    averageTicketMean: number;
+    averageTicketStdDev: number;
+  };
+  scenarios: {
+    conservativeP10: {
+      label: string;
+      totalRevenue: number;
+      grossMarginEstimated: number;
+      projectedTransactions: number;
+      description: string;
+      strategicAdvice: string;
+    };
+    baseP50: {
+      label: string;
+      totalRevenue: number;
+      grossMarginEstimated: number;
+      projectedTransactions: number;
+      description: string;
+      strategicAdvice: string;
+    };
+    optimisticP90: {
+      label: string;
+      totalRevenue: number;
+      grossMarginEstimated: number;
+      projectedTransactions: number;
+      description: string;
+      strategicAdvice: string;
+    };
+  };
+  densityCurvePoints: {
+    revenue: number;
+    density: number;
+    isP10?: boolean;
+    isP50?: boolean;
+    isP90?: boolean;
+  }[];
 }
 
 

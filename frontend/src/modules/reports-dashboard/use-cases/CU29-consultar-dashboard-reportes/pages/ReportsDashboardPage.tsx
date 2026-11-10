@@ -10,6 +10,7 @@ import {
   TableProperties,
   Mic,
   Sparkles,
+  Brain,
 } from 'lucide-react';
 import { useReportsDashboard } from '../hooks/useReportsDashboard';
 import { DashboardMetricsGrid } from '../components/DashboardMetricsGrid';
@@ -20,6 +21,7 @@ import { ReportFiltersBar } from '../components/ReportFiltersBar';
 import { ReportPreviewTable } from '../components/ReportPreviewTable';
 import { QbeTab } from '../components/QbeTab';
 import { VoiceReportsTab } from '../components/VoiceReportsTab';
+import { NeuralAnalyticsTab } from '../components/NeuralAnalyticsTab';
 import type { TabType } from '../types/reports.types';
 
 interface ReportsDashboardPageProps {
@@ -68,6 +70,8 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
   useEffect(() => {
     if (defaultTab) {
       setActiveTab(defaultTab);
+    } else if (location.pathname.includes('reportes-ml') || location.pathname.includes('decisiones-ml')) {
+      setActiveTab('ml');
     } else if (location.pathname.includes('reportes-voz')) {
       setActiveTab('voz');
     } else if (location.pathname.includes('reportes-qbe')) {
@@ -218,6 +222,28 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
             >
               <Mic size={13} />
               Reportes por Voz
+            </button>
+
+            <button
+              onClick={() => setActiveTab('ml')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.35rem 0.75rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeTab === 'ml' ? '#FFFFFF' : 'transparent',
+                color: activeTab === 'ml' ? '#8B5E34' : '#736B63',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                boxShadow: activeTab === 'ml' ? '0 1px 3px rgba(139,94,52,0.12)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Brain size={13} style={{ color: activeTab === 'ml' ? '#8B5E34' : undefined }} />
+              Decisiones & ML
             </button>
           </div>
         </div>
@@ -424,6 +450,11 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
       {/* VISTA 4: REPORTES POR VOZ CON IA (CU33) */}
       {/* ========================================================================= */}
       {activeTab === 'voz' && <VoiceReportsTab />}
+
+      {/* ========================================================================= */}
+      {/* VISTA 5: DECISIONES & MACHINE LEARNING (CU29) */}
+      {/* ========================================================================= */}
+      {activeTab === 'ml' && <NeuralAnalyticsTab branches={branches} />}
     </div>
   );
 };
