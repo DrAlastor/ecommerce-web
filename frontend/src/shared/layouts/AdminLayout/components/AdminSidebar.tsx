@@ -15,6 +15,8 @@ import {
   ChevronRight,
   RotateCcw,
   X,
+  Server,
+  Activity,
 } from 'lucide-react';
 
 const normalize = (value: string) =>
@@ -51,6 +53,8 @@ const getModuleIcon = (modulo: string) => {
 const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
 
+  if (norm.includes('saas') || norm.includes('super admin') || norm.includes('dashboard de super admin')) return '/admin/saas-dashboard';
+  if (norm.includes('monitoreo') || norm.includes('tenant') || norm.includes('telemetria')) return '/admin/saas-monitoring';
   if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
   if (norm.includes('usuario')) return '/admin/users';
   if (norm.includes('rol') || norm.includes('permiso')) return '/admin/roles';
@@ -174,17 +178,35 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     });
   }, [funciones]);
 
+  const rawTenant = localStorage.getItem('tenantKey') || 'dressly';
+  const tenantKey = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
+    ? 'urbanly'
+    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
+  const tenantBrandMap: Record<string, { name: string; logo: string }> = {
+    'dressly': { name: 'Dressly', logo: 'https://fashionstorestorages.blob.core.windows.net/media/logo-dressly.jpg' },
+    'urbanly': { name: 'Urbanly', logo: 'https://fashionstorestorages.blob.core.windows.net/media/logo-urbanly.png' },
+    'aura-sport': { name: 'Aura Sport', logo: 'https://fashionstorestorages.blob.core.windows.net/media/logo-aura.jpg' },
+  };
+  const activeTenantBrand = tenantBrandMap[tenantKey] || tenantBrandMap['dressly'];
+
   return (
     <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
       <div className="admin-sidebar-header">
-        <h2 className="admin-logo">
-          Dressly<span>Admin</span>
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <img
+            src={activeTenantBrand.logo}
+            alt={activeTenantBrand.name}
+            style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }}
+          />
+          <h2 className="admin-logo" style={{ margin: 0 }}>
+            {activeTenantBrand.name}<span>Admin</span>
+          </h2>
+        </div>
         {onClose && (
-          <button 
-            type="button" 
-            className="admin-sidebar-close-btn" 
-            onClick={onClose} 
+          <button
+            type="button"
+            className="admin-sidebar-close-btn"
+            onClick={onClose}
             aria-label="Cerrar menú"
           >
             <X size={20} />
@@ -203,6 +225,24 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
           >
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
+          </NavLink>
+
+          <NavLink
+            to="/saas-admin/dashboard"
+            onClick={handleNavClick}
+            className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+          >
+            <Activity size={20} />
+            <span>Dashboard SaaS (ML)</span>
+          </NavLink>
+
+          <NavLink
+            to="/saas-admin/monitoring"
+            onClick={handleNavClick}
+            className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+          >
+            <Server size={20} />
+            <span>Monitoreo de Tenants</span>
           </NavLink>
 
           {modulesWithFunctions.map(([modulo, funcs]) => (

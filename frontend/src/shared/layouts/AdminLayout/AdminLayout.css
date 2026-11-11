@@ -336,9 +336,8 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.55);
     z-index: 999;
-    backdrop-filter: blur(3px);
     animation: fadeIn 0.2s ease-out;
   }
 

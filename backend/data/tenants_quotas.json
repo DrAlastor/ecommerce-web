@@ -1,0 +1,14 @@
+{
+  "dressly": {
+    "maxQuotaMb": 5120,
+    "maxConnections": 50
+  },
+  "urbanly": {
+    "maxQuotaMb": 2048,
+    "maxConnections": 30
+  },
+  "aura-sport": {
+    "maxQuotaMb": 3072,
+    "maxConnections": 40
+  }
+}

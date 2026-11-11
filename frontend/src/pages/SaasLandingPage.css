@@ -51,6 +51,38 @@
   flex-shrink: 0;
 }
 
+.saas-brand-logo-img {
+  width: 2.85rem;
+  height: 2.85rem;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(26, 26, 26, 0.12);
+  border: 1px solid rgba(26, 26, 26, 0.08);
+}
+
+.saas-tenant-logo-badge {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #EAE6DF;
+  background-color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 12px rgba(26, 26, 26, 0.05);
+}
+
+.saas-tenant-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .saas-logo-icon {
   width: 2.6rem;
   height: 2.6rem;
@@ -1315,9 +1347,10 @@
 }
 
 .saas-sc-currency-btn.active {
-  border-color: #0070F3;
-  background-color: #F0F7FF;
-  box-shadow: 0 0 0 1px #0070F3;
+  border-color: #8C5E35;
+  background-color: #F8EFE6;
+  box-shadow: 0 0 0 1px #8C5E35;
+  color: #8C5E35;
 }
 
 .saas-sc-rate-note {
@@ -1362,9 +1395,9 @@
   margin-top: auto;
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  border: 1px solid #0070F3;
+  border: 1px solid #8C5E35;
   background: #FFFFFF;
-  color: #0070F3;
+  color: #8C5E35;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -1373,7 +1406,7 @@
 }
 
 .saas-sc-hosted-btn:hover {
-  background: #F0F7FF;
+  background: #F8EFE6;
 }
 
 /* Columna Derecha */
@@ -1558,7 +1591,7 @@
 
 .saas-sc-btn-submit {
   width: 100%;
-  background-color: #0070F3;
+  background-color: #1A1A1A;
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -1566,13 +1599,13 @@
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 112, 243, 0.25);
+  box-shadow: 0 4px 12px rgba(26, 26, 26, 0.2);
   transition: all 0.2s ease;
 }
 
 .saas-sc-btn-submit:hover {
-  background-color: #0051B3;
-  box-shadow: 0 6px 16px rgba(0, 112, 243, 0.35);
+  background-color: #8C5E35;
+  box-shadow: 0 6px 16px rgba(140, 94, 53, 0.3);
 }
 
 .saas-sc-footer-brand {

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../../users-security/shared/services/bitacora.service.js';
+import { NotificationsService } from '../../../notifications/notifications.service.js';
 import { CreateReservationDto } from './dto/reservations.dto.js';
 import { QueryMyReservationsDto } from '../CU21-consultar-cancelar-reserva/dto/cancel-reservation.dto.js';
 import {
@@ -26,6 +27,7 @@ export class ReservationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bitacoraService: BitacoraService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   /**
@@ -363,6 +365,18 @@ export class ReservationsService {
       userId,
       ip,
     );
+
+    // Notificación Push automática al teléfono móvil
+    if (userId) {
+      this.notificationsService.sendPushToUser(userId, {
+        title: '👗 ¡Tu reserva fue confirmada!',
+        body: `Reserva ${resultado.reserva.codigo} en sucursal ${resultado.sucursal.nombre}.`,
+        data: {
+          id_reserva: String(resultado.reserva.id_reserva),
+          tipo: 'reserva_creada',
+        },
+      }).catch(() => null);
+    }
 
     // 6. Formatear y devolver comprobante al cliente
     return this.buildReservationReceipt(
@@ -1365,6 +1379,19 @@ export class ReservationsService {
       userId,
       ip,
     );
+
+    // Notificación Push automática al cliente sobre el nuevo estado de su reserva
+    if (reserva.id_cliente) {
+      this.notificationsService.sendPushToUser(reserva.id_cliente, {
+        title: `👗 Tu reserva está: ${targetEstado}`,
+        body: `Tu reserva ${reserva.codigo} en sucursal "${reserva.sucursal.nombre}" cambió a estado "${targetEstado}".`,
+        data: {
+          id_reserva: String(reserva.id_reserva),
+          nuevo_estado: targetEstado,
+          tipo: 'cambio_estado_reserva',
+        },
+      }).catch(() => null);
+    }
 
     return {
       success: true,

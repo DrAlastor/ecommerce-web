@@ -1,0 +1,412 @@
+.saas-tenants-container {
+  padding: 2.5rem 3rem;
+  background-color: #FAF8F5;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+@media (max-width: 900px) {
+  .saas-tenants-container {
+    padding: 1.5rem 1rem;
+  }
+}
+
+.saas-tenants-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tenants-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.tenants-subtitle {
+  font-size: 0.95rem;
+  color: #666666;
+  margin: 0.35rem 0 0 0;
+  max-width: 800px;
+  line-height: 1.5;
+}
+
+.tenants-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.tenant-card {
+  background-color: #FFFFFF;
+  border: 1px solid #EAE6DF;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 16px -4px rgba(26, 26, 26, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tenant-card:hover {
+  transform: translateY(-2px);
+  border-color: #C4956A;
+  box-shadow: 0 10px 24px -6px rgba(140, 94, 53, 0.12);
+}
+
+.tenant-card.suspended {
+  border-left: 4px solid #EF4444;
+  opacity: 0.85;
+}
+
+.tenant-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-bottom: 1px solid #F1F5F9;
+  padding-bottom: 1rem;
+}
+
+.tenant-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tenant-status-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.tenant-status-pill.activo { background-color: #ECFDF5; color: #059669; }
+.tenant-status-pill.prueba { background-color: #EFF6FF; color: #2563EB; }
+.tenant-status-pill.suspendido { background-color: #FEF2F2; color: #DC2626; }
+
+.tenant-plan-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6366F1;
+  background-color: #EEF2FF;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+}
+
+.tenant-main-names {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tenant-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.tenant-legal-name {
+  font-size: 0.8rem;
+  color: #64748B;
+}
+
+.tenant-slug-tag {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+.tenant-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+}
+
+.info-lbl {
+  font-weight: 700;
+  color: #64748B;
+  font-size: 0.75rem;
+}
+
+.info-text {
+  color: #334155;
+  font-weight: 500;
+}
+
+.info-text.code {
+  font-family: monospace;
+  font-size: 0.75rem;
+  background-color: #F1F5F9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.tenant-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 0.5rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.stat-lbl {
+  font-size: 0.7rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.tenant-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.btn-edit-tenant {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: #0F172A;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-edit-tenant:hover {
+  background-color: #334155;
+}
+
+.btn-storefront-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: transparent;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-storefront-link:hover {
+  background-color: #F1F5F9;
+  color: #0F172A;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(26, 26, 26, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-container-tenant {
+  background-color: #FFFFFF;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.btn-modal-close {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.btn-modal-close:hover {
+  color: #0F172A;
+}
+
+.modal-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.form-field input,
+.form-field select {
+  background-color: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem;
+  color: #0F172A;
+  outline: none;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: #4F46E5;
+  background-color: #FFFFFF;
+}
+
+.form-field.password-highlight {
+  background-color: #FFFBEB;
+  border: 1px dashed #FCD34D;
+  padding: 0.85rem;
+  border-radius: 8px;
+}
+
+.field-hint {
+  font-size: 0.72rem;
+  color: #92400E;
+}
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  padding: 0.55rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #4F46E5;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.55rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-save:hover {
+  background-color: #4338CA;
+}
+
+.saas-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+}
+
+.saas-toast.success { background-color: #059669; color: #FFFFFF; }
+.saas-toast.error { background-color: #DC2626; color: #FFFFFF; }
+
+.saas-toast button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+

@@ -40,19 +40,21 @@ export const Navbar: React.FC = () => {
       tagline: 'FASHION STORE', 
       storePath: '/store/dressly', 
       club: 'Dressly Club',
+      logoUrl: 'https://fashionstorestorages.blob.core.windows.net/media/logo-dressly.jpg',
     },
     'urbanly': { 
       name: 'URBANLY', 
       tagline: 'AESTHETIC STREETWEAR', 
       storePath: '/store/urbanly', 
       club: 'Urbanly Club',
-      logoUrl: 'https://fashionstorestorages.blob.core.windows.net/portada/Logo-Urbanly.png',
+      logoUrl: 'https://fashionstorestorages.blob.core.windows.net/media/logo-urbanly.png',
     },
     'aura-sport': { 
       name: 'AURA SPORT', 
       tagline: 'ATHLETICS & GEAR', 
       storePath: '/store/aura-sport', 
       club: 'Aura Athlete Club',
+      logoUrl: 'https://fashionstorestorages.blob.core.windows.net/media/logo-aura.jpg',
     },
   };
 
@@ -157,9 +159,18 @@ export const Navbar: React.FC = () => {
           </button>
 
           {/* Logo */}
-          <Link to={tenantBranding.storePath} className="brand-logo">
-            <span className="brand-name">{tenantBranding.name}</span>
-            <span className="brand-tagline">{tenantBranding.tagline}</span>
+          <Link to={tenantBranding.storePath} className="brand-logo" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem' }}>
+            {tenantBranding.logoUrl && (
+              <img 
+                src={tenantBranding.logoUrl} 
+                alt={tenantBranding.name} 
+                style={{ width: '34px', height: '34px', borderRadius: '8px', objectFit: 'cover' }} 
+              />
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="brand-name">{tenantBranding.name}</span>
+              <span className="brand-tagline">{tenantBranding.tagline}</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}

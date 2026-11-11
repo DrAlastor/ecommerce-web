@@ -15,6 +15,7 @@ import { ConfigService } from '@nestjs/config';
 import { Stripe } from 'stripe';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../../users-security/shared/services/bitacora.service.js';
+import { NotificationsService } from '../../../notifications/notifications.service.js';
 import { CartService } from '../CU23-gestionar-carrito-compras/cart.service.js';
 import { ProcessDigitalPurchaseDto } from './dto/checkout.dto.js';
 
@@ -27,6 +28,7 @@ export class DigitalPurchaseService {
     private readonly cartService: CartService,
     private readonly bitacoraService: BitacoraService,
     private readonly configService: ConfigService,
+    private readonly notificationsService: NotificationsService,
   ) {
     const secretKey =
       this.configService.get<string>('STRIPE_SECRET_KEY') || process.env.STRIPE_SECRET_KEY;
@@ -500,6 +502,16 @@ export class DigitalPurchaseService {
         userId,
         ip,
       );
+
+      // Notificación Push automática al teléfono móvil
+      this.notificationsService.sendPushToUser(userId, {
+        title: '🛍️ ¡Tu compra fue confirmada!',
+        body: `Factura: ${codigoFactura} por ${cart.total} Bs. Estamos preparando tu pedido.`,
+        data: {
+          id_venta: String(resultadoCompra.id_venta),
+          tipo: 'compra_exitosa',
+        },
+      }).catch(() => null);
     }
 
     // 8. Retornar comprobante detallado de la compra

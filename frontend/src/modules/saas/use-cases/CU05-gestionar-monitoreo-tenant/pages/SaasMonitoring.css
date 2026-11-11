@@ -1,0 +1,763 @@
+/* Estilos del Monitoreo Técnico de Tenants - Warm Luxury */
+.saas-monitoring-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 2.5rem 3rem;
+  background-color: #FAF8F5;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #1A1A1A;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .saas-monitoring-container {
+    padding: 1.5rem 1rem;
+  }
+}
+
+.btn-back-dashboard {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: #8C5E35;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.5rem;
+  transition: color 0.15s ease;
+}
+
+.btn-back-dashboard:hover {
+  color: #1A1A1A;
+}
+
+/* Header de Salud del Clúster */
+.cluster-health-container {
+  background-color: #FFFFFF;
+  border: 1px solid #EAE6DF;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 16px -4px rgba(26, 26, 26, 0.05);
+}
+
+.cluster-health-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.cluster-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  font-weight: 800;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+
+.cluster-status-badge.healthy {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.cluster-status-badge.warning {
+  background-color: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.cluster-status-badge.critical {
+  background-color: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.cluster-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-top: 0.25rem;
+}
+
+.btn-refresh-telemetry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #0F172A;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-refresh-telemetry:hover {
+  background-color: #334155;
+}
+
+.cluster-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.cluster-metric-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.box-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.box-icon.blue { background-color: #EFF6FF; color: #2563EB; }
+.box-icon.emerald { background-color: #ECFDF5; color: #059669; }
+.box-icon.purple { background-color: #FAF5FF; color: #7E22CE; }
+.box-icon.amber { background-color: #FFFBEB; color: #D97706; }
+
+.box-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.box-label {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.box-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.box-sub {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+/* Noisy Neighbor Banner */
+.noisy-neighbor-container {
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.noisy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.noisy-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.noisy-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #92400E;
+  margin: 0;
+}
+
+.noisy-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background-color: #FEF3C7;
+  color: #B45309;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #FCD34D;
+}
+
+.noisy-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.noisy-alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background-color: #FFFFFF;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+}
+
+.tenant-name-badge {
+  font-size: 0.825rem;
+  font-weight: 800;
+  color: #78350F;
+  display: block;
+}
+
+.noisy-reason {
+  font-size: 0.775rem;
+  color: #92400E;
+  margin: 0.15rem 0 0 0;
+}
+
+.noisy-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-noisy-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-noisy-action.reset {
+  background-color: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.btn-noisy-action.reset:hover {
+  background-color: #DBEAFE;
+}
+
+.btn-noisy-action.pause {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+}
+
+.btn-noisy-action.pause:hover {
+  background-color: #FECACA;
+}
+
+/* Grilla de Tarjetas de Telemetría */
+.telemetry-tenants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.telemetry-item-wrapper.highlighted-ring {
+  box-shadow: 0 0 0 3px #3B82F6, 0 4px 12px rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+}
+
+.tenant-telemetry-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tenant-telemetry-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.tenant-telemetry-card.status-healthy { border-top: 4px solid #10B981; }
+.tenant-telemetry-card.status-warning { border-top: 4px solid #F59E0B; }
+.tenant-telemetry-card.status-critical { border-top: 4px solid #EF4444; }
+.tenant-telemetry-card.status-offline { border-top: 4px solid #94A3B8; opacity: 0.85; }
+
+.telemetry-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.company-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.telemetry-company-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.telemetry-slug {
+  font-size: 0.775rem;
+  color: #94A3B8;
+  font-family: monospace;
+}
+
+.telemetry-plan-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6366F1;
+}
+
+.telemetry-status-pill-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.telemetry-health-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.telemetry-health-pill.status-healthy { background-color: #ECFDF5; color: #065F46; }
+.telemetry-health-pill.status-warning { background-color: #FFFBEB; color: #92400E; }
+.telemetry-health-pill.status-critical { background-color: #FEF2F2; color: #991B1B; }
+.telemetry-health-pill.status-offline { background-color: #F1F5F9; color: #475569; }
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.suspended-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  background-color: #FEE2E2;
+  color: #DC2626;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* Sección Base de Datos */
+.telemetry-section-box {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.box-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.775rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.db-code {
+  font-family: monospace;
+  font-size: 0.75rem;
+  background-color: #E2E8F0;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: #0F172A;
+}
+
+.live-ping-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  background-color: #ECFDF5;
+  color: #059669;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+.telemetry-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.bar-labels strong {
+  color: #0F172A;
+}
+
+.metric-progress-track {
+  width: 100%;
+  height: 6px;
+  background-color: #E2E8F0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.metric-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.fill-blue { background-color: #3B82F6; }
+.fill-emerald { background-color: #10B981; }
+.fill-yellow { background-color: #F59E0B; }
+.fill-red { background-color: #EF4444; }
+
+/* Subgrid de Almacenamiento & SLA */
+.telemetry-subgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.subgrid-card {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.subgrid-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0.35rem;
+}
+
+.subgrid-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sub-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+}
+
+.sub-lbl {
+  color: #64748B;
+}
+
+.sub-val {
+  color: #0F172A;
+}
+
+/* Barra de Acciones Operativas */
+.telemetry-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid #F1F5F9;
+}
+
+.btn-op-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-op-action:hover {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+.btn-op-action.ping:hover { background-color: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.btn-op-action.purge:hover { background-color: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.btn-op-action.reset:hover { background-color: #FAF5FF; color: #7E22CE; border-color: #E9D5FF; }
+
+.btn-op-action.toggle.suspend {
+  color: #DC2626;
+  border-color: #FECACA;
+}
+.btn-op-action.toggle.suspend:hover {
+  background-color: #FEF2F2;
+}
+
+.btn-op-action.toggle.resume {
+  background-color: #ECFDF5;
+  color: #059669;
+  border-color: #A7F3D0;
+}
+
+/* Modal de Ajuste de Cuota */
+.modal-backdrop-saas {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(26, 26, 26, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content-saas {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header-saas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.btn-close-modal:hover {
+  color: #0F172A;
+}
+
+.modal-form-saas {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal-info-box {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-company {
+  font-weight: 800;
+  color: #0F172A;
+  font-size: 0.95rem;
+}
+
+.info-meta {
+  font-size: 0.775rem;
+  color: #64748B;
+}
+
+.form-group-saas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label-saas {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.form-input-saas {
+  background-color: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0F172A;
+  outline: none;
+}
+
+.form-input-saas:focus {
+  border-color: #3B82F6;
+  background-color: #FFFFFF;
+}
+
+.form-help {
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.modal-actions-saas {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-modal-cancel {
+  background: transparent;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-modal-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #1E3A8A;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-modal-save:hover {
+  background-color: #1E40AF;
+}
+
+/* Toast Flotante */
+.saas-floating-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  animation: slideUp 0.3s ease;
+}
+
+.saas-floating-toast.success {
+  background-color: #065F46;
+  color: #FFFFFF;
+}
+
+.saas-floating-toast.warning {
+  background-color: #92400E;
+  color: #FFFFFF;
+}
+
+.saas-floating-toast.error {
+  background-color: #991B1B;
+  color: #FFFFFF;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.75;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+

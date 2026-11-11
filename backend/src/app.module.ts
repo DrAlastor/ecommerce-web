@@ -25,6 +25,8 @@ import { ReservationsModule } from './modules/reservations/reservations.module.j
 import { SalesBillingModule } from './modules/sales-billing/sales-billing.module.js';
 import { MobileExperienceModule } from './modules/mobile-experience/mobile-experience.module.js';
 import { ReportsDashboardModule } from './modules/reports-dashboard/reports-dashboard.module.js';
+import { SaasModule } from './modules/saas/saas.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { TenantMiddleware } from './common/tenant/tenant.middleware.js';
 
 @Module({
@@ -40,6 +42,8 @@ import { TenantMiddleware } from './common/tenant/tenant.middleware.js';
     SalesBillingModule,
     MobileExperienceModule,
     ReportsDashboardModule,
+    SaasModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

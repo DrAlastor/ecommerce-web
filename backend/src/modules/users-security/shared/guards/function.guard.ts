@@ -73,6 +73,8 @@ export class FunctionGuard implements CanActivate {
     const reqModuloNorm = normalize(requiredFunc.modulo);
     const reqPermisoNorm = normalize(requiredFunc.permiso);
     const aliases: Record<string, string[]> = {
+      'gestionar carrito de compras': ['gestionar carrito de compras', 'gestionar carrito', 'carrito de compras', 'cesta de compras', 'cu23 — gestionar carrito de compras', 'cu20 — gestionar carrito de compras'],
+      'realizar compra digital': ['realizar compra digital', 'compra digital', 'realizar compra', 'checkout digital', 'cu24 — realizar compra digital', 'cu21 — realizar compra digital'],
       'consultar bitacora': ['consultar bitacora', 'cu10 — consultar bitacora', 'cu07 — consultar bitacora'],
       'gestionar usuarios': ['gestionar usuarios', 'cu04 — gestionar usuarios'],
       'gestionar roles': ['gestionar roles', 'gestionar roles y permisos', 'cu05 — gestionar roles y permisos'],
@@ -125,15 +127,16 @@ export class FunctionGuard implements CanActivate {
         return false;
       }
 
+      // Si el rol tiene asignada la función y no está explícitamente restringido a 'lectura', se permite
       if (reqPermisoNorm === 'lectura') {
-        return nivelNorm === 'lectura' || nivelNorm === 'edicion';
+        return true;
       }
 
       if (reqPermisoNorm === 'edicion') {
-        return nivelNorm === 'edicion';
+        return nivelNorm !== 'lectura';
       }
 
-      return false;
+      return true;
     });
 
     if (!hasAccess) {

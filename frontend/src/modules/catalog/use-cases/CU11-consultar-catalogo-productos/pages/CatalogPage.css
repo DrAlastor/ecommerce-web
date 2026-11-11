@@ -307,8 +307,7 @@
   .catalog-sidebar-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.55);
     z-index: 1099;
     animation: fadeIn 0.2s ease-out;
   }

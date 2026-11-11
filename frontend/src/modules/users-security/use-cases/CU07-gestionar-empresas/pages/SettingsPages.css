@@ -792,10 +792,9 @@
 .mock-slide-dots {
   display: flex;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
   padding: 3px 6px;
   border-radius: 9999px;
-  backdrop-filter: blur(4px);
 }
 
 .mock-slide-dot {

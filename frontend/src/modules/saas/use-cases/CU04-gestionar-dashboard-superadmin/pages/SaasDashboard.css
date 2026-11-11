@@ -1,0 +1,1122 @@
+/* Estilos del Dashboard de Super Admin - Estilo Power BI & Warm Luxury */
+.saas-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 2.5rem 3rem;
+  background-color: #FAF8F5;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #1A1A1A;
+}
+
+@media (max-width: 900px) {
+  .saas-dashboard-container {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Encabezado */
+.saas-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.saas-platform-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #F8EFE6;
+  border: 1px solid #EAE6DF;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.725rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #8C5E35;
+  margin-bottom: 0.6rem;
+}
+
+.saas-platform-pill .dot.online {
+  width: 8px;
+  height: 8px;
+  background-color: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.saas-page-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.saas-page-subtitle {
+  font-size: 0.95rem;
+  color: #666666;
+  margin: 0.35rem 0 0 0;
+  line-height: 1.5;
+  max-width: 800px;
+}
+
+.btn-nav-monitoring {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.75rem 1.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(26, 26, 26, 0.15);
+}
+
+.btn-nav-monitoring:hover {
+  background-color: #8C5E35;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(140, 94, 53, 0.25);
+}
+
+/* Barra de Segmentadores / Filtros Power BI */
+.saas-powerbi-slicers-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.slicers-left-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.slicer-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.slicer-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #64748B;
+}
+
+.slicer-buttons-group {
+  display: inline-flex;
+  background-color: #F1F5F9;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.slicer-btn {
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slicer-btn:hover {
+  color: #0F172A;
+}
+
+.slicer-btn.active {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.slicer-select {
+  background-color: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #1E293B;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.slicer-select:focus {
+  border-color: #3B82F6;
+}
+
+.slicers-right-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.last-sync-time {
+  font-size: 0.775rem;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.btn-slicer-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #F1F5F9;
+  color: #334155;
+  border: 1px solid #E2E8F0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-slicer-action:hover {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+.btn-slicer-action.primary {
+  background-color: #1E3A8A;
+  color: #FFFFFF;
+  border-color: #1E3A8A;
+}
+
+.btn-slicer-action.primary:hover {
+  background-color: #1E40AF;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Tarjetas KPI Estilo Power BI */
+.saas-powerbi-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.saas-kpi-tile {
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saas-kpi-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.saas-kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.saas-kpi-title {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.02em;
+}
+
+.saas-kpi-icon-wrapper {
+  opacity: 0.85;
+}
+
+.saas-kpi-icon.blue { color: #3B82F6; }
+.saas-kpi-icon.emerald { color: #10B981; }
+.saas-kpi-icon.indigo { color: #6366F1; }
+.saas-kpi-icon.amber { color: #F59E0B; }
+.saas-kpi-icon.teal { color: #0D9488; }
+.saas-kpi-icon.rose { color: #F43F5E; }
+
+.saas-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0.65rem 0 0.35rem 0;
+  gap: 0.5rem;
+}
+
+.saas-kpi-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+}
+
+.saas-kpi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.saas-kpi-badge.positive {
+  background-color: #ECFDF5;
+  color: #059669;
+}
+
+.saas-kpi-badge.negative {
+  background-color: #FFF1F2;
+  color: #E11D48;
+}
+
+.saas-kpi-footer {
+  margin-top: 0.25rem;
+}
+
+.saas-kpi-subtitle {
+  font-size: 0.775rem;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* Gráfico de Machine Learning */
+.saas-section-row {
+  width: 100%;
+}
+
+.saas-chart-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.saas-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.saas-ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #FDF4FF;
+  border: 1px solid #F0ABFC;
+  color: #A21CAF;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  margin-bottom: 0.35rem;
+}
+
+.saas-chart-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.saas-chart-subtitle {
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0.25rem 0 0 0;
+}
+
+.saas-ml-stats-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.saas-stat-pill {
+  display: flex;
+  flex-direction: column;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+}
+
+.saas-stat-pill.highlight {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #FEF3C7;
+  border-color: #FDE68A;
+  color: #92400E;
+}
+
+.pill-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.saas-stat-pill.highlight .pill-label {
+  color: #92400E;
+}
+
+.pill-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.saas-stat-pill.highlight .pill-val {
+  color: #78350F;
+}
+
+.saas-svg-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.saas-forecast-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.saas-chart-tooltip {
+  position: absolute;
+  transform: translate(-50%, -120%);
+  background-color: #0F172A;
+  color: #FFFFFF;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.775rem;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  font-size: 0.825rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 0.25rem;
+}
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.2rem 0;
+}
+
+.tooltip-row .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tooltip-row .dot.actual { background-color: #3B82F6; }
+.tooltip-row .dot.ml { background-color: #C4956A; }
+
+.tooltip-row.future-tag {
+  color: #F59E0B;
+  font-weight: 600;
+}
+
+.tooltip-row.text-muted {
+  color: #94A3B8;
+  font-size: 0.72rem;
+}
+
+.saas-chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1F5F9;
+}
+
+.saas-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.legend-line {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.legend-line.actual { background-color: #1D4ED8; }
+.legend-line.ml {
+  background-color: #C4956A;
+  border-top: 2px dashed #C4956A;
+}
+
+.legend-box.confidence {
+  width: 16px;
+  height: 12px;
+  background-color: #C4956A44;
+  border: 1px solid #C4956A;
+  border-radius: 2px;
+}
+
+.saas-model-interpretation {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Dos Columnas */
+.saas-two-columns-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 960px) {
+  .saas-two-columns-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saas-card-half {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.saas-card-full {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.saas-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.saas-header-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.saas-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.saas-card-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  background-color: #F1F5F9;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+/* Donut Chart */
+.saas-donut-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.saas-donut-svg-container {
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.saas-donut-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.donut-center-label {
+  font-size: 11px;
+  fill: #64748B;
+  font-weight: 600;
+}
+
+.donut-center-val {
+  font-size: 16px;
+  fill: #0F172A;
+  font-weight: 800;
+}
+
+.saas-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+}
+
+.legend-plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.legend-plan-row:hover,
+.legend-plan-row.highlighted {
+  background-color: #F8FAFC;
+}
+
+.plan-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.plan-name-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.plan-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.plan-sub {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.plan-mrr-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.plan-mrr {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.plan-pct {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+/* Geo List */
+.saas-geo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.saas-geo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+}
+
+.geo-flag-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.geo-city {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.geo-country {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.geo-stats-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.geo-tenants-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #EFF6FF;
+  color: #1D4ED8;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.geo-revenue {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.saas-geo-footer {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #F1F5F9;
+}
+
+.geo-footnote {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  font-style: italic;
+}
+
+/* Clusters de Machine Learning & Churn */
+.saas-pill-switch {
+  display: inline-flex;
+  background-color: #F1F5F9;
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.pill-switch-btn {
+  background: transparent;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pill-switch-btn.active {
+  background-color: #FFFFFF;
+  color: #0F172A;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.saas-clusters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.saas-cluster-card {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.cluster-card-header {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0.75rem;
+}
+
+.cluster-title-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cluster-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.cluster-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.cluster-desc {
+  font-size: 0.775rem;
+  color: #64748B;
+  margin: 0.35rem 0 0.5rem 0;
+  line-height: 1.35;
+}
+
+.cluster-mrr-stat {
+  font-size: 0.775rem;
+  color: #475569;
+}
+
+.cluster-mrr-stat strong {
+  color: #0F172A;
+}
+
+.cluster-tenants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.empty-cluster-text {
+  font-size: 0.8rem;
+  color: #94A3B8;
+  font-style: italic;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.cluster-tenant-item {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.tenant-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tenant-company-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0F172A;
+  display: block;
+}
+
+.tenant-plan-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6366F1;
+}
+
+.tenant-mrr-col {
+  text-align: right;
+}
+
+.tenant-mrr {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0F172A;
+  display: block;
+}
+
+.tenant-orders {
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.churn-risk-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.churn-risk-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.risk-pill {
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.risk-low { background-color: #ECFDF5; color: #059669; }
+.risk-med { background-color: #FEF3C7; color: #D97706; }
+.risk-high { background-color: #FFF1F2; color: #E11D48; }
+
+.churn-progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #F1F5F9;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.churn-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.fill-green { background-color: #10B981; }
+.fill-yellow { background-color: #F59E0B; }
+.fill-red { background-color: #EF4444; }
+
+.cluster-action-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  background-color: #FAF5FF;
+  border: 1px dashed #D8B4FE;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+}
+
+.cluster-action-box .action-icon {
+  color: #9333EA;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.cluster-action-box .action-text {
+  font-size: 0.72rem;
+  color: #6B21A8;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.audit-tenant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: #F1F5F9;
+  color: #334155;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.audit-tenant-btn:hover {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+/* Tabla de Ranking */
+.saas-ranking-table-container {
+  overflow-x: auto;
+}
+
+.saas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.saas-table th {
+  background-color: #F8FAFC;
+  color: #64748B;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid #E2E8F0;
+}
+
+.saas-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+}
+
+.tenant-td-company {
+  display: flex;
+  flex-direction: column;
+}
+
+.company-bold {
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.tenant-slug {
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+.saas-plan-chip {
+  background-color: #EFF6FF;
+  color: #1D4ED8;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.status-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.chip-active { background-color: #ECFDF5; color: #059669; }
+.chip-trial { background-color: #EFF6FF; color: #2563EB; }
+.chip-paused { background-color: #FEF2F2; color: #DC2626; }
+
+.cluster-chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.risk-badge-compact {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.risk-badge-compact.low { background-color: #ECFDF5; color: #059669; }
+.risk-badge-compact.med { background-color: #FEF3C7; color: #D97706; }
+.risk-badge-compact.high { background-color: #FFF1F2; color: #E11D48; }
+
+.btn-table-action {
+  background-color: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-table-action:hover {
+  background-color: #0F172A;
+  color: #FFFFFF;
+}
+
+/* Loading & Error */
+.saas-loading-state,
+.saas-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 1.25rem;
+  text-align: center;
+  padding: 3rem;
+}
+
+.saas-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #E2E8F0;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.pulse-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+
+.btn-retry {
+  background-color: #0F172A;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+

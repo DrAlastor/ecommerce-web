@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "nombre": "Super",
+    "apellido": "Administrador",
+    "email": "superadmin@fashionstore.com",
+    "passwordHash": "$2b$10$JXzjQPt0V68WjVnkScUQyOLP96GlKz9QtkB.PpLR6gBjRd3BmX9b2",
+    "rolGlobal": "SUPER_ADMIN",
+    "activo": true
+  },
+  {
+    "id": 2,
+    "nombre": "Admin",
+    "apellido": "SaaS",
+    "email": "admin@fashionstore.com",
+    "passwordHash": "$2b$10$JXzjQPt0V68WjVnkScUQyOLP96GlKz9QtkB.PpLR6gBjRd3BmX9b2",
+    "rolGlobal": "SUPER_ADMIN",
+    "activo": true
+  }
+]
