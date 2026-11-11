@@ -14,6 +14,7 @@ import { CompanyController } from './use-cases/CU07-gestionar-empresas/company.c
 import { CompanyService } from './use-cases/CU07-gestionar-empresas/company.service.js';
 import { AppearanceController } from './use-cases/CU08-personalizar-apariencia/appearance.controller.js';
 import { AppearanceService } from './use-cases/CU08-personalizar-apariencia/appearance.service.js';
+import { AppearanceStorageService } from './use-cases/CU08-personalizar-apariencia/appearance-storage.service.js';
 import { BackupController } from './use-cases/CU09-gestionar-backups-restore/backup.controller.js';
 import { BackupService } from './use-cases/CU09-gestionar-backups-restore/backup.service.js';
 
@@ -35,6 +36,7 @@ import { BackupService } from './use-cases/CU09-gestionar-backups-restore/backup
     EmpleadosService,
     CompanyService,
     AppearanceService,
+    AppearanceStorageService,
     BackupService,
   ],
   exports: [

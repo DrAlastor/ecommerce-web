@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '../../modules/users-security/shared/components/AuthContext';
 import { useShop } from '../../context/ShopContext';
+import { appearanceService, type AppearanceData } from '../../modules/users-security/use-cases/CU08-personalizar-apariencia/services/appearance.service';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
@@ -34,6 +35,16 @@ export const Navbar: React.FC = () => {
     ? 'urbanly' 
     : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
 
+  const [appearance, setAppearance] = useState<AppearanceData | null>(null);
+  useEffect(() => {
+    let active = true;
+    setAppearance(null);
+    appearanceService.getPublicAppearance(currentTenant).then((data) => {
+      if (active && data.codigo_empresa === currentTenant) setAppearance(data);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [currentTenant]);
+
   const TENANT_BRANDING: Record<string, { name: string; tagline: string; storePath: string; club: string; logoUrl?: string }> = {
     'dressly': { 
       name: 'DRESSLY', 
@@ -58,7 +69,16 @@ export const Navbar: React.FC = () => {
     },
   };
 
-  const tenantBranding = TENANT_BRANDING[currentTenant] || TENANT_BRANDING['dressly'];
+  const fallbackBranding = TENANT_BRANDING[currentTenant] || {
+    name: currentTenant, tagline: '', storePath: `/store/${currentTenant}`, club: currentTenant,
+    logoUrl: undefined,
+  };
+  const tenantBranding = {
+    ...fallbackBranding,
+    name: appearance?.site_title || fallbackBranding.name,
+    tagline: appearance?.tagline || fallbackBranding.tagline,
+    logoUrl: appearance?.logo_url || fallbackBranding.logoUrl,
+  };
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);

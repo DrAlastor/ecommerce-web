@@ -2,6 +2,8 @@ import { Injectable, Logger, BadRequestException, NotFoundException } from '@nes
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 import { CreateBackupDto, RestoreBackupDto } from './dto/backup.dto.js';
+import { AppearanceStorageService } from '../CU08-personalizar-apariencia/appearance-storage.service.js';
+import { getTenantId } from '../../../../common/tenant/tenant-context.js';
 import type { ContainerClient } from '@azure/storage-blob';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -80,6 +82,7 @@ export class BackupService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bitacoraService: BitacoraService,
+    private readonly appearanceStorage: AppearanceStorageService,
   ) {
     if (!fs.existsSync(this.dataDir)) {
       fs.mkdirSync(this.dataDir, { recursive: true });
@@ -253,16 +256,12 @@ export class BackupService {
     }
 
     // 2. Exportar configuraciones de personalización de tenant (apariencia y datos de empresa)
-    let appearanceConfig = null;
+    const tenantKey = getTenantId();
+    const tenantAppearance = await this.appearanceStorage.get(tenantKey);
+    const appearanceConfig = tenantAppearance ? { [tenantKey]: tenantAppearance } : {};
     let companyConfig = null;
-    const appearancePath = path.resolve(this.dataDir, 'tenants_appearance.json');
     const companyPath = path.resolve(this.dataDir, 'tenants_company.json');
 
-    if (fs.existsSync(appearancePath)) {
-      try {
-        appearanceConfig = JSON.parse(fs.readFileSync(appearancePath, 'utf-8'));
-      } catch {}
-    }
     if (fs.existsSync(companyPath)) {
       try {
         companyConfig = JSON.parse(fs.readFileSync(companyPath, 'utf-8'));
@@ -506,9 +505,8 @@ export class BackupService {
     // 3. Restaurar configuraciones de personalización de tenant si vienen en el respaldo
     if (backupData.tenant_config) {
       const { appearance, company } = backupData.tenant_config;
-      if (appearance) {
-        const appearancePath = path.resolve(this.dataDir, 'tenants_appearance.json');
-        fs.writeFileSync(appearancePath, JSON.stringify(appearance, null, 2), 'utf-8');
+      if (appearance && appearance[getTenantId()]) {
+        await this.appearanceStorage.put(getTenantId(), appearance[getTenantId()]);
       }
       if (company) {
         const companyPath = path.resolve(this.dataDir, 'tenants_company.json');

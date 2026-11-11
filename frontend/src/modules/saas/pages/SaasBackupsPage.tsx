@@ -166,7 +166,7 @@ export const SaasBackupsPage: React.FC = () => {
             </select>
           </div>
 
-          <button type="button" className="btn-refresh" onClick={fetchBackups}>
+          <button type="button" className="btn-refresh" onClick={() => fetchBackups()}>
             <RefreshCw size={15} className={loading ? 'spin' : ''} />
             <span>Actualizar</span>
           </button>

@@ -14,6 +14,7 @@ import { PrismaService } from '../../../../prisma/prisma.service.js';
 import type { FuncionDto, LoginResponseDto } from '../../shared/dto/login-response.dto.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 import { ActiveSessionService } from '../../shared/services/active-session.service.js';
+import { getTenantId } from '../../../../common/tenant/tenant-context.js';
 
 @Injectable()
 export class LoginService {
@@ -59,32 +60,6 @@ export class LoginService {
       isPasswordValid = await bcrypt.compare(password, usuario.password_hash);
     } catch {
       isPasswordValid = false;
-    }
-
-    // Compatibilidad y auto-actualización transparente de contraseñas de evaluación y seeding
-    if (!isPasswordValid) {
-      if (
-        password === 'Admin123*' ||
-        password === 'Encargado123*' ||
-        password === 'Cajero123*' ||
-        password === 'Cliente123*' ||
-        password === 'admin123*' ||
-        password === 'Admin123!' ||
-        password === 'Password123!' ||
-        password === 'Dressly123!' ||
-        password === '12345678'
-      ) {
-        isPasswordValid = true;
-        try {
-          const updatedHash = await bcrypt.hash(password, 10);
-          await this.prisma.usuario.update({
-            where: { id_usuario: usuario.id_usuario },
-            data: { password_hash: updatedHash },
-          });
-        } catch {
-          // Ignorar fallo de actualización en background
-        }
-      }
     }
 
     if (!isPasswordValid) {
@@ -162,7 +137,7 @@ export class LoginService {
     }
 
     // Firma del token JWT
-    const payload = { sub: user.id_usuario, email: user.email, rol: rol.nombre, id_rol: rol.id_rol };
+    const payload = { sub: user.id_usuario, email: user.email, rol: rol.nombre, id_rol: rol.id_rol, tenant: getTenantId() };
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {

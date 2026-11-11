@@ -35,3 +35,6 @@ Thumbs.db
 device-tokens.json
 check_*.js
 test_*.js
+
+# Separate mobile repository checked out alongside the web project
+/ecommerce-movil/

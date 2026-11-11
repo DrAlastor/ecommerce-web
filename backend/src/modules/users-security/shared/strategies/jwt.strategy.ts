@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
+import { getTenantId } from '../../../../common/tenant/tenant-context.js';
 
 /**
  * Estructura del contenido decodificado (claims) en el token JWT.
@@ -19,6 +20,7 @@ export interface JwtPayload {
   email: string;     // Correo electrónico principal
   rol: string;       // Nombre del rol (ej. 'Administrador', 'Cliente')
   id_rol: number;    // ID numérico del rol en BD
+  tenant: string;
   iat?: number;      // Timestamp de emisión (Issued At)
   exp?: number;      // Timestamp de expiración
 }
@@ -48,11 +50,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * @throws {UnauthorizedException} Si el usuario no existe o se encuentra desactivado/bloqueado.
    */
   async validate(payload: JwtPayload) {
+    if (!payload.tenant || payload.tenant !== getTenantId()) {
+      throw new UnauthorizedException('La sesión no pertenece a esta tienda. Inicia sesión nuevamente.');
+    }
     const usuario = await this.prisma.usuario.findUnique({
       where: { id_usuario: payload.sub },
     });
 
-    if (!usuario || usuario.estado !== 'activo') {
+    if (!usuario || usuario.estado !== 'activo' || usuario.email !== payload.email || usuario.id_rol !== payload.id_rol) {
       throw new UnauthorizedException('Sesión inválida o usuario desactivado');
     }
 

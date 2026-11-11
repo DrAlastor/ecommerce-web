@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 import { UpdateCompanyDto, RegisterCompanyDto } from './dto/company.dto.js';
+import { AppearanceStorageService } from '../CU08-personalizar-apariencia/appearance-storage.service.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import bcrypt from 'bcrypt';
@@ -87,6 +88,7 @@ export class CompanyService {
     private readonly prisma: PrismaService,
     private readonly bitacoraService: BitacoraService,
     private readonly configService: ConfigService,
+    private readonly appearanceStorage: AppearanceStorageService,
   ) {
     this.ensureStorage();
   }
@@ -178,9 +180,6 @@ export class CompanyService {
           await tenantDbClient.end().catch(() => {});
         }
 
-        // Crear configuración de apariencia inicial para el nuevo inquilino
-        this.provisionTenantAppearance(tenantKey, companyName);
-
         // Precalentar pool de conexión en PrismaService
         try {
           await this.prisma.getClientForTenant(tenantKey).$connect();
@@ -189,6 +188,8 @@ export class CompanyService {
           this.logger.warn(`Pool de conexión para ${tenantKey} se inicializará bajo demanda: ${poolErr.message}`);
         }
       }
+      // También se ejecuta al reintentar un aprovisionamiento parcialmente completado.
+      await this.provisionTenantAppearance(tenantKey, companyName);
     } catch (err: any) {
       this.logger.error(`Error aprovisionando base de datos para ${tenantKey}: ${err.message}`);
       throw new BadRequestException(`Fallo en el aprovisionamiento de la base de datos para ${tenantKey}: ${err.message}`);
@@ -200,15 +201,8 @@ export class CompanyService {
   /**
    * Inicializa la configuración de apariencia visual del nuevo tenant para que su tienda sea visible de inmediato.
    */
-  private provisionTenantAppearance(tenantKey: string, companyName: string): void {
-    try {
-      const appearanceFile = path.resolve(this.dataDir, 'tenants_appearance.json');
-      let appearanceData: Record<string, any> = {};
-      if (fs.existsSync(appearanceFile)) {
-        appearanceData = JSON.parse(fs.readFileSync(appearanceFile, 'utf8'));
-      }
-      if (!appearanceData[tenantKey]) {
-        appearanceData[tenantKey] = {
+  private async provisionTenantAppearance(tenantKey: string, companyName: string): Promise<void> {
+    const appearance = {
           codigo_empresa: tenantKey,
           site_title: companyName,
           primary_color: '#1A1A1A',
@@ -233,13 +227,9 @@ export class CompanyService {
           admin_accent_color: '#C4956A',
           storefront_bg_color: '#FAF8F5',
           fecha_modificacion: new Date().toISOString(),
-        };
-        fs.writeFileSync(appearanceFile, JSON.stringify(appearanceData, null, 2), 'utf8');
-        this.logger.log(`Apariencia visual inicial para ${tenantKey} generada exitosamente.`);
-      }
-    } catch (e: any) {
-      this.logger.warn(`No se pudo inicializar apariencia para ${tenantKey}: ${e.message}`);
-    }
+    };
+    await this.appearanceStorage.put(tenantKey, appearance, true);
+    this.logger.log(`Apariencia visual inicial para ${tenantKey} disponible.`);
   }
 
   private ensureStorage() {

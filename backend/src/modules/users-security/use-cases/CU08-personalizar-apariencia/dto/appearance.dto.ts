@@ -57,6 +57,10 @@ export class UpdateAppearanceDto {
 
   @IsOptional()
   @IsString()
+  logo_url?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(100)
   badge?: string;
 

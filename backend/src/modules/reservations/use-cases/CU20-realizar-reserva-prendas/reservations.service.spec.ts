@@ -57,7 +57,9 @@ describe('ReservationsService (CU17 — Realizar Reserva de Prendas)', () => {
       logAction: vi.fn(),
     };
 
-    service = new ReservationsService(mockPrisma, mockBitacora);
+    service = new ReservationsService(mockPrisma, mockBitacora, {
+      sendPushToUser: vi.fn().mockResolvedValue(undefined),
+    } as any);
   });
 
   it('debe rechazar la reserva si la sucursal no existe', async () => {

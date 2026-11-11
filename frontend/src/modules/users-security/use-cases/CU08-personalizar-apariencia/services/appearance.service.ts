@@ -2,6 +2,7 @@ import api from '../../../../../services/api/api';
 
 export interface AppearanceData {
   codigo_empresa: string;
+  site_title?: string;
   primary_color: string;
   secondary_color: string;
   accent_color: string;

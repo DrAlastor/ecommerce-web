@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../shared/services/bitacora.service.js';
 import { UpdateAppearanceDto } from './dto/appearance.dto.js';
+import { AppearanceStorageService } from './appearance-storage.service.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -16,6 +17,7 @@ export interface AppearanceRecord {
   hero_subheadline: string;
   hero_description: string;
   hero_banner_url: string;
+  logo_url?: string;
   badge: string;
   cta_primary_text?: string;
   cta_secondary_text?: string;
@@ -188,6 +190,7 @@ export class AppearanceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bitacoraService: BitacoraService,
+    private readonly storage: AppearanceStorageService,
   ) {
     this.ensureStorage();
   }
@@ -205,27 +208,6 @@ export class AppearanceService {
     }
   }
 
-  private loadAll(): Record<string, AppearanceRecord> {
-    try {
-      if (fs.existsSync(this.dataFile)) {
-        const raw = fs.readFileSync(this.dataFile, 'utf8');
-        return JSON.parse(raw);
-      }
-    } catch (e) {
-      this.logger.warn('Error leyendo archivo de apariencias, usando defaults:', e);
-    }
-    return { ...this.defaultThemes };
-  }
-
-  private saveAll(data: Record<string, AppearanceRecord>) {
-    try {
-      this.ensureStorage();
-      fs.writeFileSync(this.dataFile, JSON.stringify(data, null, 2), 'utf8');
-    } catch (e) {
-      this.logger.error('Error guardando archivo de apariencias:', e);
-    }
-  }
-
   private generateCss(
     primary: string,
     secondary: string,
@@ -239,8 +221,7 @@ export class AppearanceService {
 
   async getAppearance(tenantKey?: string, userId: number = 1, ip?: string): Promise<AppearanceRecord> {
     const key = (tenantKey || 'dressly').toLowerCase().trim();
-    const all = this.loadAll();
-    const theme = all[key] || all['dressly'] || this.defaultThemes['dressly'];
+    const theme = await this.storage.get(key) || this.defaultThemes[key] || this.defaultThemes['dressly'];
 
     if (ip && userId) {
       await this.bitacoraService.logAction(
@@ -265,8 +246,7 @@ export class AppearanceService {
     ip?: string,
   ): Promise<{ success: boolean; message: string; data: AppearanceRecord }> {
     const key = (dto.codigo_empresa || tenantKey || 'dressly').toLowerCase().trim();
-    const all = this.loadAll();
-    const existing = all[key] || this.defaultThemes[key] || this.defaultThemes['dressly'];
+    const existing = await this.storage.get(key) || this.defaultThemes[key] || this.defaultThemes['dressly'];
 
     const primary = dto.primary_color || existing.primary_color;
     const secondary = dto.secondary_color || existing.secondary_color;
@@ -293,8 +273,7 @@ export class AppearanceService {
       fecha_modificacion: new Date().toISOString(),
     };
 
-    all[key] = updated;
-    this.saveAll(all);
+    await this.storage.put(key, updated);
 
     this.logger.log(`Apariencia visual de [${key}] actualizada por usuario ${userId}`);
 
