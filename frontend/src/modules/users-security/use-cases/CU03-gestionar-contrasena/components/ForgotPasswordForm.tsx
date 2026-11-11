@@ -1,3 +1,4 @@
+import { activeTenant, storePath } from '../../../../../services/api/tenant';
 /**
  * @caso-de-uso CU03 — Gestionar contraseña
  * @subsistema Usuarios y Seguridad
@@ -89,7 +90,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
       </form>
 
       <div className="password-card-footer">
-        <Link to="/login" className="password-return-link">
+        <Link to={storePath(activeTenant(), '/login')} className="password-return-link">
           <ArrowLeft size={16} />
           <span>Volver al inicio de sesión</span>
         </Link>

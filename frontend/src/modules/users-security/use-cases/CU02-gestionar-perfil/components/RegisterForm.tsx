@@ -1,3 +1,4 @@
+import { activeTenant, storePath } from '../../../../../services/api/tenant';
 /**
  * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
  * @subsistema Usuarios y Seguridad
@@ -157,7 +158,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </form>
 
         <p className="register-login-link">
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+          ¿Ya tienes cuenta? <Link to={storePath(activeTenant(), '/login')}>Inicia sesión</Link>
         </p>
       </div>
     </div>

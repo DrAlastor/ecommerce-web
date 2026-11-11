@@ -6,24 +6,16 @@
  * @secuencia Usuario -> interfaz de acceso -> controlador de autenticación -> servicio de acceso -> Usuario/Rol/Sesión/Bitácora.
  */
 import React, { useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { resolveTenant } from '../../../../../services/api/tenant';
 import { useLogin } from '../hooks/useLogin';
 import { LoginBrandPanel } from '../components/LoginBrandPanel';
 import { LoginForm } from '../components/LoginForm';
 import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
-  const params = useParams<{ tenant?: string }>();
   const location = useLocation();
-
-  const queryTenant = new URLSearchParams(location.search).get('tenant');
-  const rawTenant = params.tenant || queryTenant || 
-    (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
-     (localStorage.getItem('tenantKey') || 'urbanly'));
-
-  const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
-    ? 'urbanly'
-    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+  const currentTenant = resolveTenant(location.pathname, location.search, localStorage.getItem('tenantKey'));
 
   useEffect(() => {
     localStorage.setItem('tenantKey', currentTenant);

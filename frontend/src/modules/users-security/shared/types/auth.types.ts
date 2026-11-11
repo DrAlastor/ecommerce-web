@@ -37,6 +37,7 @@ export interface AuthUser {
 }
 
 export interface LoginResponse {
+  tenant?: string;
   accessToken: string;
   user: AuthUser;
   rol: RolInfo;

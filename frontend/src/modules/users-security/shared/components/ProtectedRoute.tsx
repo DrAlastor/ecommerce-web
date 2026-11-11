@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import type { ReactNode } from 'react';
+import { customerLoginPath } from '../../../../services/api/tenant';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -41,7 +42,7 @@ export function ProtectedRoute({ children, allowedRoles, requireStaff }: Protect
 
   // Redirigir a login si no está autenticado
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={customerLoginPath(location.pathname, location.search, localStorage.getItem('tenantKey'))} state={{ from: location }} replace />;
   }
 
   // Resolver nombre de rol de forma robusta

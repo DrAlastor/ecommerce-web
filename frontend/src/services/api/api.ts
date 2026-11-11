@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { activeTenant, customerLoginPath, isLoginRequest, normalizeTenant } from './tenant';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -15,37 +16,14 @@ api.interceptors.request.use(
     const saasToken = localStorage.getItem('saas_token');
     const tenantToken = localStorage.getItem('accessToken');
 
-    if (isSaasEndpoint && saasToken) {
+    if (isSaasEndpoint && saasToken && !isLoginRequest(config.url)) {
       config.headers.Authorization = `Bearer ${saasToken}`;
-    } else if (tenantToken && !config.headers.Authorization) {
+    } else if (!isSaasEndpoint && tenantToken && !isLoginRequest(config.url) && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${tenantToken}`;
     }
 
     // Resolver el tenant activo para garantizar aislamiento en cada petición HTTP
-    let tenantKey = localStorage.getItem('tenantKey') || 'dressly';
-    const path = window.location.pathname.toLowerCase();
-    const match = path.match(/\/(?:store|tenant)\/([a-zA-Z0-9_-]+)/i);
-    if (match && match[1]) {
-      tenantKey = match[1];
-    } else if (path.includes('urbanly') || path.includes('subversive')) {
-      tenantKey = 'urbanly';
-    } else if (path.includes('aura')) {
-      tenantKey = 'aura-sport';
-    } else if (path.includes('dressly')) {
-      tenantKey = 'dressly';
-    }
-
-    // Normalizar slug
-    tenantKey = tenantKey.toLowerCase().trim();
-    if (tenantKey === 'subversive-urban' || tenantKey === 'subversive') {
-      tenantKey = 'urbanly';
-    } else if (tenantKey === 'aura') {
-      tenantKey = 'aura-sport';
-    } else if (tenantKey === 'fashionstore') {
-      tenantKey = 'dressly';
-    }
-
-    config.headers['x-tenant-id'] = tenantKey;
+    config.headers['x-tenant-id'] = normalizeTenant(String(config.headers['x-tenant-id'] || '')) || activeTenant();
     return config;
   },
   (error) => Promise.reject(error),
@@ -73,13 +51,20 @@ api.interceptors.response.use(
       return axios(config);
     }
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isLoginRequest(config?.url) && !config?.url?.includes('/saas')) {
+      const currentToken = localStorage.getItem('accessToken');
+      // Una respuesta antigua no debe cerrar una sesión recién iniciada.
+      if (!currentToken || config?.headers?.Authorization !== `Bearer ${currentToken}`) {
+        return Promise.reject(error);
+      }
       localStorage.removeItem('accessToken');
       localStorage.removeItem('authUser');
 
       // Redirigir a login de tienda si no estamos en portal saas ni ya en /login
-      if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/saas')) {
-        window.location.href = '/login';
+      const path = window.location.pathname;
+      if (!/\/login\/?$/.test(path) && !path.startsWith('/saas')) {
+        const login = customerLoginPath(path, window.location.search, localStorage.getItem('tenantKey'));
+        window.location.href = `${login}?redirect=${encodeURIComponent(path + window.location.search)}`;
       }
     }
     return Promise.reject(error);

@@ -1,3 +1,4 @@
+import { resolveTenant } from '../../../../../services/api/tenant';
 /**
  * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
  * @subsistema Usuarios y Seguridad
@@ -6,22 +7,14 @@
  * @secuencia Cliente -> formulario de perfil -> controlador de perfil -> servicio de clientes -> Usuario/Cliente/Rol.
  */
 import React from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useRegister } from '../hooks/useRegister';
 import { RegisterForm } from '../components/RegisterForm';
 import './RegisterPage.css';
 
 export const RegisterPage: React.FC = () => {
-  const params = useParams<{ tenant?: string }>();
   const location = useLocation();
-
-  const rawTenant = params.tenant || 
-    (location.pathname.startsWith('/store/') ? location.pathname.split('/')[2] : 
-     (localStorage.getItem('tenantKey') || 'urbanly'));
-
-  const currentTenant = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
-    ? 'urbanly'
-    : (rawTenant === 'aura' ? 'aura-sport' : rawTenant);
+  const currentTenant = resolveTenant(location.pathname, location.search, localStorage.getItem('tenantKey'));
 
   const brandTitle = currentTenant === 'urbanly' ? 'Urbanly' : (currentTenant === 'aura-sport' ? 'Aura Sport' : 'Dressly');
   const storeHome = `/store/${currentTenant}`;

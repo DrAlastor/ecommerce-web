@@ -14,7 +14,7 @@ import type {
 } from '../types/auth.types';
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest, tenant?: string) => Promise<void>;
   logout: () => Promise<void>;
   hasPermission: (functionName: string) => boolean;
   getAccessLevel: (functionName: string) => string | null;
@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Sincronizar en segundo plano con la base de datos para obtener funciones y permisos actualizados
         try {
           const profile = await authService.getProfile();
+          if (localStorage.getItem('accessToken') !== token) return;
           if (profile && profile.funciones) {
             setState((prev) => ({
               ...prev,
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem('authUser', JSON.stringify(updatedAuth));
           }
         } catch (err) {
+          if (localStorage.getItem('accessToken') !== token) return;
           console.warn('No se pudo sincronizar el perfil con el backend:', err);
         }
       } else {
@@ -79,11 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     restoreSession();
   }, []);
 
-  const login = useCallback(async (credentials: LoginRequest) => {
+  const login = useCallback(async (credentials: LoginRequest, tenant?: string) => {
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      const response = await authService.login(credentials);
+      const response = await authService.login(credentials, tenant);
       authService.saveAuth(response);
 
       setState({

@@ -1,14 +1,16 @@
 import api from '../../../../services/api/api';
 import type { LoginRequest, LoginResponse, ProfileResponse } from '../types/auth.types';
+import { activeTenant, normalizeTenant } from '../../../../services/api/tenant';
 
 export const authService = {
   /**
    * Autentica al usuario con email y contraseña.
    * Retorna token JWT + info segura.
    */
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>('/auth/login', credentials);
-    return response.data;
+  async login(credentials: LoginRequest, tenant = activeTenant()): Promise<LoginResponse> {
+    const selected = normalizeTenant(tenant) || 'dressly';
+    const response = await api.post<LoginResponse>('/auth/login', credentials, { headers: { 'x-tenant-id': selected } });
+    return { ...response.data, tenant: selected };
   },
 
   /**
@@ -39,8 +41,10 @@ export const authService = {
    * Guarda los datos de autenticación en localStorage.
    */
   saveAuth(data: LoginResponse): void {
+    if (data.tenant) localStorage.setItem('tenantKey', data.tenant);
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('authUser', JSON.stringify({
+      tenant: data.tenant || activeTenant(),
       user: data.user,
       rol: data.rol,
       funciones: data.funciones,
@@ -50,7 +54,7 @@ export const authService = {
   /**
    * Recupera los datos de autenticación almacenados.
    */
-  getStoredAuth(): { user: LoginResponse['user']; rol: LoginResponse['rol']; funciones: LoginResponse['funciones'] } | null {
+  getStoredAuth(): { tenant?: string; user: LoginResponse['user']; rol: LoginResponse['rol']; funciones: LoginResponse['funciones'] } | null {
     const stored = localStorage.getItem('authUser');
     if (!stored) return null;
     try {

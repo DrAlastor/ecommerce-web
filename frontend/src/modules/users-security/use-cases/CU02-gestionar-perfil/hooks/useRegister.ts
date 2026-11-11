@@ -1,3 +1,4 @@
+import { activeTenant, storePath } from '../../../../../services/api/tenant';
 /**
  * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
  * @subsistema Usuarios y Seguridad
@@ -40,14 +41,15 @@ export function useRegister() {
     setErrorMsg('');
 
     try {
+      const tenant = activeTenant();
       await api.post('/auth/register', {
         nombre: formData.nombre,
         apellido: formData.apellido,
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
-      });
+      }, { headers: { 'x-tenant-id': tenant } });
 
-      navigate('/login', { state: { message: 'Cuenta creada exitosamente. Por favor, inicia sesión.' } });
+      navigate(storePath(tenant, '/login'), { state: { message: 'Cuenta creada exitosamente. Por favor, inicia sesión.' } });
     } catch (err: unknown) {
       if (err instanceof AxiosError && err.response) {
         setErrorMsg(err.response.data.message || 'Error al crear la cuenta');

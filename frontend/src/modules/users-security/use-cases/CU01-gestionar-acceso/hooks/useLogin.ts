@@ -9,38 +9,9 @@ import { useState, useCallback, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../shared/components/AuthContext';
 import type { AxiosError } from 'axios';
+import { loginDestination, resolveTenant } from '../../../../../services/api/tenant';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function getRoleRedirectPath(roleName?: string, isEmpleado?: boolean): string {
-  if (isEmpleado) return '/admin';
-  const normalized = (roleName || '').toLowerCase().trim();
-  if (normalized && normalized !== 'cliente') {
-    return '/admin';
-  }
-  return '/';
-}
-
-function canUseRequestedRedirect(path: string | undefined, roleName?: string, isEmpleado?: boolean): path is string {
-  if (!path) return false;
-
-  const normalizedRole = (roleName || '').toLowerCase().trim();
-  const isClient = normalizedRole === 'cliente';
-
-  if (path.startsWith('/admin')) {
-    return Boolean(isEmpleado) || Boolean(normalizedRole && !isClient);
-  }
-
-  if (path.startsWith('/pos')) {
-    return normalizedRole === 'cajero' || normalizedRole === 'administrador' || normalizedRole.includes('encargado') || Boolean(isEmpleado);
-  }
-
-  if (path.startsWith('/recommendations')) {
-    return isClient;
-  }
-
-  return true;
-}
 
 export function useLogin() {
   const navigate = useNavigate();
@@ -97,12 +68,14 @@ export function useLogin() {
     setIsSubmitting(true);
 
     try {
-      await login({ email: email.trim().toLowerCase(), password });
+      const tenant = resolveTenant(location.pathname, location.search, localStorage.getItem('tenantKey'));
+      await login({ email: email.trim().toLowerCase(), password }, tenant);
 
       const searchParams = new URLSearchParams(location.search);
       const redirectQuery = searchParams.get('redirect');
+      const previous = (location.state as { from?: { pathname: string; search?: string } })?.from;
       const from =
-        (location.state as { from?: { pathname: string } })?.from?.pathname ||
+        (previous ? previous.pathname + (previous.search || '') : undefined) ||
         redirectQuery ||
         undefined;
       const stored = localStorage.getItem('authUser');
@@ -110,12 +83,10 @@ export function useLogin() {
         const parsed = JSON.parse(stored);
         const roleName = parsed.rol?.nombre;
         const isEmpleado = Boolean(parsed.user?.empleado);
-        const redirectPath = canUseRequestedRedirect(from, roleName, isEmpleado)
-          ? from
-          : getRoleRedirectPath(roleName, isEmpleado);
+        const redirectPath = loginDestination(tenant, from, roleName, isEmpleado);
         navigate(redirectPath, { replace: true });
       } else {
-        navigate('/', { replace: true });
+        navigate(loginDestination(tenant), { replace: true });
       }
     } catch (err: unknown) {
       const axiosError = err as AxiosError<{ message?: string; statusCode?: number }>;
