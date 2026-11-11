@@ -2,14 +2,15 @@
 
 > **Sistema:** FashionStore SaaS Multi-Tenant  
 > **Estándar Metodológico:** ICONIX / UML 2.5 OMG  
-> **Alcance:** Arquitectura Multi-Tenant, Seguridad, Business Intelligence & Progressive Web App (PWA)
+> **Alcance:** Arquitectura Multi-Tenant, Seguridad, Business Intelligence & Progressive Web App (PWA)  
+> **Total Casos de Uso:** 18 Casos de Uso Nucleares
 
 ---
 
 ## Índice Oficial de Casos de Uso — Parcial 2
 
 ```
-FASHIONSTORE SAAS — CATÁLOGO PARCIAL 2
+FASHIONSTORE SAAS — CATÁLOGO OFICIAL PARCIAL 2
 ├── Módulo 0: SaaS y Multi-Tenant
 │   ├── CU01 - Gestionar Sistema SaaS
 │   ├── CU02 - Gestionar Planes de Suscripción
@@ -25,10 +26,10 @@ FASHIONSTORE SAAS — CATÁLOGO PARCIAL 2
 │   ├── CU11 - Personalizar Apariencia
 │   └── CU12 - Gestionar Backup y Restore
 ├── Módulo 7: Inteligencia de Negocios y Reportes
-│   ├── CU13 - Consultar Dashboard (BI & Machine Learning)
-│   ├── CU14 - Gestionar Reportes QBE (Query by Example)
-│   └── CU15 - Gestionar Reportes por Voz y Lenguaje Natural con IA
-└── Módulo 8: Aplicación Web Progresiva (PWA)
+│   ├── CU13 - Consultar Dashboard
+│   ├── CU14 - Gestionar Reportes QBE
+│   └── CU15 - Gestionar Reportes por Voz
+└── Módulo 8: Aplicación Web Progresiva
     ├── CU16 - Gestionar Sistema Offline
     ├── CU17 - Gestionar Datos Offline
     └── CU18 - Sincronizar Datos Offline a Online
@@ -37,6 +38,48 @@ FASHIONSTORE SAAS — CATÁLOGO PARCIAL 2
 ---
 
 # MÓDULO 0 — SaaS y Multi-Tenant
+
+## Caso de Uso: CU01 — Gestionar Sistema SaaS
+
+| Caso de Uso: CU01 - Gestionar Sistema SaaS | Descripción |
+| :--- | :--- |
+| **Propósito** | Permitir al Superadministrador configurar y parametrizar las directivas globales de la plataforma SaaS (políticas de aislamiento físico multi-tenant, límites de infraestructura, cuotas globales de almacenamiento en Azure, pasarelas de pago para cobro de suscripciones y configuración general del ecosistema). |
+| **Actores** | Superadministrador. |
+| **Iniciador** | Superadministrador. |
+| **Precondiciones** | • El Superadministrador debe haber iniciado sesión con credenciales maestras de la plataforma.<br>• El servicio backend SaaS central debe estar activo y en línea.<br>• El usuario debe poseer rol de Superadministrador en la base de datos central. |
+| **Flujo Principal** | 1. El Superadministrador ingresa al módulo **Configuración General SaaS** desde el panel maestro.<br>2. El sistema recupera los parámetros globales de la plataforma: modo de aislamiento (base de datos física por tenant), límites de creación de inquilinos, credenciales de Azure Storage y pasarela de cobro Stripe SaaS.<br>3. El sistema muestra la interfaz de gestión con los valores parametrizados actualmente.<br>4. El Superadministrador ajusta las configuraciones deseadas (activar/desactivar auto-registro de empresas, modificar días de prueba gratis, actualizar llaves API o reglas de aislamiento).<br>5. El Superadministrador hace clic en **Guardar Configuración SaaS**.<br>6. El sistema valida la integridad sintáctica y de conectividad de los parámetros ingresados.<br>7. El sistema persiste la configuración en la base de datos central y actualiza el contexto de ejecución en memoria.<br>8. El sistema emite un mensaje de confirmación de éxito.<br>9. El sistema registra la modificación en la bitácora global de auditoría con fecha, hora, IP y usuario responsable. |
+| **Postcondiciones** | • Las directivas globales de la plataforma SaaS quedan vigentes de inmediato para el aprovisionamiento y cobro de nuevos inquilinos.<br>• La operación queda registrada de manera inmutable en la bitácora central. |
+| **Excepciones** | • Llaves de API de pasarela o almacenamiento inválidas o no verificables.<br>• El usuario no cuenta con privilegios de Superadministrador (error 403 Prohibido). |
+
+---
+
+## Caso de Uso: CU02 — Gestionar Planes de Suscripción
+
+| Caso de Uso: CU02 - Gestionar Planes de Suscripción | Descripción |
+| :--- | :--- |
+| **Propósito** | Permitir al Superadministrador definir, actualizar y dar de baja los planes comerciales de suscripción para las empresas (planes Básico, Profesional, Enterprise), estableciendo precios mensuales y anuales, límites de productos, sucursales permitidas, cuota de almacenamiento y módulos habilitados. |
+| **Actores** | Superadministrador. |
+| **Iniciador** | Superadministrador. |
+| **Precondiciones** | • El Superadministrador debe haber iniciado sesión con permisos de gestión de suscripciones.<br>• El catálogo de módulos y funciones del sistema debe estar cargado en la base de datos. |
+| **Flujo Principal** | 1. El Superadministrador ingresa a la sección **Planes de Suscripción**.<br>2. El sistema consulta y despliega los planes vigentes con sus características (nombre, precio en BOB/USD, número de productos permitidos, sucursales máximas, módulos incluidos y estado activo/inactivo).<br>3. El Superadministrador puede seleccionar un plan existente para editarlo o pulsar **Crear Nuevo Plan**.<br>4. El sistema presenta el formulario de configuración del plan.<br>5. El Superadministrador ingresa o modifica el nombre comercial, descripción, precio mensual, precio anual con descuento, límites operativos (ej. 100 productos para Básico, ilimitado para Enterprise) y selecciona los módulos del sistema incluidos en el plan.<br>6. El Superadministrador presiona **Guardar Plan**.<br>7. El sistema valida que los precios sean valores positivos y que al menos un módulo básico esté seleccionado.<br>8. El sistema guarda o actualiza el registro del plan en la base de datos central y sincroniza el identificador de producto/precio en Stripe si aplica cobro automatizado.<br>9. El sistema confirma la operación y actualiza la lista visible.<br>10. La acción queda registrada en la bitácora con los datos previos y nuevos. |
+| **Postcondiciones** | • El plan de suscripción queda disponible en la landing page del SaaS para nuevas contrataciones.<br>• Las empresas ya suscritas mantienen sus condiciones contractuales vigentes. |
+| **Excepciones** | • Intento de eliminar un plan que posee tenants actualmente activos con suscripción vigente (el sistema impide la eliminación y sugiere archivarlo/desactivarlo).<br>• Datos numéricos inconsistentes (precios negativos o límites inferiores a cero). |
+
+---
+
+## Caso de Uso: CU03 — Aprovisionar Tenant
+
+| Caso de Uso: CU03 - Aprovisionar Tenant | Descripción |
+| :--- | :--- |
+| **Propósito** | Ejecutar de forma automatizada y desatendida el aprovisionamiento técnico de un nuevo inquilino al registrarse una empresa: creación de su base de datos física dedicada en Azure PostgreSQL (`nombreempresa_db`), ejecución de la plantilla DDL completa (44 tablas, módulos y funciones base), generación del usuario administrador inicial y configuración de su esquema de apariencia. |
+| **Actores** | Sistema (Proceso desatendido), Superadministrador. |
+| **Iniciador** | Sistema (Disparado al confirmarse el registro de empresa o pago de suscripción) / Superadministrador (Aprovisionamiento manual). |
+| **Precondiciones** | • El registro de la empresa debe estar validado con su slug identificador único.<br>• El servidor Azure PostgreSQL debe tener permisos y capacidad para crear bases de datos (`CREATE DATABASE`).<br>• El archivo de plantilla `EsquemaEcommerce.sql` debe estar disponible en el backend. |
+| **Flujo Principal** | 1. El sistema inicia el proceso de aprovisionamiento al recibir los datos validados de la nueva empresa y su administrador.<br>2. El sistema genera el nombre normalizado de la base de datos dedicada (ej. `urbanly_db`, `aura_sport_db`).<br>3. El sistema se conecta a la instancia de PostgreSQL y ejecuta la sentencia `CREATE DATABASE <tenant_db>`.<br>4. El sistema establece conexión con la base de datos recién creada y ejecuta el script DDL estructural `EsquemaEcommerce.sql`, creando las 44 tablas, llaves foráneas, índices, módulos y funciones del sistema.<br>5. El sistema hashea la contraseña del administrador del tenant con algoritmo `bcrypt` (10 rondas de salt).<br>6. El sistema inserta el registro del usuario administrador en la tabla `USUARIO` asignándole el rol Administrador (`ID_ROL = 1`).<br>7. El sistema crea el perfil de empleado correspondiente en la tabla `EMPLEADO` (`EMP-ADM-001`) y asocia su cuenta de usuario.<br>8. El sistema inicializa la configuración de identidad visual en `tenants_appearance.json` y la tabla `CONFIGURACION_EMPRESA`.<br>9. El sistema registra el nuevo tenant en el catálogo maestro y añade su pool de conexión dinámica en `PrismaService`.<br>10. El sistema emite la confirmación de aprovisionamiento exitoso y envía correo de bienvenida con credenciales al administrador.<br>11. Se registra la creación del tenant en la bitácora central con tiempo de ejecución y estado final. |
+| **Postcondiciones** | • El nuevo tenant cuenta con su base de datos física completamente aislada y operativa.<br>• El administrador del tenant puede iniciar sesión de inmediato en su ruta dedicada `/store/:tenant/login`.<br>• La tienda pública del inquilino queda lista para personalización y carga de catálogo. |
+| **Excepciones** | • El slug de la empresa ya existe en el servidor PostgreSQL (nombre de base de datos duplicado).<br>• Error de sintaxis o fallo de ejecución en el script DDL `EsquemaEcommerce.sql` (el sistema ejecuta rollback y elimina la base de datos incompleta).<br>• Tiempo de espera excedido en el servidor de base de datos durante la creación. |
+
+---
 
 ## Caso de Uso: CU04 — Gestionar Dashboard de Super Admin
 
@@ -63,6 +106,62 @@ FASHIONSTORE SAAS — CATÁLOGO PARCIAL 2
 | **Flujo Principal** | 1. El Superadministrador ingresa al módulo **Monitoreo de Tenants** dentro del panel SaaS.<br>2. El sistema lista todos los inquilinos registrados mostrando su indicador de estado en tiempo real (Healthy / Warning / Critical / Down).<br>3. El Superadministrador selecciona un tenant específico (ej. Dressly, Urbanly, Aura Sport o nuevo tenant) para auditar su salud.<br>4. El sistema consulta la telemetría en vivo: conexiones activas en su base de datos física dedicada (`dressly_db`, `urbanly_db`), consumo de almacenamiento en Azure Blob Storage, tiempo medio de respuesta y uso de memoria.<br>5. El sistema despliega gráficos de telemetría con umbrales configurables (consumo de CPU, memoria, tasa de peticiones por minuto).<br>6. Si un tenant supera el 90% de su cuota contratada o presenta picos de error anómalos, el sistema marca una alerta visual destacada.<br>7. El Superadministrador puede ejecutar acciones operativas: purgar caché, reiniciar pool de conexiones del tenant, o suspender temporalmente el acceso del inquilino por mantenimiento o sobreconsumo.<br>8. El sistema ejecuta la acción correctiva seleccionada y emite el informe de resultado.<br>9. El sistema registra cada acción de supervisión e intervención en la bitácora de auditoría con timestamp y operador responsable. |
 | **Postcondiciones** | • Se mantiene la estabilidad y aislamiento del ecosistema evitando que un tenant afecte a los demás (*Noisy Neighbor*).<br>• Los umbrales y estados de supervisión se registran para análisis histórico de SLA.<br>• Las acciones correctivas quedan asentadas con trazabilidad total. |
 | **Excepciones** | • Inaccesibilidad a las APIs de métricas de Azure Monitor o Application Insights.<br>• El tenant seleccionado se encuentra en proceso de aprovisionamiento o migración de base de datos. |
+
+---
+
+## Caso de Uso: CU06 — Registrar Datos de Empresa
+
+| Caso de Uso: CU06 - Registrar Datos de Empresa | Descripción |
+| :--- | :--- |
+| **Propósito** | Permitir al representante de una nueva empresa registrar la información jurídica, comercial y de contacto de su negocio durante el proceso de onboarding en la landing page del SaaS, estableciendo su subdominio o slug de acceso para la tienda virtual. |
+| **Actores** | Representante de Empresa / Nuevo Cliente SaaS. |
+| **Iniciador** | Representante de Empresa. |
+| **Precondiciones** | • El usuario debe acceder a la landing page pública del SaaS (`/`).<br>• Debe haber seleccionado un plan de suscripción o iniciado el registro de prueba. |
+| **Flujo Principal** | 1. El representante hace clic en **Registrar mi Empresa** o **Comenzar Prueba Gratis** desde la landing page.<br>2. El sistema despliega el paso 1 del asistente de onboarding: Datos de la Empresa.<br>3. El representante ingresa la Razón Social, Nombre Comercial, NIT o identificación tributaria, país, moneda comercial (BOB / USD) y el subdominio/slug deseado (ej. `urbanly`, `dressly`).<br>4. El sistema valida en tiempo real la disponibilidad del slug para asegurar que sea único y no contenga caracteres inválidos.<br>5. El representante introduce los datos de contacto corporativo: teléfono, correo electrónico empresarial y dirección física.<br>6. El usuario pulsa **Siguiente: Datos de Cuenta**.<br>7. El sistema valida los campos obligatorios y almacena temporalmente los datos en el contexto de registro.<br>8. El sistema pasa al siguiente paso del flujo de alta (CU07 / CU08). |
+| **Postcondiciones** | • Los datos preliminares de la empresa quedan verificados y listos para la creación del tenant.<br>• El slug queda temporalmente reservado durante la sesión de onboarding. |
+| **Excepciones** | • El slug solicitado ya está en uso por otra empresa en la plataforma.<br>• Formato de NIT o correo empresarial inválido.<br>• Campos obligatorios sin completar. |
+
+---
+
+## Caso de Uso: CU07 — Registrar Datos de Cliente
+
+| Caso de Uso: CU07 - Registrar Datos de Cliente | Descripción |
+| :--- | :--- |
+| **Propósito** | Capturar y validar los datos de facturación, método de pago y contacto del suscriptor responsable de la cuenta SaaS para la emisión de facturas periódicas de suscripción y formalización contractual del servicio en la nube. |
+| **Actores** | Representante de Empresa / Suscriptor SaaS. |
+| **Iniciador** | Representante de Empresa. |
+| **Precondiciones** | • Haber completado el paso previo de datos de empresa (CU06). |
+| **Flujo Principal** | 1. El sistema presenta el paso de facturación y cliente suscriptor dentro del flujo de registro.<br>2. El suscriptor ingresa el nombre del titular o razón de facturación, documento de identidad/NIT, dirección de facturación y teléfono de contacto administrativo.<br>3. El suscriptor selecciona el método de pago para el plan (Tarjeta de Crédito/Débito vía Stripe, Transferencia o período de prueba sin tarjeta).<br>4. En caso de pago digital, el sistema invoca la pasarela segura de Stripe Checkout y procesa la verificación del método de pago.<br>5. El suscriptor acepta los Términos y Condiciones y la Política de Privacidad del SaaS.<br>6. El sistema valida la aprobación de la transacción o activación del período de prueba.<br>7. El sistema asocia los datos de facturación al registro del cliente suscriptor en la base central.<br>8. El sistema avanza automáticamente al paso final de creación de credenciales administrativas (CU08). |
+| **Postcondiciones** | • El cliente queda registrado en el módulo de facturación del SaaS con su ID de cliente de pasarela.<br>• Se emite el primer comprobante o recibo de suscripción electrónica. |
+| **Excepciones** | • Tarjeta rechazada por la entidad bancaria o fondos insuficientes.<br>• El usuario no acepta los términos y condiciones del servicio. |
+
+---
+
+## Caso de Uso: CU08 — Gestionar Usuario Admin Tenant
+
+| Caso de Uso: CU08 - Gestionar Usuario Admin Tenant | Descripción |
+| :--- | :--- |
+| **Propósito** | Permitir la creación, asignación de credenciales maestras y gestión del usuario Administrador principal del tenant, quien tendrá el control total inicial sobre la configuración de la tienda, catálogo, empleados y roles dentro de su empresa. |
+| **Actores** | Representante de Empresa (al registrarse), Superadministrador (en soporte/gestión). |
+| **Iniciador** | Representante de Empresa / Superadministrador. |
+| **Precondiciones** | • Datos de empresa y suscripción completados con éxito (CU06 y CU07).<br>• El tenant debe estar en proceso de aprovisionamiento o ya activo. |
+| **Flujo Principal** | 1. El sistema solicita al representante definir las credenciales de la cuenta Administrador de su empresa: Nombre completo, correo electrónico administrativo y contraseña.<br>2. El usuario introduce el correo (ej. `admin@urbanly.bo`) y contraseña robusta (mínimo 8 caracteres, mayúscula, minúscula, número y símbolo).<br>3. El sistema valida en tiempo real la robustez de la contraseña y confirma que el correo sea válido.<br>4. El usuario confirma la contraseña y pulsa **Crear Empresa y Finalizar Registro**.<br>5. El sistema dispara el aprovisionamiento técnico del tenant (CU03), encripta la contraseña con `bcrypt` y crea el usuario con `ID_ROL = 1` (Administrador).<br>6. El sistema crea su ficha de empleado inicial (`EMP-ADM-001`) vinculada a su cuenta.<br>7. El sistema envía un correo de confirmación de cuenta con las credenciales y el enlace de acceso directo al panel administrativo del tenant (`/store/:tenant/login`).<br>8. El sistema redirige al usuario a su pantalla de bienvenida o login con sus datos listos para operar.<br>9. Posteriormente, el Administrador puede ingresar a su perfil para actualizar su contraseña o datos personales. |
+| **Postcondiciones** | • El usuario administrador del tenant queda creado con privilegios totales sobre su base de datos aislada.<br>• La cuenta queda lista para autenticarse de inmediato en su tienda. |
+| **Excepciones** | • La contraseña no cumple con los requisitos mínimos de complejidad de seguridad.<br>• El correo administrativo ya está asignado a otro usuario dentro del mismo tenant. |
+
+---
+
+## Caso de Uso: CU09 — Gestionar Módulos y Funciones
+
+| Caso de Uso: CU09 - Gestionar Módulos y Funciones | Descripción |
+| :--- | :--- |
+| **Propósito** | Permitir al Superadministrador habilitar, restringir o asignar dinámicamente los módulos del sistema (Catálogo, Sucursales, Reservas, POS, Probador Virtual, Dashboard BI, Reportes Voz/QBE y PWA Offline) a cada empresa según el plan contratado o add-ons adquiridos, garantizando el cumplimiento contractual. |
+| **Actores** | Superadministrador. |
+| **Iniciador** | Superadministrador. |
+| **Precondiciones** | • El Superadministrador debe haber iniciado sesión con permisos sobre la plataforma SaaS.<br>• El tenant debe existir en la base de datos central. |
+| **Flujo Principal** | 1. El Superadministrador accede al módulo **Gestión de Módulos y Tenants**.<br>2. El sistema lista todos los módulos y funciones del sistema clasificados por categoría.<br>3. El Superadministrador selecciona una empresa específica para auditar sus módulos autorizados.<br>4. El sistema despliega el árbol de funciones y submódulos indicando cuáles están activos y cuáles deshabilitados para el tenant según su plan.<br>5. El Superadministrador activa o desactiva módulos mediante switches visuales (ej. habilitar *Reportes por Voz con IA* o *Punto de Venta POS*).<br>6. El Superadministrador pulsa **Guardar Asignación de Módulos**.<br>7. El sistema actualiza los registros de permisos y suscripción en la base de datos del tenant y catálogo central.<br>8. El sistema invalida la caché de permisos del tenant para que la interfaz web del inquilino oculte o muestre inmediatamente los menús correspondientes.<br>9. El sistema confirma la actualización y registra la operación en la bitácora central con los módulos modificados. |
+| **Postcondiciones** | • Los usuarios del tenant solo podrán visualizar y acceder a las rutas y APIs de los módulos contratados y activos.<br>• El control de acceso RBAC del tenant refleja los módulos permitidos. |
+| **Excepciones** | • Intento de deshabilitar el módulo nuclear de Seguridad o Catálogo básico (el sistema advierte que son dependencias críticas).<br>• Fallo de conectividad con la base de datos del tenant. |
 
 ---
 
@@ -126,7 +225,7 @@ FASHIONSTORE SAAS — CATÁLOGO PARCIAL 2
 
 ---
 
-## Caso de Uso: CU14 — Gestionar Reportes QBE (Query by Example)
+## Caso de Uso: CU14 — Gestionar Reportes QBE
 
 | Caso de Uso: CU14 - Gestionar Reportes QBE | Descripción |
 | :--- | :--- |

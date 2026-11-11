@@ -3,3 +3,11 @@ node_modules
 .env
 
 /src/generated/prisma
+
+# Sensitive credentials & service accounts
+*service-account*.json
+*firebase*.json
+*.key
+device-tokens.json
+check_*.js
+test_*.js

@@ -21,6 +21,9 @@ import {
   RefreshCw,
   Store,
   UserCheck,
+  Server,
+  Activity,
+  Brain,
 } from 'lucide-react';
 import { reportsService } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/services/reports.service';
 import type { DashboardMetrics } from '../../modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/types/reports.types';
@@ -364,6 +367,131 @@ export default function DashboardIndex() {
           </button>
         </div>
       </div>
+
+      {/* Acceso Directo de Super Admin: Casos de Uso CU04 & CU05 */}
+      {isSuperAdmin && (
+        <div style={{ marginBottom: '2rem' }}>
+          <div className="dashboard-section-header">
+            <div>
+              <h2 className="dashboard-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Brain size={22} color="#4F46E5" />
+                <span>Gestión Analítica & Monitoreo SaaS</span>
+              </h2>
+              <p className="dashboard-section-subtitle">
+                Herramientas avanzadas de Inteligencia de Negocios, predicción con Machine Learning y supervisión técnica en tiempo real.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+            {/* Tarjeta Dashboard */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                border: '1px solid #E2E8F0',
+                borderTop: '4px solid #4F46E5',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '1rem',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#4F46E5', backgroundColor: '#EEF2FF', padding: '0.2rem 0.6rem', borderRadius: '9999px' }}>
+                    MACHINE LEARNING & POWER BI
+                  </span>
+                  <Activity size={22} color="#4F46E5" />
+                </div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: '0 0 0.4rem 0' }}>
+                  Dashboard de Super Admin
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
+                  Tablero analítico con métricas consolidadas (MRR, GMV, Churn), modelos de regresión lineal para predicción de ingresos y clustering inteligente de inquilinos.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/saas-admin/dashboard')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: '#4F46E5',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.65rem 1rem',
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                <span>Abrir Dashboard Analítico</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+
+            {/* Tarjeta Monitoreo */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                border: '1px solid #E2E8F0',
+                borderTop: '4px solid #0EA5E9',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '1rem',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284C7', backgroundColor: '#F0F9FF', padding: '0.2rem 0.6rem', borderRadius: '9999px' }}>
+                    TELEMETRÍA DE INFRAESTRUCTURA
+                  </span>
+                  <Server size={22} color="#0EA5E9" />
+                </div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: '0 0 0.4rem 0' }}>
+                  Monitoreo de Tenants
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0, lineHeight: 1.45 }}>
+                  Supervisión técnica de bases físicas PostgreSQL (`dressly_db`, `urbanly_db`, etc.), pools Prisma, latencia, Azure Blob Storage y prevención de Noisy Neighbors.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/saas-admin/monitoring')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  backgroundColor: '#0F172A',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.65rem 1rem',
+                  fontWeight: 700,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                <span>Abrir Monitoreo Técnico</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 3. Renderizado del Dashboard Especializado por Rol */}
       <div style={{ marginBottom: '2.5rem' }}>

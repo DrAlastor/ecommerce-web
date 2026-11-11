@@ -41,6 +41,7 @@
     "class-validator": "^0.15.1",
     "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
+    "firebase-admin": "^14.5.0",
     "nodemailer": "^10.0.9",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

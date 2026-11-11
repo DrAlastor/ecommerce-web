@@ -1,0 +1,50 @@
+[
+  {
+    "id": "bkp-dressly-001",
+    "tenantKey": "dressly",
+    "tenantName": "Dressly Fashion Store",
+    "databaseName": "dressly_db",
+    "nombre_archivo": "backup_dressly_full_20261108.json",
+    "tamano_bytes": 12450820,
+    "tamano_formateado": "11.87 MB",
+    "tipo_backup": "AUTOMATICO",
+    "estado": "DISPONIBLE",
+    "checksum_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fecha_creacion": "2026-11-08T02:00:00.000Z",
+    "solicitado_por": "Sistema SaaS (Job Nocturno)",
+    "total_tablas": 44,
+    "total_registros": 1420
+  },
+  {
+    "id": "bkp-urbanly-001",
+    "tenantKey": "urbanly",
+    "tenantName": "Urbanly Fashion Store",
+    "databaseName": "urbanly_db",
+    "nombre_archivo": "backup_urbanly_full_20261108.json",
+    "tamano_bytes": 11984210,
+    "tamano_formateado": "11.43 MB",
+    "tipo_backup": "AUTOMATICO",
+    "estado": "DISPONIBLE",
+    "checksum_sha256": "a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0",
+    "fecha_creacion": "2026-11-08T02:15:00.000Z",
+    "solicitado_por": "Sistema SaaS (Job Nocturno)",
+    "total_tablas": 44,
+    "total_registros": 980
+  },
+  {
+    "id": "bkp-aura-001",
+    "tenantKey": "aura-sport",
+    "tenantName": "Aura Athletics",
+    "databaseName": "aura_sport_db",
+    "nombre_archivo": "backup_aura_full_20261108.json",
+    "tamano_bytes": 11820150,
+    "tamano_formateado": "11.27 MB",
+    "tipo_backup": "AUTOMATICO",
+    "estado": "DISPONIBLE",
+    "checksum_sha256": "f7c3bc1d808e04732adf679965ccc34ca7ae3441",
+    "fecha_creacion": "2026-11-08T02:30:00.000Z",
+    "solicitado_por": "Sistema SaaS (Job Nocturno)",
+    "total_tablas": 44,
+    "total_registros": 860
+  }
+]

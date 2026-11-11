@@ -1,0 +1,397 @@
+/* ==========================================================================
+   FASHIONSTORE SAAS - SUPER ADMIN LAYOUT
+   Diseño espejo de la estructura interna del sistema de los tenants (AdminLayout),
+   con la paleta Warm Luxury / Editorial de la Landing (#FAF8F5, #1A1A1A, #8C5E35, #C4956A, #EAE6DF).
+   ========================================================================== */
+
+.saas-admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #FAF8F5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1A1A1A;
+}
+
+/* Backdrop móvil */
+.saas-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(26, 26, 26, 0.5);
+  z-index: 40;
+}
+
+/* ==========================================================================
+   SIDEBAR IZQUIERDA (260px ancho, fondo blanco, bordes lino)
+   ========================================================================== */
+.saas-admin-sidebar {
+  width: 260px;
+  background-color: #FFFFFF;
+  border-right: 1px solid #EAE6DF;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 50;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .saas-admin-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -280px;
+    transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .saas-admin-sidebar.open {
+    left: 0;
+  }
+}
+
+/* Header del Sidebar con Logo */
+.saas-sidebar-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #EAE6DF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.saas-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.saas-logo-badge-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.15);
+  border: 1px solid rgba(26, 26, 26, 0.08);
+}
+
+.logo-badge {
+  width: 34px;
+  height: 34px;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.05em;
+  box-shadow: 0 2px 6px rgba(26, 26, 26, 0.2);
+}
+
+.logo-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  line-height: 1.1;
+}
+
+.logo-subtitle {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #8C5E35;
+}
+
+.saas-sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #666666;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .saas-sidebar-close-btn {
+    display: flex;
+  }
+}
+
+/* Menú y Navegación */
+.saas-sidebar-menu {
+  padding: 1.25rem 1rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.saas-sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #EAE6DF;
+  margin-top: auto;
+  background-color: #FCFBF9;
+}
+
+.saas-sidebar-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8C5E35;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.65rem;
+  display: block;
+  padding-left: 0.75rem;
+  text-transform: uppercase;
+}
+
+.saas-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.saas-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  color: #555555;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.saas-nav-item .nav-icon {
+  flex-shrink: 0;
+  color: #8C5E35;
+  transition: color 0.15s ease;
+}
+
+.saas-nav-item:hover {
+  background-color: #FAF8F5;
+  color: #1A1A1A;
+}
+
+.saas-nav-item:hover .nav-icon {
+  color: #1A1A1A;
+}
+
+.saas-nav-item.active {
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.saas-nav-item.active .nav-icon {
+  color: #C4956A;
+}
+
+.saas-nav-item.btn-logout {
+  color: #991B1B;
+}
+
+.saas-nav-item.btn-logout .nav-icon {
+  color: #991B1B;
+}
+
+.saas-nav-item.btn-logout:hover {
+  background-color: #FEF2F2;
+  color: #7F1D1D;
+}
+
+/* ==========================================================================
+   MAIN WRAPPER & HEADER DERECHO
+   ========================================================================== */
+.saas-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.saas-top-header {
+  height: 64px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #EAE6DF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .saas-top-header {
+    padding: 0 1rem;
+  }
+}
+
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.btn-menu-trigger {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #1A1A1A;
+  padding: 0.35rem;
+  border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+  .btn-menu-trigger {
+    display: flex;
+  }
+}
+
+.header-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+}
+
+.breadcrumb-root {
+  color: #8C5E35;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: #C4956A;
+}
+
+.breadcrumb-current {
+  color: #1A1A1A;
+  font-weight: 700;
+}
+
+.header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.azure-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #F8EFE6;
+  border: 1px solid #EAE6DF;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #8C5E35;
+}
+
+@media (max-width: 900px) {
+  .azure-pill {
+    display: none;
+  }
+}
+
+.azure-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: #FAF8F5;
+  border: 1px solid #EAE6DF;
+  padding: 0.3rem 0.75rem 0.3rem 0.45rem;
+  border-radius: 9999px;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #1A1A1A;
+  color: #C4956A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-full-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  line-height: 1.1;
+}
+
+.user-role {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #8C5E35;
+}
+
+.btn-quick-logout {
+  background-color: transparent;
+  border: 1px solid #EAE6DF;
+  color: #666666;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-quick-logout:hover {
+  background-color: #FEF2F2;
+  border-color: #FCA5A5;
+  color: #991B1B;
+}
+
+/* Contenido Principal */
+.saas-main-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: calc(100vh - 64px);
+}

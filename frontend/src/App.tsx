@@ -34,6 +34,14 @@ import { CheckoutPage } from './modules/sales-billing/use-cases/CU24-realizar-co
 import { MyPurchasesPage } from './modules/sales-billing/use-cases/CU25-consultar-historial-compras/pages/MyPurchasesPage';
 import POSPage from './modules/sales-billing/use-cases/CU26-procesar-pagos-facturacion/pages/POSPage';
 import { ReportsDashboardPage } from './modules/reports-dashboard/use-cases/CU29-consultar-dashboard-reportes/pages/ReportsDashboardPage';
+import { SaasDashboardPage } from './modules/saas/use-cases/CU04-gestionar-dashboard-superadmin/pages/SaasDashboardPage';
+import { SaasMonitoringPage } from './modules/saas/use-cases/CU05-gestionar-monitoreo-tenant/pages/SaasMonitoringPage';
+import { SaasLoginPage } from './pages/saas/SaasLoginPage';
+import { SaasAdminLayout } from './shared/layouts/SaasAdminLayout/SaasAdminLayout';
+import { SaasTenantsPage } from './modules/saas/pages/SaasTenantsPage';
+import { SaasBitacoraPage } from './modules/saas/pages/SaasBitacoraPage';
+import { SaasBackupsPage } from './modules/saas/pages/SaasBackupsPage';
+import { SaasPlansPage } from './modules/saas/pages/SaasPlansPage';
 import { VirtualFittingPage } from './modules/mobile-experience/use-cases/CU33-utilizar-vestidor-virtual';
 import { ManageReturnsPage } from './modules/sales-billing/use-cases/CU28-gestionar-devoluciones';
 import { ConfirmProvider } from './shared/components/ConfirmModal';
@@ -47,6 +55,22 @@ function App() {
             <Routes>
               {/* Landing Page Corporativa del SaaS FashionStore (Venta de Planes y Precios) */}
               <Route path="/" element={<SaasLandingPage />} />
+
+              {/* Autenticación & Acceso al Panel de Super Admin (Fuera del sistema de tiendas) */}
+              <Route path="/saas/login" element={<SaasLoginPage />} />
+              <Route path="/saas-login" element={<Navigate to="/saas/login" replace />} />
+              <Route path="/super-admin/login" element={<Navigate to="/saas/login" replace />} />
+
+              {/* Portal Exclusivo de Super Admin de la Plataforma SaaS FashionStore */}
+              <Route path="/saas-admin" element={<SaasAdminLayout />}>
+                <Route index element={<Navigate to="/saas-admin/dashboard" replace />} />
+                <Route path="dashboard" element={<SaasDashboardPage />} />
+                <Route path="monitoring" element={<SaasMonitoringPage />} />
+                <Route path="plans" element={<SaasPlansPage />} />
+                <Route path="tenants" element={<SaasTenantsPage />} />
+                <Route path="bitacora" element={<SaasBitacoraPage />} />
+                <Route path="backups" element={<SaasBackupsPage />} />
+              </Route>
 
               {/* Vitrina / Tienda y rutas completas por Tenant (Urbanly, Dressly, Aura Sport) */}
               <Route path="/store/:tenant" element={<HomePage />} />
@@ -162,6 +186,11 @@ function App() {
                 <Route path="users" element={<ManageUsersPage />} />
                 <Route path="bitacora" element={<BitacoraPage />} />
                 <Route path="consultar-bitacora" element={<BitacoraPage />} />
+                {/* Módulo 0 — SaaS y Multi-Tenant (CU04 & CU05) */}
+                <Route path="saas-dashboard" element={<SaasDashboardPage />} />
+                <Route path="dashboard-superadmin" element={<SaasDashboardPage />} />
+                <Route path="saas-monitoring" element={<SaasMonitoringPage />} />
+                <Route path="monitoreo-tenant" element={<SaasMonitoringPage />} />
                 <Route path="roles" element={<ManageRolesPage />} />
                 <Route path="gestionar-roles" element={<ManageRolesPage />} />
                 <Route path="empleados" element={<ManageEmployeesPage />} />

@@ -11,13 +11,13 @@ import {
   Smartphone,
   Eye,
   ShieldCheck,
-  Layers,
   ChevronLeft,
   ChevronRight,
   Users,
   Tag,
   ExternalLink,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SaasLandingPage.css';
@@ -308,7 +308,12 @@ export const SaasLandingPage: React.FC = () => {
         <div className="saas-container">
           <nav className="saas-nav">
             <a href="/" className="saas-brand">
-              <div className="saas-logo-icon">FS</div>
+              <img 
+                src="https://fashionstorestorages.blob.core.windows.net/media/logo-fashionstore.png" 
+                onError={(e) => { e.currentTarget.src = '/logo-fashionstore.png'; }}
+                alt="FashionStore Logo" 
+                className="saas-brand-logo-img" 
+              />
               <div className="saas-brand-text">
                 <span className="saas-brand-title">FashionStore</span>
                 <span className="saas-brand-badge">SaaS Platform</span>
@@ -325,10 +330,13 @@ export const SaasLandingPage: React.FC = () => {
 
             <div className="saas-nav-actions">
               <button 
-                onClick={() => navigate('/store/dressly')}
+                onClick={() => navigate('/saas/login')}
                 className="saas-btn-text"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
+                title="Acceso al Panel de Super Administrador del SaaS"
               >
-                Ver Tienda Dressly
+                <Lock className="w-4 h-4 text-amber-600" />
+                Iniciar Sesión
               </button>
               <button 
                 onClick={() => {
@@ -371,11 +379,11 @@ export const SaasLandingPage: React.FC = () => {
               <ChevronRight className="w-4 h-4" />
             </button>
             <button 
-              onClick={() => navigate('/store/dressly')}
+              onClick={() => navigate('/saas/login')}
               className="saas-btn-hero-secondary"
             >
-              <ShoppingBag className="w-4 h-4 text-amber-700" />
-              Ver Tienda Dressly
+              <Lock className="w-4 h-4 text-amber-700" />
+              Iniciar Sesión
             </button>
           </div>
 
@@ -688,8 +696,13 @@ export const SaasLandingPage: React.FC = () => {
           <div className="saas-grid-3">
             {/* Tenant 1: Dressly */}
             <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
-              <div className="saas-feature-icon-box" style={{ background: '#F8EFE6', color: '#9C6B40' }}>
-                <ShoppingBag className="w-6 h-6" />
+              <div className="saas-tenant-logo-badge">
+                <img 
+                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-dressly.jpg" 
+                  onError={(e) => { e.currentTarget.src = '/logo-dressly.jpg'; }}
+                  alt="Dressly Logo" 
+                  className="saas-tenant-logo-img" 
+                />
               </div>
               <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
                 ROPA FEMENINA &amp; MASCULINA
@@ -709,11 +722,16 @@ export const SaasLandingPage: React.FC = () => {
             </div>
 
             {/* Tenant 2: Aura Athletics */}
-            <div className="saas-card-feature" style={{ borderColor: '#00F2FE', background: '#F8FCFF' }}>
-              <div className="saas-feature-icon-box" style={{ background: '#E0F7FA', color: '#00838F' }}>
-                <Sparkles className="w-6 h-6" />
+            <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
+              <div className="saas-tenant-logo-badge">
+                <img 
+                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-aura.jpg" 
+                  onError={(e) => { e.currentTarget.src = '/logo-aura.jpg'; }}
+                  alt="Aura Athletics Logo" 
+                  className="saas-tenant-logo-img" 
+                />
               </div>
-              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#E0F2FE', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#0369A1', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
                 DEPORTIVO HOMBRE &amp; MUJER
               </div>
               <h3 className="saas-feature-title">Aura Athletics &amp; Sportswear</h3>
@@ -723,7 +741,7 @@ export const SaasLandingPage: React.FC = () => {
               <button 
                 onClick={() => navigate('/store/aura-sport')}
                 className="saas-btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#0284C7', borderColor: '#0284C7' }}
+                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#9C6B40', borderColor: '#9C6B40' }}
               >
                 Visitar Tienda Aura
                 <ArrowRight className="w-4 h-4" />
@@ -731,11 +749,16 @@ export const SaasLandingPage: React.FC = () => {
             </div>
 
             {/* Tenant 3: Urbanly Fashion Store */}
-            <div className="saas-card-feature" style={{ borderColor: '#F59E0B', background: '#FFFCF5' }}>
-              <div className="saas-feature-icon-box" style={{ background: '#FEF3C7', color: '#D97706' }}>
-                <Layers className="w-6 h-6" />
+            <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
+              <div className="saas-tenant-logo-badge">
+                <img 
+                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-urbanly.png" 
+                  onError={(e) => { e.currentTarget.src = '/logo-urbanly.png'; }}
+                  alt="Urbanly Logo" 
+                  className="saas-tenant-logo-img" 
+                />
               </div>
-              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#FEF3C7', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#B45309', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
                 OVERSIZE HOMBRE &amp; MUJER
               </div>
               <h3 className="saas-feature-title">Urbanly Fashion Store</h3>
@@ -745,7 +768,7 @@ export const SaasLandingPage: React.FC = () => {
               <button 
                 onClick={() => navigate('/store/urbanly')}
                 className="saas-btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#D97706', borderColor: '#D97706' }}
+                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#9C6B40', borderColor: '#9C6B40' }}
               >
                 Visitar Tienda Urbanly
                 <ArrowRight className="w-4 h-4" />
@@ -1332,7 +1355,12 @@ export const SaasLandingPage: React.FC = () => {
           <div className="saas-footer-grid">
             <div>
               <div className="saas-brand" style={{ marginBottom: '1rem' }}>
-                <div className="saas-logo-icon">FS</div>
+                <img 
+                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-fashionstore.png" 
+                  onError={(e) => { e.currentTarget.src = '/logo-fashionstore.png'; }}
+                  alt="FashionStore Logo" 
+                  className="saas-brand-logo-img" 
+                />
                 <div className="saas-brand-text">
                   <span className="saas-footer-brand-title">FashionStore</span>
                   <span className="saas-brand-badge">SaaS Cloud Platform</span>
