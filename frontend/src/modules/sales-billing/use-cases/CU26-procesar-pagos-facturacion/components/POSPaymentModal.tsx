@@ -29,7 +29,9 @@ import {
   Image as ImageIcon,
   Trash2,
   Sparkles,
+  Landmark,
 } from 'lucide-react';
+import api from '../../../../../services/api/api';
 import { printReceipt } from '../../../../../shared/utils/printReceipt';
 import './POSPaymentModal.css';
 
@@ -138,19 +140,141 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
     },
   ];
 
+  const BOLIVIAN_BANKS_POS = [
+    'Banco Unión',
+    'Banco de Crédito BCP',
+    'Banco Nacional de Bolivia (BNB)',
+    'Banco Mercantil Santa Cruz (BMSC)',
+    'Banco FIE',
+    'Banco Ganadero',
+    'Banco Económico',
+    'Banco Solidario (BancoSol)',
+    'Billetera Móvil Tigo Money',
+  ];
+
   const [selectedAccountId, setSelectedAccountId] = useState<string>('yape');
   const [generatedPosQrUrl, setGeneratedPosQrUrl] = useState<string>('');
   const [isQrGenerated, setIsQrGenerated] = useState<boolean>(false);
+
+  // Estados para Número de Cuenta Real y Generación Dinámica / Stereum
+  const [customBank, setCustomBank] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('pos_custom_bank_account');
+      if (saved) return JSON.parse(saved).bank || 'Banco Unión';
+    } catch {}
+    return 'Banco Unión';
+  });
+
+  const [customAccountNumber, setCustomAccountNumber] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('pos_custom_bank_account');
+      if (saved) return JSON.parse(saved).account || '1000003928174';
+    } catch {}
+    return '1000003928174';
+  });
+
+  const [customTitular, setCustomTitular] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('pos_custom_bank_account');
+      if (saved) return JSON.parse(saved).titular || 'Dressly Fashion Store S.R.L.';
+    } catch {}
+    return 'Dressly Fashion Store S.R.L.';
+  });
+
+  const [isGeneratingStereum, setIsGeneratingStereum] = useState<boolean>(false);
+  const [qrOriginLabel, setQrOriginLabel] = useState<string>('');
+
+  // Sincronizar número de cuenta al cambiar de banco en POS
+  const handleBankSelection = (newBank: string) => {
+    setCustomBank(newBank);
+    setIsQrGenerated(false);
+    try {
+      const rawTenant = localStorage.getItem('tenantKey') || 'dressly';
+      const tenantKey =
+        rawTenant === 'subversive-urban' || rawTenant === 'subversive'
+          ? 'urbanly'
+          : rawTenant === 'aura'
+          ? 'aura-sport'
+          : rawTenant === 'fashionstore'
+          ? 'dressly'
+          : rawTenant;
+      const saved = localStorage.getItem(`tenant_bank_accounts_${tenantKey}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[newBank]?.numero_cuenta) {
+          setCustomAccountNumber(parsed[newBank].numero_cuenta);
+          if (parsed[newBank].titular) setCustomTitular(parsed[newBank].titular);
+          return;
+        }
+      }
+    } catch {}
+  };
 
   // QR de Sucursal guardado en localStorage permanentemente
   const [savedPosQrImage, setSavedPosQrImage] = useState<string | null>(() => {
     return localStorage.getItem('dressly_pos_qr_image') || null;
   });
-  const [qrDisplayMode, setQrDisplayMode] = useState<'dinamico' | 'subido'>(() => {
-    return localStorage.getItem('dressly_pos_qr_image') ? 'subido' : 'dinamico';
-  });
+  const [qrDisplayMode, setQrDisplayMode] = useState<'cuenta_real' | 'dinamico' | 'subido'>('cuenta_real');
 
-  // Generador de código QR conectado a cuenta y monto
+  // Generador con número de cuenta bancaria real y/o pasarela Stereum
+  const handleGenerateCustomAccountQR = async (useStereum: boolean = false) => {
+    if (!customAccountNumber) {
+      setErrorMessage('Por favor ingresa un número de cuenta bancaria real.');
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        'pos_custom_bank_account',
+        JSON.stringify({ bank: customBank, account: customAccountNumber, titular: customTitular })
+      );
+    } catch {}
+
+    if (useStereum) {
+      setIsGeneratingStereum(true);
+      try {
+        const res = await api.post('/sales-billing/saas/stereum/create-charge', {
+          amountBOB: totalPagar,
+          accountNumber: customAccountNumber,
+          bankName: customBank,
+          accountHolder: customTitular,
+          chargeReason: `Cobro Venta POS - ${customBank}`,
+        });
+
+        if (res.data?.qr_base64) {
+          const qrSrc = res.data.qr_base64.startsWith('data:')
+            ? res.data.qr_base64
+            : `data:image/png;base64,${res.data.qr_base64}`;
+          setGeneratedPosQrUrl(qrSrc);
+          setIsQrGenerated(true);
+          setQrOriginLabel(`Stereum API Oficial • ${customBank} (${customAccountNumber})`);
+          setTransaccionRef(`STR-${Date.now().toString().slice(-6)}`);
+          return;
+        }
+      } catch (err) {
+        console.warn('Stereum API fallback a QR Simple boliviano:', err);
+      } finally {
+        setIsGeneratingStereum(false);
+      }
+    }
+
+    // Formato QR Simple Interoperable de Bolivia
+    const qrData = `QRSIMPLE|BANCO:${customBank}|CUENTA:${customAccountNumber}|TITULAR:${customTitular}|MONTO:${totalPagar.toFixed(2)}|BOB|GLOSA:POS-VENTA-${Date.now().toString().slice(-6)}`;
+    QRCode.toDataURL(qrData, {
+      width: 240,
+      margin: 2,
+      color: { dark: '#111827', light: '#ffffff' },
+    })
+      .then((url) => {
+        setGeneratedPosQrUrl(url);
+        setIsQrGenerated(true);
+        setQrOriginLabel(`QR Simple Interoperable • ${customBank} (${customAccountNumber})`);
+        setTransaccionRef(`QR-${customBank.replace(/\s+/g, '').toUpperCase().slice(0, 4)}-${Date.now().toString().slice(-6)}`);
+      })
+      .catch((err) => console.error('Error generando QR Simple:', err));
+  };
+
+  // Generador de código QR conectado a cuenta y monto predeterminado
   const handleGenerateQR = () => {
     const acc = POS_QR_ACCOUNTS.find((a) => a.id === selectedAccountId) || POS_QR_ACCOUNTS[0];
     const qrData = `${acc.name.toUpperCase()}|MONTO:${totalPagar.toFixed(2)}|BOB|BANCO:${acc.banco}|CUENTA:${acc.cuenta}|TITULAR:${acc.titular}|GLOSA:POS-VENTA-${Date.now().toString().slice(-6)}`;
@@ -162,6 +286,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
       .then((url) => {
         setGeneratedPosQrUrl(url);
         setIsQrGenerated(true);
+        setQrOriginLabel(`${acc.name} • ${acc.banco}`);
         setTransaccionRef(`QR-${acc.id.toUpperCase()}-${Date.now().toString().slice(-6)}`);
       })
       .catch((err) => console.error('Error generando QR:', err));
@@ -654,16 +779,45 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
             {/* Panel de QR con Conexión a Cuentas de Banco / Yape y Botón Generador */}
             {paymentMethod === 'qr' && (
               <div className="other-payment-box qr-center-box" style={{ textAlign: 'center' }}>
-                {/* Selector entre QR Conectado a Banco y QR subido de caja */}
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', width: '100%' }}>
+                {/* Selector de Modos de Cobro QR */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', marginBottom: '1rem', width: '100%' }}>
                   <button
                     type="button"
-                    onClick={() => setQrDisplayMode('dinamico')}
+                    onClick={() => {
+                      setQrDisplayMode('cuenta_real');
+                      setIsQrGenerated(false);
+                    }}
                     style={{
-                      flex: 1,
-                      padding: '0.5rem',
+                      padding: '0.5rem 0.3rem',
                       borderRadius: '6px',
-                      fontSize: '0.8rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: qrDisplayMode === 'cuenta_real' ? '#0D9488' : '#E5E7EB',
+                      background: qrDisplayMode === 'cuenta_real' ? '#0D9488' : '#F9FAFB',
+                      color: qrDisplayMode === 'cuenta_real' ? '#FFFFFF' : '#374151',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    <Landmark size={15} />
+                    <span>Mi Cuenta Real / Stereum</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQrDisplayMode('dinamico');
+                      setIsQrGenerated(false);
+                    }}
+                    style={{
+                      padding: '0.5rem 0.3rem',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       border: '1px solid',
                       borderColor: qrDisplayMode === 'dinamico' ? '#111827' : '#E5E7EB',
@@ -671,23 +825,26 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
                       color: qrDisplayMode === 'dinamico' ? '#FFFFFF' : '#374151',
                       cursor: 'pointer',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.35rem',
+                      gap: '0.2rem',
                     }}
                   >
                     <QrCode size={15} />
-                    <span>Generador QR (Banco / Yape)</span>
+                    <span>Billeteras Rápidas</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setQrDisplayMode('subido')}
+                    onClick={() => {
+                      setQrDisplayMode('subido');
+                      setIsQrGenerated(false);
+                    }}
                     style={{
-                      flex: 1,
-                      padding: '0.5rem',
+                      padding: '0.5rem 0.3rem',
                       borderRadius: '6px',
-                      fontSize: '0.8rem',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       border: '1px solid',
                       borderColor: qrDisplayMode === 'subido' ? '#111827' : '#E5E7EB',
@@ -695,17 +852,182 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
                       color: qrDisplayMode === 'subido' ? '#FFFFFF' : '#374151',
                       cursor: 'pointer',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.35rem',
+                      gap: '0.2rem',
                     }}
                   >
                     <ImageIcon size={15} />
-                    <span>QR Fijo de Caja Guardado</span>
+                    <span>QR Fijo de Caja</span>
                   </button>
                 </div>
 
-                {qrDisplayMode === 'dinamico' ? (
+                {qrDisplayMode === 'cuenta_real' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', textAlign: 'left' }}>
+                    <div style={{ background: '#F8FAFC', padding: '0.75rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0F172A', display: 'block', marginBottom: '0.5rem' }}>
+                        Datos de la Cuenta Bancaria para Cobro Inmediato:
+                      </span>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <div>
+                          <label style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', marginBottom: '2px' }}>
+                            Banco Receptor:
+                          </label>
+                          <select
+                            value={customBank}
+                            onChange={(e) => handleBankSelection(e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '0.4rem',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '0.78rem',
+                              background: '#FFFFFF',
+                            }}
+                          >
+                            {BOLIVIAN_BANKS_POS.map((b) => (
+                              <option key={b} value={b}>
+                                {b}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', marginBottom: '2px' }}>
+                            Nº Cuenta Bancaria Real:
+                          </label>
+                          <input
+                            type="text"
+                            value={customAccountNumber}
+                            onChange={(e) => {
+                              setCustomAccountNumber(e.target.value);
+                              setIsQrGenerated(false);
+                            }}
+                            placeholder="Ej: 1000003928174 o Celular Yape"
+                            style={{
+                              width: '100%',
+                              padding: '0.4rem',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              fontSize: '0.78rem',
+                              background: '#FFFFFF',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', marginBottom: '2px' }}>
+                          Nombre del Titular de la Cuenta:
+                        </label>
+                        <input
+                          type="text"
+                          value={customTitular}
+                          onChange={(e) => {
+                            setCustomTitular(e.target.value);
+                            setIsQrGenerated(false);
+                          }}
+                          placeholder="Ej: Dressly Fashion Store S.R.L."
+                          style={{
+                            width: '100%',
+                            padding: '0.4rem',
+                            borderRadius: '6px',
+                            border: '1px solid #CBD5E1',
+                            fontSize: '0.78rem',
+                            background: '#FFFFFF',
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Botones para Generar QR: Normal Simple o Stereum API */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateCustomAccountQR(false)}
+                        style={{
+                          padding: '0.65rem 0.5rem',
+                          borderRadius: '8px',
+                          background: '#0D9488',
+                          color: '#FFFFFF',
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.35rem',
+                        }}
+                      >
+                        <QrCode size={15} />
+                        <span>Generar QR de mi Cuenta ({totalPagar.toFixed(2)} Bs)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateCustomAccountQR(true)}
+                        disabled={isGeneratingStereum}
+                        style={{
+                          padding: '0.65rem 0.5rem',
+                          borderRadius: '8px',
+                          background: '#111827',
+                          color: '#FFFFFF',
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.35rem',
+                        }}
+                      >
+                        {isGeneratingStereum ? (
+                          <span>Generando Stereum...</span>
+                        ) : (
+                          <>
+                            <Sparkles size={15} color="#A7F3D0" />
+                            <span>Cobro con Stereum API</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* QR Generado en Pantalla para Cuenta Real */}
+                    {isQrGenerated && generatedPosQrUrl && (
+                      <div style={{ background: '#FFFFFF', padding: '0.85rem', borderRadius: '10px', border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', marginTop: '0.25rem', textAlign: 'center' }}>
+                        <img
+                          src={generatedPosQrUrl}
+                          alt="QR de Pago Generado"
+                          style={{
+                            width: '200px',
+                            height: '200px',
+                            borderRadius: '8px',
+                            border: '1px solid #E5E7EB',
+                            background: '#FFFFFF',
+                            padding: '6px',
+                          }}
+                        />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#111827' }}>
+                          Monto exacto: {totalPagar.toFixed(2)} Bs
+                        </span>
+                        <span style={{ fontSize: '0.74rem', color: '#0D9488', fontWeight: 600 }}>
+                          {qrOriginLabel || `${customBank} • Cta: ${customAccountNumber}`}
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#6B7280' }}>
+                          Titular: {customTitular}
+                        </span>
+                        <p style={{ fontSize: '0.72rem', color: '#059669', margin: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>QR generado exitosamente. Listo para escanear y pagar desde cualquier banca móvil</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : qrDisplayMode === 'dinamico' ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
                     {/* Selector de Cuentas: Yape, BMSC, BNB, Tigo */}
                     <div style={{ width: '100%', textAlign: 'left' }}>

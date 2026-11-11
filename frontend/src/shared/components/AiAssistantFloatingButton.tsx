@@ -50,7 +50,7 @@ export const AiAssistantFloatingButton: React.FC = () => {
             transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
             userSelect: 'none',
           }}
-          title="Guía rápida y consultas analíticas del sistema con IA (CU33)"
+          title="Guía rápida y consultas analíticas del sistema con IA"
         >
           <span
             style={{

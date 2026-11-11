@@ -7,6 +7,8 @@
  */
 import {
   Body,
+  BadRequestException,
+  ServiceUnavailableException,
   Controller,
   Get,
   Post,
@@ -46,6 +48,30 @@ import { NeuralAnalyticsService } from './neural-analytics.service.js';
 @UseGuards(JwtAuthGuard, FunctionGuard)
 export class ReportsDashboardController {
   private readonly logger = new Logger(ReportsDashboardController.name);
+
+  @Post('ai/transcribe')
+  @FunctionRequired('Consultar dashboard y reportes', 'Lectura')
+  async transcribe(@Body() body: { audio: string; mimeType: string }) {
+    const endpoint = process.env.REPORTS_STT_URL;
+    if (!endpoint) throw new ServiceUnavailableException('El servidor de transcripción no está configurado. Configura REPORTS_STT_URL con un servicio Whisper compatible.');
+    if (typeof body.audio !== 'string' || body.audio.length > 8000000 || !/^[A-Za-z0-9+/]*={0,2}$/.test(body.audio)) throw new BadRequestException('Audio inválido o demasiado grande. Máximo 6 MB.');
+    const formats: Record<string,string> = { 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'mp4', 'audio/wav': 'wav' };
+    const mime = (body.mimeType || '').split(';')[0];
+    if (!formats[mime]) throw new BadRequestException('Formato de audio no admitido.');
+    const data = new FormData();
+    data.append('file', new Blob([new Uint8Array(Buffer.from(body.audio, 'base64'))], {type: mime}), 'consulta.' + formats[mime]);
+    data.append('model', process.env.REPORTS_STT_MODEL || 'whisper-1');
+    data.append('language', 'es');
+    try {
+      const result = await fetch(endpoint, {method: 'POST', body: data, signal: AbortSignal.timeout(60000)});
+      if (!result.ok) throw new Error('STT HTTP ' + result.status);
+      const json = await result.json() as {text?: string};
+      if (!json.text?.trim()) throw new Error('Sin transcripción');
+      return {text: json.text.trim()};
+    } catch {
+      throw new ServiceUnavailableException('No se pudo transcribir el audio. Comprueba que el servicio Whisper esté iniciado y admita este formato de audio.');
+    }
+  }
 
   constructor(
     private readonly reportsService: ReportsDashboardService,

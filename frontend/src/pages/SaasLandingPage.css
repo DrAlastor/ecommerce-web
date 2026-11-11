@@ -27,9 +27,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(250, 248, 245, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-color: #FAF8F5;
   border-bottom: 1px solid rgba(26, 26, 26, 0.08);
   transition: all 0.25s ease;
 }
@@ -557,8 +555,7 @@
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.85);
   padding: 0.35rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.72rem;
@@ -704,8 +701,7 @@
   height: 3.25rem;
   border-radius: 50%;
   border: 1px solid rgba(26, 26, 26, 0.12);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
+  background: #FFFFFF;
   color: #1A1A1A;
   display: flex;
   align-items: center;
@@ -948,13 +944,12 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-color: rgba(18, 18, 18, 0.7);
-  backdrop-filter: blur(10px);
+  background-color: rgba(18, 18, 18, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: fadeIn 0.25s ease;
+  animation: fadeIn 0.2s ease;
 }
 
 @media (max-width: 768px) {
@@ -1346,8 +1341,122 @@
 }
 
 /* ========================================================
-   8. STRIPE CHECKOUT EXPERIENCIA 2 COLUMNAS (OFICIAL)
+   8. STRIPE Y STEREUM CHECKOUT EXPERIENCIA 2 COLUMNAS (OFICIAL)
    ======================================================== */
+.saas-gateway-selector {
+  display: flex;
+  gap: 0.75rem;
+  background: #F3EFEA;
+  padding: 0.35rem;
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+}
+
+.saas-gateway-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #666666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saas-gateway-tab:hover {
+  color: #1A1A1A;
+}
+
+.saas-gateway-tab.active {
+  background: #FFFFFF;
+  color: #1A1A1A;
+  border-color: rgba(26, 26, 26, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.saas-stereum-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  background: #FAF8F5;
+  border: 1px solid rgba(26, 26, 26, 0.08);
+  border-radius: 16px;
+  margin-top: 1rem;
+}
+
+.saas-stereum-qr-wrapper {
+  background: #FFFFFF;
+  padding: 1rem;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(26, 26, 26, 0.06);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.saas-stereum-qr-img {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.saas-stereum-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #E8F5E9;
+  color: #2E7D32;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  margin-bottom: 0.5rem;
+}
+
+.saas-stereum-amount {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  font-family: 'Playfair Display', serif;
+  margin: 0.25rem 0;
+}
+
+.saas-stereum-subtitle {
+  font-size: 0.82rem;
+  color: #666666;
+  max-width: 380px;
+  line-height: 1.4;
+}
+
+.saas-stereum-bank-logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.72rem;
+  color: #777777;
+}
+
+.saas-stereum-pill {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-weight: 600;
+}
+
 .saas-stripe-checkout-split {
   display: grid;
   grid-template-columns: 1fr;

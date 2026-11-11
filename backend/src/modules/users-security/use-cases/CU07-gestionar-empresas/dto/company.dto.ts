@@ -62,6 +62,61 @@ export class UpdateCompanyDto {
   @IsOptional()
   @IsString()
   logo_url?: string;
+
+  @IsOptional()
+  @IsString()
+  plan_id?: string;
+
+  @IsOptional()
+  @IsString()
+  plan_nombre?: string;
+
+  @IsOptional()
+  plan_precio?: number;
+
+  @IsOptional()
+  @IsString()
+  plan_ciclo?: string;
+
+  @IsOptional()
+  @IsString()
+  plan_fecha_renovacion?: string;
+
+  @IsOptional()
+  @IsString()
+  plan_estado?: string;
+
+  @IsOptional()
+  @IsString()
+  qr_cuenta_banco?: string;
+
+  @IsOptional()
+  @IsString()
+  qr_numero_cuenta?: string;
+
+  @IsOptional()
+  @IsString()
+  qr_titular?: string;
+
+  @IsOptional()
+  @IsString()
+  qr_documento_titular?: string;
+
+  @IsOptional()
+  @IsString()
+  qr_imagen_url?: string;
+
+  @IsOptional()
+  @IsString()
+  qr_tipo_cobro?: string;
+
+  @IsOptional()
+  @IsString()
+  estado?: string;
+
+  @IsOptional()
+  @IsString()
+  fecha_modificacion?: string;
 }
 
 export class RegisterCompanyDto {

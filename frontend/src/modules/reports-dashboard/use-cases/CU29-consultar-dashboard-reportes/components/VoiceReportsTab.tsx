@@ -31,6 +31,50 @@ export const VoiceReportsTab: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [speechSupported, setSpeechSupported] = useState<boolean>(true);
 
+  const [recording, setRecording] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => { mountedRef.current = true; return () => {
+    mountedRef.current = false;
+    if (recordingTimerRef.current) clearTimeout(recordingTimerRef.current);
+    const recorder = recorderRef.current;
+    if (recorder?.state === 'recording') recorder.stop();
+    recorder?.stream.getTracks().forEach(track => track.stop());
+  }; }, []);
+  const toggleServerRecording = async () => {
+    if (recorderRef.current?.state === 'recording') { recorderRef.current.stop(); return; }
+    stopVoiceRecognition(); stopSpeechSynthesis(); setErrorMessage(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      if (!mountedRef.current) { stream.getTracks().forEach(track => track.stop()); return; }
+      const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        if (recordingTimerRef.current) clearTimeout(recordingTimerRef.current);
+        if (!mountedRef.current) return;
+        setRecording(false); setVoiceState('processing');
+        try {
+          const blob = new Blob(chunks, {type: recorder.mimeType});
+          if (blob.size > 6000000) throw new Error('La grabación excede 6 MB.');
+          const encoded = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = reject; reader.readAsDataURL(blob);
+          });
+          const text = await reportsService.transcribe(encoded, recorder.mimeType);
+          if (!mountedRef.current) return;
+          setTranscriptText(text); await executeQuery(text);
+        } catch (error: any) {
+          if (!mountedRef.current) return;
+          setVoiceState('idle'); setErrorMessage(error.response?.data?.message || error.message || 'No se pudo transcribir la grabación.');
+        }
+      };
+      recorder.start(); setRecording(true);
+      recordingTimerRef.current = setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 60000);
+    } catch { setErrorMessage('No se pudo abrir el micrófono. Comprueba los permisos y utiliza HTTPS o localhost.'); }
+  };
   const recognitionRef = useRef<any>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
@@ -247,7 +291,8 @@ export const VoiceReportsTab: React.FC = () => {
   };
 
   // Iniciar reconocimiento de voz
-  const startListening = () => {
+  const startListening = async () => {
+    if (recorderRef.current?.state === 'recording') return;
     stopSpeechSynthesis();
     setErrorMessage(null);
     setTranscriptText('');
@@ -269,10 +314,20 @@ export const VoiceReportsTab: React.FC = () => {
 
       const userLang = navigator.language || 'es-419';
       recognition.lang = userLang.startsWith('es') ? userLang : 'es-419';
+      // Prefer an installed on-device language pack when the browser supports it.
+      if (typeof SpeechRecognition.available === 'function' && 'processLocally' in recognition) {
+        try {
+          const status = await SpeechRecognition.available({ langs: [recognition.lang], processLocally: true });
+          recognition.processLocally = status === 'available';
+        } catch {
+          // Availability may be restricted by browser policy; retain the default service.
+        }
+      }
       recognition.continuous = false;
       recognition.interimResults = true;
 
       let finalCaptured = '';
+      let recognitionFailed = false;
 
       recognition.onstart = () => {
         setVoiceState('listening');
@@ -292,6 +347,7 @@ export const VoiceReportsTab: React.FC = () => {
       };
 
       recognition.onerror = (event: any) => {
+        recognitionFailed = true;
         console.warn('SpeechRecognition error:', event.error);
         if (event.error === 'not-allowed') {
           setErrorMessage(
@@ -299,7 +355,7 @@ export const VoiceReportsTab: React.FC = () => {
           );
         } else if (event.error === 'network') {
           setErrorMessage(
-            'Error de red en el servicio de voz. Si estás utilizando Brave Browser, ve a brave://settings/extensions y activa "Usar los servicios de Google para el reconocimiento de voz", o bien utiliza Google Chrome o Microsoft Edge.',
+            'El servicio de reconocimiento de voz del navegador no responde. Puede ocurrir tambi?n en Chrome o Edge. Comprueba la conexi?n y posibles bloqueos de red; puedes escribir tu consulta mientras el servicio se recupera.',
           );
         } else if (event.error !== 'aborted') {
           setErrorMessage(`Aviso del micrófono: ${event.error}`);
@@ -308,7 +364,8 @@ export const VoiceReportsTab: React.FC = () => {
       };
 
       recognition.onend = () => {
-        const textToProcess = (finalCaptured || transcriptText).trim();
+        if (recognitionFailed) { setVoiceState('idle'); return; }
+        const textToProcess = finalCaptured.trim();
         if (textToProcess) {
           executeQuery(textToProcess);
         } else {
@@ -394,6 +451,12 @@ export const VoiceReportsTab: React.FC = () => {
         }
       `}</style>
 
+      <div style={{padding: '12px', textAlign: 'center'}}>
+        <button type="button" onClick={toggleServerRecording} disabled={!recording && voiceState !== 'idle'}>
+          {recording ? 'Detener y transcribir' : 'Grabar con transcriptor del servidor'}
+        </button>
+        <p>Alternativa al reconocimiento del navegador. Requiere un servicio de transcripción configurado por el administrador. Máximo 60 segundos.</p>
+      </div>
       {/* Encabezado del Entorno de Voz Compacto */}
       <div style={{ textAlign: 'center', marginBottom: '1.25rem', maxWidth: '680px' }}>
         <div
@@ -412,7 +475,7 @@ export const VoiceReportsTab: React.FC = () => {
           }}
         >
           <Sparkles size={13} color="#C4956A" />
-          <span>Caso de Uso CU33 — Consulta y Explicación de Reportes por Voz</span>
+          <span>Consulta y Explicación de Reportes Ejecutivos por Voz</span>
         </div>
 
         <h2

@@ -6,15 +6,40 @@ import { saveOfflineCashCount } from './offlineStorage';
 import { offlineContext } from './offlinePOS';
 import { printReceipt } from '../../shared/utils/printReceipt';
 import type { PaymentConfirmationResult } from '../../modules/sales-billing/types/payment-billing.types';
+import {
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Download,
+  ShieldCheck,
+  FileText,
+  Printer,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  AlertTriangle,
+  Coins,
+  Lock,
+  Upload,
+} from 'lucide-react';
+import './OfflinePOSPanel.css';
 
-export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number | null; canResolve?: boolean }) {
+export function OfflinePOSPanel({
+  branch,
+  canResolve = false,
+}: {
+  branch: number | null;
+  canResolve?: boolean;
+}) {
   const [online, setOnline] = useState(navigator.onLine);
   const [sales, setSales] = useState<OfflineSale[]>([]);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [initial, setInitial] = useState('0');
   const [counted, setCounted] = useState('0');
-  const [incidents, setIncidents] = useState<{ id: string; branch_id: number; response: { result?: { message?: string } } }[]>([]);
+  const [incidents, setIncidents] = useState<
+    { id: string; branch_id: number; response: { result?: { message?: string } } }[]
+  >([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [recoveryNote, setRecoveryNote] = useState('');
   const [recoverySession, setRecoverySession] = useState('');
@@ -25,15 +50,46 @@ export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number
   busyRef.current = busy;
   const cashIsOpen = Boolean(automatic?.preparation?.sessionId && !automatic.preparation.closed && Date.parse(automatic.preparation.expiresAt) !== 0);
   const errorText = (error: unknown) => (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error instanceof Error ? error.message : 'No se pudo completar la operación');
+
+  // Estados de acordeón colapsables
+  const [openArqueo, setOpenArqueo] = useState(false);
+  const [openConciliacion, setOpenConciliacion] = useState(false);
+  const [openPendientes, setOpenPendientes] = useState(false);
+  const [openConciliados, setOpenConciliados] = useState(false);
+
   const printSale = (sale: OfflineSale) => {
-    const receipt = (sale.status === 'CONFIRMED' ? sale.result : sale.receipt ?? sale.result) as PaymentConfirmationResult | undefined;
-    if (!receipt?.items || !receipt.cliente) { setMessage('Esta operación no tiene un comprobante local disponible. Conserva su identificador para la conciliación.'); return; }
-    printReceipt({ estado: receipt.estado_venta, codigo_factura: receipt.codigo_factura, fecha_venta: receipt.fecha, cliente: { nombre_completo: receipt.cliente.nombre_completo, ci: receipt.cliente.nit_ci }, items: receipt.items, subtotal: receipt.liquidacion.subtotal, descuento: receipt.liquidacion.descuento, total: receipt.liquidacion.total, pago: { metodo_pago: receipt.pago.metodo_pago } });
+    const receipt = (sale.status === 'CONFIRMED'
+      ? sale.result
+      : sale.receipt ?? sale.result) as PaymentConfirmationResult | undefined;
+    if (!receipt?.items || !receipt.cliente) {
+      setMessage('Esta operación no tiene un comprobante local disponible. Conserva su identificador para la conciliación.');
+      return;
+    }
+    printReceipt({
+      estado: receipt.estado_venta,
+      codigo_factura: receipt.codigo_factura,
+      fecha_venta: receipt.fecha,
+      cliente: {
+        nombre_completo: receipt.cliente.nombre_completo,
+        ci: receipt.cliente.nit_ci,
+      },
+      items: receipt.items,
+      subtotal: receipt.liquidacion.subtotal,
+      descuento: receipt.liquidacion.descuento,
+      total: receipt.liquidacion.total,
+      pago: { metodo_pago: receipt.pago.metodo_pago },
+    });
   };
+
   const refresh = useCallback(async () => {
     if (!branch) return;
-    try { setSales(await offlinePending(branch)); } catch { setSales([]); }
+    try {
+      setSales(await offlinePending(branch));
+    } catch {
+      setSales([]);
+    }
   }, [branch]);
+
   const sync = useCallback(async () => {
     if (!branch) return;
     setBusy(true);
@@ -41,9 +97,13 @@ export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number
       const result = await syncOfflinePOS(branch);
       setMessage(`Confirmadas: ${result.confirmed}. Revisión: ${result.review}. Pendientes de este envío: ${result.pending}.`);
       await refresh();
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo sincronizar'); }
-    finally { setBusy(false); }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudo sincronizar');
+    } finally {
+      setBusy(false);
+    }
   }, [branch, refresh]);
+
   useEffect(() => {
     void refresh();
     const changed = () => { void refresh(); };

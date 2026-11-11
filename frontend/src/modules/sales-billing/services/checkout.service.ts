@@ -6,6 +6,11 @@ import type {
 } from '../types/checkout.types';
 
 export const checkoutService = {
+  async getBankQr(): Promise<string> {
+    const tenant = localStorage.getItem('tenantKey') || 'dressly';
+    const res = await api.get('/users-security/company/public/' + encodeURIComponent(tenant));
+    return res.data.qr_imagen_url || '';
+  },
   /**
    * Crea un PaymentIntent de Stripe o simula sesión de pago para el monto del carrito
    */

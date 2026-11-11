@@ -249,37 +249,59 @@
   position: relative;
   background: none;
   border: none;
-  color: #2D2D2D;
+  color: #1A1A1A;
   cursor: pointer;
-  padding: 0.45rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s, color 0.2s, transform 0.15s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.action-icon-btn svg,
+.action-icon-btn .nav-action-icon {
+  width: 26px;
+  height: 26px;
+  stroke: currentColor !important;
+  stroke-width: 2.2px;
+  display: block;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
 }
 
 .action-icon-btn:hover {
-  background-color: #F4EFEB;
-  color: #1A1A1A;
-  transform: translateY(-1px);
+  background-color: rgba(196, 149, 106, 0.14);
+  color: #C4956A;
+  transform: translateY(-2px);
+}
+
+.action-icon-btn:hover svg,
+.action-icon-btn:hover .nav-action-icon {
+  transform: scale(1.1);
 }
 
 .action-badge {
   position: absolute;
-  top: 0px;
-  right: 0px;
+  top: -2px;
+  right: -2px;
   background-color: #1A1A1A;
   color: #FFFFFF;
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .cart-badge {

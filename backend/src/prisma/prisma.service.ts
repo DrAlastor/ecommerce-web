@@ -41,7 +41,7 @@ export class PrismaService
 
         // Extraer credenciales y host para derivar cadenas de conexión de cada tenant
         const urlObj = new URL(defaultUrl);
-        this.baseConnectionUrl = `${urlObj.protocol}//${urlObj.username}:${encodeURIComponent(urlObj.password)}@${urlObj.host}`;
+        this.baseConnectionUrl = `${urlObj.protocol}//${urlObj.username}:${urlObj.password}@${urlObj.host}`;
         this.defaultSearch = urlObj.search || '?schema=public';
 
         // Registrar cliente por defecto (dressly_db)
@@ -113,8 +113,8 @@ export class PrismaService
             this.clients.set(key, client);
             return client;
         } catch (err: any) {
-            this.logger.warn(`No se pudo inicializar conexión a ${dbName} para ${key}: ${err.message}. Utilizando conexión base.`);
-            return this;
+            this.logger.error(`No se pudo inicializar conexión a ${dbName} para ${key}: ${err.message}`);
+            throw err;
         }
     }
 

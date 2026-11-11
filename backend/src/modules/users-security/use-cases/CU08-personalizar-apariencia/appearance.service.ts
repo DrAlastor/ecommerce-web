@@ -221,7 +221,7 @@ export class AppearanceService {
 
   async getAppearance(tenantKey?: string, userId: number = 1, ip?: string): Promise<AppearanceRecord> {
     const key = (tenantKey || 'dressly').toLowerCase().trim();
-    const theme = await this.storage.get(key) || this.defaultThemes[key] || this.defaultThemes['dressly'];
+    const theme = await this.storage.get(key) || this.defaultThemes[key] || { ...this.defaultThemes['dressly'], codigo_empresa: key, site_title: key, logo_url: '', hero_banner_url: '', hero_headline: '', hero_subheadline: '', hero_description: '', tagline: '', badge: '' };
 
     if (ip && userId) {
       await this.bitacoraService.logAction(
@@ -246,7 +246,7 @@ export class AppearanceService {
     ip?: string,
   ): Promise<{ success: boolean; message: string; data: AppearanceRecord }> {
     const key = (dto.codigo_empresa || tenantKey || 'dressly').toLowerCase().trim();
-    const existing = await this.storage.get(key) || this.defaultThemes[key] || this.defaultThemes['dressly'];
+    const existing = await this.storage.get(key) || this.defaultThemes[key] || { ...this.defaultThemes['dressly'], codigo_empresa: key, site_title: key, logo_url: '', hero_banner_url: '', hero_headline: '', hero_subheadline: '', hero_description: '', tagline: '', badge: '' };
 
     const primary = dto.primary_color || existing.primary_color;
     const secondary = dto.secondary_color || existing.secondary_color;

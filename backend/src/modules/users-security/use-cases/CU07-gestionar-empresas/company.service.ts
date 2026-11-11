@@ -1,3 +1,4 @@
+import { Stripe } from 'stripe';
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
@@ -25,6 +26,18 @@ export interface CompanyRecord {
   estado: string;
   logo_url: string;
   fecha_modificacion: string;
+  plan_id?: string;
+  plan_nombre?: string;
+  plan_precio?: number;
+  plan_ciclo?: string;
+  plan_fecha_renovacion?: string;
+  plan_estado?: string;
+  qr_cuenta_banco?: string;
+  qr_numero_cuenta?: string;
+  qr_titular?: string;
+  qr_documento_titular?: string;
+  qr_imagen_url?: string;
+  qr_tipo_cobro?: string;
 }
 
 @Injectable()
@@ -49,6 +62,18 @@ export class CompanyService {
       estado: 'ACTIVO',
       logo_url: '/logo.jpg',
       fecha_modificacion: new Date().toISOString(),
+      plan_id: 'plan-enterprise',
+      plan_nombre: 'Plan Premium',
+      plan_precio: 69.9,
+      plan_ciclo: 'monthly',
+      plan_fecha_renovacion: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+      plan_estado: 'ACTIVO',
+      qr_cuenta_banco: 'Banco Unión',
+      qr_numero_cuenta: '1000003928174',
+      qr_titular: 'Dressly Fashion Store S.R.L.',
+      qr_documento_titular: '1029384756',
+      qr_imagen_url: '',
+      qr_tipo_cobro: 'cuenta',
     },
     'aura-sport': {
       codigo_empresa: 'aura-sport',
@@ -65,6 +90,18 @@ export class CompanyService {
       estado: 'ACTIVO',
       logo_url: '/logo-aura.jpg',
       fecha_modificacion: new Date().toISOString(),
+      plan_id: 'plan-pro',
+      plan_nombre: 'Plan Profesional',
+      plan_precio: 49.9,
+      plan_ciclo: 'monthly',
+      plan_fecha_renovacion: new Date(Date.now() + 25 * 24 * 3600 * 1000).toISOString(),
+      plan_estado: 'ACTIVO',
+      qr_cuenta_banco: 'Banco de Crédito BCP',
+      qr_numero_cuenta: '2015093848123',
+      qr_titular: 'Aura Athletics & Sportswear S.A.',
+      qr_documento_titular: '9876543210',
+      qr_imagen_url: '',
+      qr_tipo_cobro: 'cuenta',
     },
     urbanly: {
       codigo_empresa: 'urbanly',
@@ -81,6 +118,18 @@ export class CompanyService {
       estado: 'ACTIVO',
       logo_url: '/logo-urbanly.jpg',
       fecha_modificacion: new Date().toISOString(),
+      plan_id: 'plan-enterprise',
+      plan_nombre: 'Plan Premium',
+      plan_precio: 69.9,
+      plan_ciclo: 'monthly',
+      plan_fecha_renovacion: new Date(Date.now() + 28 * 24 * 3600 * 1000).toISOString(),
+      plan_estado: 'ACTIVO',
+      qr_cuenta_banco: 'Banco Nacional de Bolivia (BNB)',
+      qr_numero_cuenta: '3500293847',
+      qr_titular: 'Urbanly Fashion Store S.R.L.',
+      qr_documento_titular: '5647382910',
+      qr_imagen_url: '',
+      qr_tipo_cobro: 'cuenta',
     },
   };
 
@@ -107,16 +156,19 @@ export class CompanyService {
   ): Promise<void> {
     const dbName = `${tenantKey.replace(/[^a-z0-9_]/g, '_')}_db`;
     const defaultUrl = this.configService.getOrThrow<string>('DATABASE_URL');
-    const urlObj = new URL(defaultUrl);
-    const serverUrl = `${urlObj.protocol}//${urlObj.username}:${encodeURIComponent(urlObj.password)}@${urlObj.host}/postgres?sslmode=require`;
+    const serverConnection = new URL(defaultUrl);
+    serverConnection.pathname = '/postgres';
+    const serverUrl = serverConnection.toString();
 
     const client = new Client({ connectionString: serverUrl });
+    let createdNewDb = false;
     try {
       await client.connect();
       const checkRes = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
       if (checkRes.rowCount === 0) {
         this.logger.log(`Aprovisionando base de datos física para nuevo inquilino: ${dbName}...`);
         await client.query(`CREATE DATABASE "${dbName}";`);
+        createdNewDb = true;
         this.logger.log(`Base de datos ${dbName} creada con éxito en Azure PostgreSQL.`);
 
         // Cargar esquema estructural DDL de EsquemaEcommerce.sql probando rutas candidatas
@@ -133,7 +185,7 @@ export class CompanyService {
         }
 
         const tenantDbClient = new Client({
-          connectionString: `${urlObj.protocol}//${urlObj.username}:${encodeURIComponent(urlObj.password)}@${urlObj.host}/${dbName}?sslmode=require`,
+          connectionString: (() => { const tenantUrl = new URL(defaultUrl); tenantUrl.pathname = '/' + dbName; return tenantUrl.toString(); })(),
         });
         await tenantDbClient.connect();
 
@@ -191,6 +243,16 @@ export class CompanyService {
       // También se ejecuta al reintentar un aprovisionamiento parcialmente completado.
       await this.provisionTenantAppearance(tenantKey, companyName);
     } catch (err: any) {
+      if (createdNewDb) {
+        try {
+          this.logger.warn(`Rollback: eliminando base de datos incompleta ${dbName} por fallo en alta...`);
+          await client.query(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1;`, [dbName]);
+          await client.query(`DROP DATABASE IF EXISTS "${dbName}";`);
+          this.logger.log(`Rollback completado para ${dbName}. Base de datos eliminada.`);
+        } catch (cleanupErr: any) {
+          this.logger.error(`Error en rollback de ${dbName}: ${cleanupErr.message}`);
+        }
+      }
       this.logger.error(`Error aprovisionando base de datos para ${tenantKey}: ${err.message}`);
       throw new BadRequestException(`Fallo en el aprovisionamiento de la base de datos para ${tenantKey}: ${err.message}`);
     } finally {
@@ -213,7 +275,7 @@ export class CompanyService {
           hero_headline: 'NUEVA COLECCIÓN',
           hero_subheadline: companyName.toUpperCase(),
           hero_description: `Descubre las prendas y tendencias exclusivas diseñadas por ${companyName}.`,
-          hero_banner_url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop',
+          hero_banner_url: '',
           badge: 'NUEVO LANZAMIENTO',
           cta_primary_text: 'Explorar Catálogo',
           cta_secondary_text: 'Ver Novedades',
@@ -269,7 +331,12 @@ export class CompanyService {
   async getCompanyInfo(tenantKey?: string, userId: number = 1, ip?: string): Promise<CompanyRecord> {
     const key = (tenantKey || 'dressly').toLowerCase().trim();
     const all = this.loadAll();
-    const company = all[key] || all['dressly'] || this.defaultCompanies['dressly'];
+    const defaults = this.defaultCompanies[key];
+    if (!all[key] && !defaults) throw new BadRequestException('Empresa no encontrada.');
+    const company: CompanyRecord = {
+      ...defaults,
+      ...(all[key] || {}),
+    };
 
     if (ip && userId) {
       await this.bitacoraService.logAction(
@@ -285,7 +352,10 @@ export class CompanyService {
 
   async listAllCompanies(): Promise<CompanyRecord[]> {
     const all = this.loadAll();
-    return Object.values(all);
+    return Object.keys(all).map((key) => ({
+      ...(this.defaultCompanies[key] || {}),
+      ...all[key],
+    }));
   }
 
   async updateCompany(
@@ -309,6 +379,9 @@ export class CompanyService {
       }
     }
 
+    if (dto.qr_imagen_url && (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(dto.qr_imagen_url) || dto.qr_imagen_url.length > 2800000)) {
+      throw new BadRequestException('El QR debe ser una imagen PNG, JPEG o WebP de hasta 2 MB.');
+    }
     const updated: CompanyRecord = {
       ...existing,
       ...dto,
@@ -360,8 +433,19 @@ export class CompanyService {
       throw new BadRequestException(`El identificador de empresa "${key}" ya está en uso. Por favor elija otro.`);
     }
 
+    const plan = dto.plan_id || 'PRUEBA';
+    if (plan !== 'PRUEBA' && plan !== 'trial') {
+      const secret = this.configService.get<string>('STRIPE_SECRET_KEY');
+      if (!secret || !dto.stripe_tx_id?.startsWith('cs_')) throw new BadRequestException('Completa primero el pago en Stripe Checkout.');
+      const stripe = new Stripe(secret);
+      const session = await stripe.checkout.sessions.retrieve(dto.stripe_tx_id);
+      if (session.payment_status !== 'paid' || session.metadata?.empresa !== key || session.metadata?.plan !== plan || session.metadata?.adminEmail?.toLowerCase() !== dto.admin_email.toLowerCase()) {
+        throw new BadRequestException('El pago aún no está confirmado o no corresponde a esta empresa, plan y administrador.');
+      }
+    }
     const newCompany: CompanyRecord = {
       codigo_empresa: key,
+      plan_id: plan,
       razon_social: dto.razon_social.trim(),
       nombre_comercial: dto.nombre_comercial.trim(),
       nit: dto.nit.trim(),
@@ -373,14 +457,12 @@ export class CompanyService {
       ciudad_nombre: dto.ciudad_nombre || 'Santa Cruz de la Sierra',
       direccion: dto.direccion || 'Oficina Central',
       estado: 'ACTIVO',
-      logo_url: dto.logo_url || '/logo.jpg',
+      logo_url: dto.logo_url || '',
       fecha_modificacion: new Date().toISOString(),
     };
 
-    all[key] = newCompany;
-    this.saveAll(all);
-
-    // Aprovisionar físicamente la base de datos y el usuario admin
+    // Aprovisionar físicamente la base de datos y el usuario admin PRIMERO.
+    // Si ocurre un error, no se persiste nada en tenants_company.json ni en el sistema.
     await this.provisionTenantDatabase(
       key,
       newCompany.nombre_comercial,
@@ -389,6 +471,10 @@ export class CompanyService {
       dto.admin_nombre,
       dto.admin_telefono,
     );
+
+    // Persistir en almacenamiento ÚNICAMENTE tras confirmación de creación exitosa
+    all[key] = newCompany;
+    this.saveAll(all);
 
     this.logger.log(`Nueva empresa [${key}] registrada y aprovisionada exitosamente con base de datos ${key}_db`);
 

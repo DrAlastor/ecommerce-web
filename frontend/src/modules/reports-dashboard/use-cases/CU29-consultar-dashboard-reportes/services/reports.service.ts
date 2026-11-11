@@ -215,6 +215,10 @@ export const reportsService = {
   /**
    * CU33 — Síntesis de voz directa desde el backend (audio/wav streaming)
    */
+  async transcribe(audio: string, mimeType: string): Promise<string> {
+    const result = await api.post('/reports/ai/transcribe', {audio, mimeType}, {timeout: 65000});
+    return result.data.text;
+  },
   async getSpeechAudio(text: string): Promise<Blob> {
     const res = await api.post('/reports/ai/tts', { text }, {
       responseType: 'blob',

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Building2, 
   Sparkles, 
@@ -15,12 +15,17 @@ import {
   ChevronRight,
   Users,
   Tag,
-  ExternalLink,
   CheckCircle2,
   Lock,
+  QrCode,
+  RefreshCw,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './SaasLandingPage.css';
+const publicApiFetch = (path: string, options: RequestInit) => fetch(
+  (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '') + path,
+  {...options, signal: AbortSignal.timeout(120000)},
+);
 
 interface Plan {
   id: string;
@@ -169,23 +174,60 @@ export const SaasLandingPage: React.FC = () => {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
 
+  // Selector de Pasarela: Stereum (QR Bolivia) vs Stripe (Internacional)
+  const [paymentGateway, setPaymentGateway] = useState<'stereum' | 'stripe'>('stripe');
+  const [stereumLoading, setStereumLoading] = useState(false);
+  const [stereumQrBase64, setStereumQrBase64] = useState<string | null>(null);
+  const [stereumTxId, setStereumTxId] = useState<string | null>(null);
+  const [stereumAmountBob, setStereumAmountBob] = useState<number | null>(null);
+
   // Formulario Paso 3: Pasarela de Pago con Stripe Checkout
   const exchangeRateBOB = 12.3656;
   const [stripeCurrency, setStripeCurrency] = useState<'BOB' | 'USD'>('BOB');
-  const [saveCardLink, setSaveCardLink] = useState(true);
   const [stripeCheckoutLoading, setStripeCheckoutLoading] = useState(false);
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExp, setCardExp] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
-  const [cardHolder, setCardHolder] = useState('');
   const [stripeProcessing, setStripeProcessing] = useState(false);
   const [stripeTxId, setStripeTxId] = useState('');
+  const [publicStores, setPublicStores] = useState<{codigo_empresa: string; nombre_comercial: string; logo_url: string}[]>([]);
+  const [storeLoadError, setStoreLoadError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const res = await publicApiFetch('/users-security/company/public', {});
+        if (!res.ok) throw new Error('Tiendas no disponibles');
+        const stores = await res.json();
+        if (active) { setPublicStores(stores); setStoreLoadError(false); }
+      } catch { if (active) setStoreLoadError(true); }
+    };
+    void refresh(); window.addEventListener('focus', refresh);
+    return () => { active = false; window.removeEventListener('focus', refresh); };
+  }, []);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  useEffect(() => { setStripeTxId(''); }, [selectedPlan?.id, billingCycle, codigoEmpresa, adminEmail, stripeCurrency]);
 
   const baseUSD = selectedPlan ? (billingCycle === 'monthly' ? selectedPlan.priceMonth : selectedPlan.priceYear) : 0;
   const amountBOB = (baseUSD * exchangeRateBOB).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const amountUSD = baseUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const currentDisplayAmount = stripeCurrency === 'BOB' ? `${amountBOB} BOB` : `${amountUSD} US$`;
+
+  // Utilidad para parseo HTTP seguro sin fallos de "Unexpected end of JSON input"
+  const parseSafeResponse = async (res: Response) => {
+    const text = await res.text();
+    if (!text || text.trim() === '') {
+      if (!res.ok) {
+        throw new Error(`El servidor respondió con código HTTP ${res.status} (${res.statusText || 'Error de conexión'}). Verifique que el servicio backend esté activo.`);
+      }
+      return {};
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      if (!res.ok) {
+        throw new Error(`Error del servidor (${res.status}): ${text.substring(0, 180)}`);
+      }
+      return { message: text };
+    }
+  };
 
   // Manejadores de Carrusel de Planes
   const scrollLeft = () => {
@@ -207,19 +249,51 @@ export const SaasLandingPage: React.FC = () => {
     setShowModal(true);
   };
 
-  // Autocompletar tarjeta de pruebas oficial de Stripe
-  const fillStripeTestCard = () => {
-    setCardNumber('4242 4242 4242 4242');
-    setCardExp('12/28');
-    setCardCvc('123');
-    setCardHolder(ownerName || nombreComercial || 'ALESSANDRO YEVARA');
+  // Genera o consulta el cobro QR oficial en Stereum
+  const loadStereumCharge = async () => {
+    if (!selectedPlan) return;
+    setStereumLoading(true);
+    try {
+      const slug = (codigoEmpresa || nombreComercial.toLowerCase().replace(/[^a-z0-9]/g, '')).trim();
+      const res = await publicApiFetch('/sales-billing/saas/stereum/create-charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          planName: selectedPlan.name,
+          priceUSD: baseUSD,
+          currency: 'BOB',
+          billingCycle,
+          empresaSlug: slug,
+          nombreComercial: nombreComercial || razonSocial,
+          adminEmail,
+        }),
+      });
+      const data = await parseSafeResponse(res);
+      if (data?.qr_base64) {
+        setStereumQrBase64(data.qr_base64);
+      }
+      if (data?.id) {
+        setStereumTxId(data.id);
+      }
+      if (data?.amount) {
+        setStereumAmountBob(data.amount);
+      }
+    } catch (err: any) {
+      console.warn('Stereum load fallback:', err.message);
+    } finally {
+      setStereumLoading(false);
+    }
   };
 
+  // Autocompletar tarjeta de pruebas oficial de Stripe
   const handleOpenHostedStripeCheckout = async () => {
     if (!selectedPlan) return;
+    const checkoutWindow = window.open('about:blank', '_blank');
+    if (!checkoutWindow) { alert('Permite ventanas emergentes para abrir Stripe.'); return; }
     setStripeCheckoutLoading(true);
     try {
-      const res = await fetch('/api/sales-billing/saas/create-checkout-session', {
+      const res = await publicApiFetch('/sales-billing/saas/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -230,30 +304,46 @@ export const SaasLandingPage: React.FC = () => {
           billingCycle,
           razonSocial,
           nombreComercial,
-          codigoEmpresa,
+          codigoEmpresa: (codigoEmpresa || nombreComercial.toLowerCase().replace(/[^a-z0-9]/g, '')).trim(),
           adminEmail,
         }),
       });
-      const data = await res.json();
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        alert('Sesión Stripe de prueba inicializada: ' + (data?.sessionId || 'cs_test_mock'));
+      const data = await parseSafeResponse(res);
+      if (!res.ok) {
+        throw new Error(data?.message || 'Error al inicializar sesión de Stripe.');
       }
-    } catch {
-      alert('Sesión Stripe de prueba inicializada correctamente.');
+      if (data?.url) {
+        setStripeTxId(data.sessionId);
+        checkoutWindow.location.href = data.url;
+        if (!checkoutWindow) throw new Error('Permite las ventanas emergentes para abrir Stripe y vuelve a intentarlo.');
+      } else {
+        throw new Error(data?.message || data?.error || 'Stripe no devolvió una sesión de pago válida.');
+      }
+    } catch (err: any) {
+      checkoutWindow.close();
+      alert(err.message || 'Error al conectar con Stripe Checkout.');
     } finally {
       setStripeCheckoutLoading(false);
     }
   };
 
-  const handleProcessStripePayment = async (e: React.FormEvent) => {
+  const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setStripeProcessing(true);
 
     try {
-      const generatedTxId = `pi_stripe_${Math.random().toString(36).substring(2, 11)}_${Date.now()}`;
       const slug = (codigoEmpresa || nombreComercial.toLowerCase().replace(/[^a-z0-9]/g, '')).trim();
+      if (!slug) {
+        throw new Error('Debe ingresar un identificador único (slug) para su empresa.');
+      }
+
+      const isTrial = selectedPlan?.id === 'PRUEBA';
+      if (!isTrial && paymentGateway !== 'stripe') throw new Error('El alta de planes de pago requiere confirmación de Stripe. El QR no tiene verificación automática configurada.');
+      if (!isTrial && !stripeTxId.startsWith('cs_')) {
+        await handleOpenHostedStripeCheckout();
+        return;
+      }
+      const generatedTxId = isTrial ? '' : stripeTxId;
 
       const payload = {
         codigo_empresa: slug,
@@ -276,15 +366,18 @@ export const SaasLandingPage: React.FC = () => {
         stripe_tx_id: generatedTxId,
       };
 
-      const res = await fetch('/api/users-security/company/register', {
+      const res = await publicApiFetch('/users-security/company/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      const responseData = await res.json();
+      const responseData = await parseSafeResponse(res);
       if (!res.ok) {
-        throw new Error(responseData?.message || 'Error en el registro y aprovisionamiento de la empresa.');
+        const errorMsg = Array.isArray(responseData?.message)
+          ? responseData.message.join('. ')
+          : (responseData?.message || 'Error en el registro y aprovisionamiento de la empresa.');
+        throw new Error(errorMsg);
       }
 
       setStripeTxId(generatedTxId);
@@ -297,6 +390,8 @@ export const SaasLandingPage: React.FC = () => {
       }, 3500);
     } catch (err: any) {
       alert(err.message || 'Error al procesar el registro.');
+      setStripeProcessing(false);
+    } finally {
       setStripeProcessing(false);
     }
   };
@@ -693,87 +788,14 @@ export const SaasLandingPage: React.FC = () => {
             </p>
           </div>
 
+          {storeLoadError && <p>No se pudo cargar la lista de tiendas. Vuelve a intentarlo al recuperar la conexión.</p>}
           <div className="saas-grid-3">
-            {/* Tenant 1: Dressly */}
-            <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
-              <div className="saas-tenant-logo-badge">
-                <img 
-                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-dressly.jpg" 
-                  onError={(e) => { e.currentTarget.src = '/logo-dressly.jpg'; }}
-                  alt="Dressly Logo" 
-                  className="saas-tenant-logo-img" 
-                />
-              </div>
-              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
-                ROPA FEMENINA &amp; MASCULINA
-              </div>
-              <h3 className="saas-feature-title">Dressly Fashion Store</h3>
-              <p className="saas-feature-text">
-                Tienda de moda femenina y masculina con vestidor virtual 3D, colecciones completas para hombre y mujer, múltiples sucursales y stock en vivo.
-              </p>
-              <button 
-                onClick={() => navigate('/store/dressly')}
-                className="saas-btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#9C6B40', borderColor: '#9C6B40' }}
-              >
-                Visitar Tienda Dressly
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Tenant 2: Aura Athletics */}
-            <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
-              <div className="saas-tenant-logo-badge">
-                <img 
-                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-aura.jpg" 
-                  onError={(e) => { e.currentTarget.src = '/logo-aura.jpg'; }}
-                  alt="Aura Athletics Logo" 
-                  className="saas-tenant-logo-img" 
-                />
-              </div>
-              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
-                DEPORTIVO HOMBRE &amp; MUJER
-              </div>
-              <h3 className="saas-feature-title">Aura Athletics &amp; Sportswear</h3>
-              <p className="saas-feature-text">
-                Indumentaria técnica para hombre y mujer: compresión Dry-Fit, calzado de running, tops, shorts y accesorios de alto rendimiento.
-              </p>
-              <button 
-                onClick={() => navigate('/store/aura-sport')}
-                className="saas-btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#9C6B40', borderColor: '#9C6B40' }}
-              >
-                Visitar Tienda Aura
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Tenant 3: Urbanly Fashion Store */}
-            <div className="saas-card-feature" style={{ borderColor: '#C4956A', background: '#FFFDFB' }}>
-              <div className="saas-tenant-logo-badge">
-                <img 
-                  src="https://fashionstorestorages.blob.core.windows.net/media/logo-urbanly.png" 
-                  onError={(e) => { e.currentTarget.src = '/logo-urbanly.png'; }}
-                  alt="Urbanly Logo" 
-                  className="saas-tenant-logo-img" 
-                />
-              </div>
-              <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: '#F3E5D8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#8A5A30', marginBottom: '0.5rem' }}>
-                OVERSIZE HOMBRE &amp; MUJER
-              </div>
-              <h3 className="saas-feature-title">Urbanly Fashion Store</h3>
-              <p className="saas-feature-text">
-                Moda urbana y streetwear contemporáneo para hombre y mujer: hoodies boxy-fit de 500 GSM, pantalones cargo tácticos, poleras oversize en tonos neutros y accesorios.
-              </p>
-              <button 
-                onClick={() => navigate('/store/urbanly')}
-                className="saas-btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center', background: '#9C6B40', borderColor: '#9C6B40' }}
-              >
-                Visitar Tienda Urbanly
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            {publicStores.map(store => <div key={store.codigo_empresa} className="saas-card-feature">
+              {store.logo_url && <div className="saas-tenant-logo-badge"><img src={store.logo_url} alt={store.nombre_comercial} className="saas-tenant-logo-img" onError={e => {e.currentTarget.style.display='none';}} /></div>}
+              <h3 className="saas-feature-title">{store.nombre_comercial}</h3>
+              <p className="saas-feature-text">Explora el catálogo de esta tienda.</p>
+              <button className="saas-btn-primary" onClick={() => navigate('/store/' + encodeURIComponent(store.codigo_empresa))}>Visitar tienda <ArrowRight size={18} /></button>
+            </div>)}
           </div>
         </div>
       </section>
@@ -814,7 +836,7 @@ export const SaasLandingPage: React.FC = () => {
               </div>
               <div className={`saas-step-item ${step === 3 ? 'active' : ''}`}>
                 <div className="saas-step-num">3</div>
-                <span>3. Pasarela Stripe</span>
+                <span>3. Pasarela de Pago</span>
               </div>
             </div>
 
@@ -1099,7 +1121,7 @@ export const SaasLandingPage: React.FC = () => {
                         <span>Volver a Datos de Empresa</span>
                       </button>
                       <button type="submit" className="saas-btn-hero-main" style={{ padding: '0.85rem 2rem' }}>
-                        <span>Continuar al Pago con Stripe</span>
+                        Continuar al Pago con Stripe
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -1107,36 +1129,170 @@ export const SaasLandingPage: React.FC = () => {
                 )}
 
                 {/* ========================================================
-                    PASO 3: PASARELA DE PAGO CON STRIPE CHECKOUT OFICIAL
+                    PASO 3: PASARELA DE PAGO OFICIAL (STEREUM QR + STRIPE)
                     ======================================================== */}
                 {step === 3 && (
-                  <form onSubmit={handleProcessStripePayment}>
-                    <div className="saas-stripe-checkout-split">
-                      {/* Columna Izquierda: Entorno de prueba, divisa y resumen */}
-                      <div className="saas-sc-left">
-                        <button
-                          type="button"
-                          onClick={() => setStep(2)}
-                          className="saas-sc-back-btn"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                          <span>Volver a Datos de Administrador</span>
-                        </button>
+                  <div>
+                    {/* Selector de Pasarela */}
+                    <div className="saas-gateway-selector">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaymentGateway('stereum');
+                          if (!stereumQrBase64) loadStereumCharge();
+                        }}
+                        className={`saas-gateway-tab ${paymentGateway === 'stereum' ? 'active' : ''}`}
+                      >
+                        <QrCode className="w-4 h-4" />
+                        <span>🇧🇴 Stereum Pay (Pago QR / Cripto BOB)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentGateway('stripe')}
+                        className={`saas-gateway-tab ${paymentGateway === 'stripe' ? 'active' : ''}`}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        <span>💳 Stripe Checkout (Tarjeta Internacional)</span>
+                      </button>
+                    </div>
+
+                    {paymentGateway === 'stereum' ? (
+                      <form onSubmit={handleProcessPayment}>
+                        <div className="saas-stripe-checkout-split">
+                          {/* Columna Izquierda: Datos y Resumen */}
+                          <div className="saas-sc-left">
+                            <button
+                              type="button"
+                              onClick={() => setStep(2)}
+                              className="saas-sc-back-btn"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                              <span>Volver a Datos de Administrador</span>
+                            </button>
+
+                            <div className="saas-sc-store-badge-wrap">
+                              <div className="saas-sc-store-icon">🇧🇴</div>
+                              <span className="saas-sc-store-name">Stereum SRL — Pasarela Oficial</span>
+                              <span className="saas-stereum-badge">⚡ QR Simple</span>
+                            </div>
+
+                            <h3 className="saas-sc-title">
+                              Pago Inmediato de Suscripción SaaS
+                            </h3>
+
+                            <div className="saas-sc-line-item" style={{ marginTop: '1.25rem' }}>
+                              <div>
+                                <div className="saas-sc-item-title">{selectedPlan.name}</div>
+                                <div className="saas-sc-item-sub">
+                                  Suscripción {billingCycle === 'monthly' ? 'Mensual' : 'Anual'} para {nombreComercial || razonSocial}
+                                </div>
+                              </div>
+                              <div className="saas-sc-item-price">
+                                Bs. {stereumAmountBob ? stereumAmountBob.toFixed(2) : amountBOB} BOB
+                              </div>
+                            </div>
+
+                            <div style={{ marginTop: '1.25rem', padding: '1rem', background: '#F8F9FA', borderRadius: '12px', fontSize: '0.82rem', color: '#444', lineHeight: 1.6 }}>
+                              <p><strong>Identificador Empresa:</strong> <code>{codigoEmpresa || 'empresa'}</code></p>
+                              <p><strong>Email Administrador:</strong> {adminEmail}</p>
+                              <p><strong>ID Transacción Stereum:</strong> <code style={{ fontSize: '0.72rem', wordBreak: 'break-all' }}>{stereumTxId || 'Generando sesión...'}</code></p>
+                            </div>
+
+                            <div style={{ marginTop: 'auto', paddingTop: '1.25rem' }}>
+                              <button
+                                type="button"
+                                onClick={loadStereumCharge}
+                                disabled={stereumLoading}
+                                className="saas-sc-hosted-btn"
+                                style={{ width: '100%', justifyContent: 'center' }}
+                              >
+                                <RefreshCw className={`w-3.5 h-3.5 ${stereumLoading ? 'animate-spin' : ''}`} />
+                                <span>{stereumLoading ? 'Actualizando QR...' : '🔄 Regenerar Código QR Stereum'}</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Columna Derecha: QR Stereum en Vivo */}
+                          <div className="saas-sc-right">
+                            <div className="saas-stereum-card">
+                              <span className="saas-stereum-badge">✓ Red de Pagos Inmediatos Stereum (CSL)</span>
+                              <div className="saas-stereum-amount">
+                                Bs. {stereumAmountBob ? stereumAmountBob.toFixed(2) : amountBOB} BOB
+                              </div>
+                              <p className="saas-stereum-subtitle">
+                                Abre tu aplicación bancaria boliviana favorita o billetera digital y escanea el código para procesar el pago:
+                              </p>
+
+                              <div className="saas-stereum-qr-wrapper">
+                                {stereumLoading ? (
+                                  <div style={{ width: 220, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem', color: '#666' }}>
+                                    <RefreshCw className="w-8 h-8 animate-spin text-[#C4956A]" />
+                                    <span style={{ fontSize: '0.8rem' }}>Conectando con Stereum...</span>
+                                  </div>
+                                ) : stereumQrBase64 ? (
+                                  <img
+                                    src={`data:image/png;base64,${stereumQrBase64}`}
+                                    alt="Código QR Stereum Pay"
+                                    className="saas-stereum-qr-img"
+                                  />
+                                ) : (
+                                  <div style={{ width: 220, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '0.5rem', padding: '1rem', color: '#888' }}>
+                                    <QrCode className="w-12 h-12 text-gray-400" />
+                                    <span style={{ fontSize: '0.78rem', textAlign: 'center' }}>
+                                      QR listo para escanear en cualquier banco
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="saas-stereum-bank-logos">
+                                <span className="saas-stereum-pill">Banco Unión</span>
+                                <span className="saas-stereum-pill">BCP</span>
+                                <span className="saas-stereum-pill">BNB</span>
+                                <span className="saas-stereum-pill">Banco Ganadero</span>
+                                <span className="saas-stereum-pill">Mercantil</span>
+                                <span className="saas-stereum-pill">USDT / Cripto</span>
+                              </div>
+                            </div>
+
+                            <button
+                              type="submit"
+                              disabled={stripeProcessing}
+                              className="saas-sc-btn-submit"
+                              style={{ background: '#2E7D32', marginTop: '1.25rem' }}
+                            >
+                              {stripeProcessing ? 'Aprovisionando Empresa en PostgreSQL...' : '✓ Confirmar Pago y Crear Cuenta'}
+                            </button>
+
+                            <div className="saas-sc-footer-brand">
+                              <span>Powered by <strong>Stereum SRL</strong> • Seguro & Auditado</span>
+                            </div>
+                          </div>
+                        </div>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleProcessPayment}>
+                        <div className="saas-stripe-checkout-split">
+                          {/* Columna Izquierda: Entorno de prueba, divisa y resumen */}
+                          <div className="saas-sc-left">
+                            <button
+                              type="button"
+                              onClick={() => setStep(2)}
+                              className="saas-sc-back-btn"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                              <span>Volver a Datos de Administrador</span>
+                            </button>
 
                         <div className="saas-sc-store-badge-wrap">
-                          <div className="saas-sc-store-icon">
-                            <Building2 className="w-5 h-5 text-indigo-600" />
-                          </div>
+                          <div className="saas-sc-store-icon">🏬</div>
                           <span className="saas-sc-store-name">Entorno de prueba de FashionStore</span>
-                          <span className="saas-sc-test-mode-pill">
-                            <ShieldCheck className="w-3 h-3 inline-block mr-1" />
-                            Entorno de prueba
-                          </span>
+                          <span className="saas-sc-test-mode-pill">❖ Entorno de prueba</span>
                         </div>
 
-                        <h3 className="saas-sc-title">
-                          Pagar a Entorno de prueba de FashionStore SaaS
-                        </h3>
+                            <h3 className="saas-sc-title">
+                              Pagar a Entorno de prueba de FashionStore SaaS
+                            </h3>
 
                         {/* Selector de Divisa */}
                         <div className="saas-sc-currency-section">
@@ -1147,7 +1303,7 @@ export const SaasLandingPage: React.FC = () => {
                               onClick={() => setStripeCurrency('BOB')}
                               className={`saas-sc-currency-btn ${stripeCurrency === 'BOB' ? 'active' : ''}`}
                             >
-                              <span className="saas-currency-badge">BOB</span>
+                              <span>🇧🇴</span>
                               <span>{amountBOB} BOB</span>
                             </button>
                             <button
@@ -1155,7 +1311,7 @@ export const SaasLandingPage: React.FC = () => {
                               onClick={() => setStripeCurrency('USD')}
                               className={`saas-sc-currency-btn ${stripeCurrency === 'USD' ? 'active' : ''}`}
                             >
-                              <span className="saas-currency-badge">USD</span>
+                              <span>🇺🇸</span>
                               <span>{amountUSD} US$</span>
                             </button>
                           </div>
@@ -1164,18 +1320,18 @@ export const SaasLandingPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Resumen del plan */}
-                        <div className="saas-sc-line-item">
-                          <div>
-                            <div className="saas-sc-item-title">{selectedPlan.name}</div>
-                            <div className="saas-sc-item-sub">
-                              Suscripción FashionStore para {nombreComercial || razonSocial || 'tu empresa'}
+                            {/* Resumen del plan */}
+                            <div className="saas-sc-line-item">
+                              <div>
+                                <div className="saas-sc-item-title">{selectedPlan.name}</div>
+                                <div className="saas-sc-item-sub">
+                                  Suscripción FashionStore para {nombreComercial || razonSocial || 'tu empresa'}
+                                </div>
+                              </div>
+                              <div className="saas-sc-item-price">
+                                {currentDisplayAmount}
+                              </div>
                             </div>
-                          </div>
-                          <div className="saas-sc-item-price">
-                            {currentDisplayAmount}
-                          </div>
-                        </div>
 
                         {/* Botón para abrir en Stripe Checkout oficial alojado */}
                         <div style={{ marginTop: 'auto', paddingTop: '1.25rem' }}>
@@ -1186,162 +1342,37 @@ export const SaasLandingPage: React.FC = () => {
                             className="saas-sc-hosted-btn"
                             style={{ width: '100%' }}
                           >
-                            {stripeCheckoutLoading ? (
-                              'Iniciando sesión Stripe...'
-                            ) : (
-                              <>
-                                <ExternalLink className="w-4 h-4 inline-block mr-1.5" />
-                                <span>Abrir en Stripe Checkout Oficial (Nueva Ventana)</span>
-                              </>
-                            )}
+                            {stripeCheckoutLoading ? 'Iniciando sesión Stripe...' : '🔗 Abrir en Stripe Checkout Oficial (Nueva Ventana ↗)'}
                           </button>
                         </div>
                       </div>
 
                       {/* Columna Derecha: Express Checkout, Tarjeta y Botón Pagar */}
                       <div className="saas-sc-right">
-                        {/* Botones de Pago Rápido Express */}
-                        <div className="saas-sc-express-btns">
-                          <button type="button" onClick={fillStripeTestCard} className="saas-sc-btn-apple">
-                            Apple Pay
-                          </button>
-                          <button type="button" onClick={fillStripeTestCard} className="saas-sc-btn-link">
-                            Link
-                          </button>
-                        </div>
+                        <p>Completa el pago en la página oficial de Stripe. Luego regresa a esta ventana y pulsa «Ya pagué: verificar y crear empresa».</p>
+                        <p>Correo del administrador: <strong>{adminEmail}</strong></p>
+                            {/* Botón Pagar Azul */}
+                            <button
+                              type="submit"
+                              disabled={stripeProcessing}
+                              className="saas-sc-btn-submit"
+                            >
+                              {stripeProcessing ? 'Procesando...' : stripeTxId.startsWith('cs_') ? 'Ya pagué: verificar y crear empresa' : `Continuar en Stripe (${currentDisplayAmount})`}
+                            </button>
 
-                        <div className="saas-sc-divider">
-                          <span>o</span>
-                        </div>
-
-                        {/* Información de contacto */}
-                        <div className="saas-sc-section-title">Información de contacto</div>
-                        <div className="saas-sc-contact-box">
-                          <span className="saas-sc-contact-label">Correo electrónico</span>
-                          <span className="saas-sc-contact-val">{adminEmail || 'admin@tuempresa.com'}</span>
-                        </div>
-
-                        {/* Método de pago */}
-                        <div className="saas-sc-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>Método de pago</span>
-                          <button 
-                            type="button" 
-                            onClick={fillStripeTestCard} 
-                            style={{ fontSize: '0.72rem', background: '#F3F4F6', border: '1px solid #D1D5DB', borderRadius: '4px', padding: '0.2rem 0.55rem', cursor: 'pointer', color: '#1F2937', fontWeight: 600 }}
-                          >
-                            Auto-Completar Tarjeta
-                          </button>
-                        </div>
-
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem', fontWeight: 600, color: '#111827', margin: '0.25rem 0 0.55rem' }}>
-                          <CreditCard className="w-4 h-4 text-gray-700" />
-                          <span>Tarjeta</span>
-                        </div>
-
-                        {/* Card Inputs */}
-                        <div className="saas-sc-card-frame">
-                          <div className="saas-sc-card-input-top">
-                            <input
-                              type="text"
-                              required
-                              placeholder="1234 1234 1234 1234"
-                              value={cardNumber}
-                              onChange={(e) => setCardNumber(e.target.value)}
-                              maxLength={19}
-                            />
-                            <div className="saas-sc-card-brand-logos">
-                              <span className="saas-sc-brand-pill">VISA</span>
-                              <span className="saas-sc-brand-pill">MC</span>
-                              <span className="saas-sc-brand-pill">AMEX</span>
-                              <span className="saas-sc-brand-pill">DISC</span>
+                            {/* Powered by Stripe */}
+                            <div className="saas-sc-footer-brand">
+                              <span>Powered by <strong>stripe</strong></span>
+                              <span>•</span>
+                              <a href="#terminos" style={{ color: 'inherit', textDecoration: 'none' }}>Condiciones</a>
+                              <span>•</span>
+                              <a href="#privacidad" style={{ color: 'inherit', textDecoration: 'none' }}>Privacidad</a>
                             </div>
                           </div>
-                          <div className="saas-sc-card-input-bottom">
-                            <input
-                              type="text"
-                              required
-                              placeholder="MM / AA"
-                              value={cardExp}
-                              onChange={(e) => setCardExp(e.target.value)}
-                              maxLength={5}
-                            />
-                            <input
-                              type="password"
-                              required
-                              placeholder="CVC"
-                              value={cardCvc}
-                              onChange={(e) => setCardCvc(e.target.value)}
-                              maxLength={4}
-                            />
-                          </div>
                         </div>
-
-                        <div className="saas-form-group" style={{ marginBottom: '0.65rem' }}>
-                          <label className="saas-label" style={{ fontSize: '0.78rem' }}>Nombre del titular de la tarjeta</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Nombre completo"
-                            value={cardHolder}
-                            onChange={(e) => setCardHolder(e.target.value)}
-                            className="saas-input"
-                            style={{ borderRadius: '8px', padding: '0.65rem 0.85rem' }}
-                          />
-                        </div>
-
-                        <div className="saas-form-group" style={{ marginBottom: '0.65rem' }}>
-                          <label className="saas-label" style={{ fontSize: '0.78rem' }}>País o región</label>
-                          <select
-                            value={pais}
-                            onChange={(e) => setPais(e.target.value)}
-                            className="saas-select"
-                            style={{ borderRadius: '8px', padding: '0.65rem 0.85rem' }}
-                          >
-                            <option value="Bolivia">Bolivia</option>
-                            <option value="Chile">Chile</option>
-                            <option value="Peru">Perú</option>
-                            <option value="Colombia">Colombia</option>
-                            <option value="Argentina">Argentina</option>
-                            <option value="Mexico">México</option>
-                            <option value="Espana">España</option>
-                            <option value="EstadosUnidos">Estados Unidos</option>
-                          </select>
-                        </div>
-
-                        {/* Checkbox Link */}
-                        <div className="saas-sc-checkbox-wrap">
-                          <input
-                            type="checkbox"
-                            id="saveLink"
-                            checked={saveCardLink}
-                            onChange={(e) => setSaveCardLink(e.target.checked)}
-                          />
-                          <label htmlFor="saveLink" className="saas-sc-checkbox-text">
-                            <strong>Guarda mis datos para un proceso de compra más rápido</strong><br />
-                            Paga de forma segura en Entorno de prueba de FashionStore y en todos los comercios que acepten Link.
-                          </label>
-                        </div>
-
-                        {/* Botón Pagar Azul */}
-                        <button
-                          type="submit"
-                          disabled={stripeProcessing}
-                          className="saas-sc-btn-submit"
-                        >
-                          {stripeProcessing ? 'Procesando con Stripe...' : `Pagar ${currentDisplayAmount}`}
-                        </button>
-
-                        {/* Powered by Stripe */}
-                        <div className="saas-sc-footer-brand">
-                          <span>Powered by <strong>stripe</strong></span>
-                          <span>•</span>
-                          <a href="#terminos" style={{ color: 'inherit', textDecoration: 'none' }}>Condiciones</a>
-                          <span>•</span>
-                          <a href="#privacidad" style={{ color: 'inherit', textDecoration: 'none' }}>Privacidad</a>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
+                      </form>
+                    )}
+                  </div>
                 )}
               </div>
             )}

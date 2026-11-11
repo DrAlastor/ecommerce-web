@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -39,6 +39,35 @@ const TAB_ROUTES: Record<TabType, string> = {
 export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defaultTab }) => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const rawTenant = localStorage.getItem('tenantKey') || 'dressly';
+  const tenantKey = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
+    ? 'urbanly'
+    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
+
+  const [currentPlanId, setCurrentPlanId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
+      return saved ? JSON.parse(saved).plan_id || 'plan-enterprise' : 'plan-enterprise';
+    } catch {
+      return 'plan-enterprise';
+    }
+  });
+
+  useEffect(() => {
+    const handlePlanChange = () => {
+      try {
+        const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.plan_id) setCurrentPlanId(parsed.plan_id);
+        }
+      } catch { }
+    };
+    window.addEventListener('tenant-plan-changed', handlePlanChange);
+    return () => window.removeEventListener('tenant-plan-changed', handlePlanChange);
+  }, [tenantKey]);
+
   const {
     activeTab,
     setActiveTab,
@@ -141,7 +170,7 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
               transition: 'all 0.15s ease',
               flexShrink: 0,
             }}
-            title="Abrir Asistente IA para reportes y consultas del sistema (CU33)"
+            title="Abrir Asistente IA para reportes y consultas del sistema"
           >
             <Sparkles size={14} style={{ color: '#E5A96A' }} />
             <span>Asistente IA</span>
@@ -202,71 +231,76 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
               Reportes Predefinidos
             </button>
 
-            <button
-              onClick={() => handleTabClick('qbe')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'qbe' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'qbe' ? '#1C1510' : '#736B63',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                boxShadow: activeTab === 'qbe' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <TableProperties size={13} />
-              Reportes QBE
-            </button>
+            {/* Pestañas condicionadas por Plan de Suscripción */}
+            {currentPlanId !== 'plan-starter' && currentPlanId !== 'BASICO' && currentPlanId !== 'plan-trial' && currentPlanId !== 'PRUEBA' && (
+              <>
+                <button
+                  onClick={() => handleTabClick('qbe')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: activeTab === 'qbe' ? '#FFFFFF' : 'transparent',
+                    color: activeTab === 'qbe' ? '#1C1510' : '#736B63',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    boxShadow: activeTab === 'qbe' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <TableProperties size={13} />
+                  Reportes QBE
+                </button>
 
-            <button
-              onClick={() => handleTabClick('voz')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'voz' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'voz' ? '#1C1510' : '#736B63',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                boxShadow: activeTab === 'voz' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Mic size={13} />
-              Reportes por Voz
-            </button>
+                <button
+                  onClick={() => handleTabClick('voz')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: activeTab === 'voz' ? '#FFFFFF' : 'transparent',
+                    color: activeTab === 'voz' ? '#1C1510' : '#736B63',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    boxShadow: activeTab === 'voz' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Mic size={13} />
+                  Reportes por Voz
+                </button>
 
-            <button
-              onClick={() => handleTabClick('ml')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'ml' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'ml' ? '#8B5E34' : '#736B63',
-                fontWeight: 700,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                boxShadow: activeTab === 'ml' ? '0 1px 3px rgba(139,94,52,0.12)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Brain size={13} style={{ color: activeTab === 'ml' ? '#8B5E34' : undefined }} />
-              Decisiones & ML
-            </button>
+                <button
+                  onClick={() => handleTabClick('ml')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.35rem 0.75rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: activeTab === 'ml' ? '#FFFFFF' : 'transparent',
+                    color: activeTab === 'ml' ? '#8B5E34' : '#736B63',
+                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    boxShadow: activeTab === 'ml' ? '0 1px 3px rgba(139,94,52,0.12)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Brain size={13} style={{ color: activeTab === 'ml' ? '#8B5E34' : undefined }} />
+                  Decisiones & ML
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

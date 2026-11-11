@@ -216,8 +216,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
         zIndex: 9999,
         display: 'flex',
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(28, 21, 16, 0.45)',
-        backdropFilter: 'blur(3px)',
+        backgroundColor: 'rgba(28, 21, 16, 0.6)',
         transition: 'all 0.25s ease',
       }}
       onClick={onClose}
@@ -288,7 +287,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
                 </span>
               </div>
               <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.78rem', color: '#736B63', overflowWrap: 'anywhere' }}>
-                Reportes explicados por voz o chat (CU33)
+                Reportes explicados por voz o chat con Inteligencia Artificial
               </p>
             </div>
           </div>
@@ -601,7 +600,7 @@ export const ReportsAiChatDrawer: React.FC<ReportsAiChatDrawerProps> = ({
             <button
               type="button"
               onClick={handleToggleVoice}
-              title={isListening ? 'Detener voz' : 'Dictar por voz (CU33)'}
+              title={isListening ? 'Detener voz' : 'Dictar por voz'}
               style={{
                 width: '32px',
                 height: '32px',

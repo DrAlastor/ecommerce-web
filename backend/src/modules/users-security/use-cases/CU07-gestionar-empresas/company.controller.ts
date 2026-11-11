@@ -21,6 +21,15 @@ export class CompanyController {
   /**
    * Endpoint público para que la vitrina de la tienda obtenga los datos corporativos del tenant.
    */
+  @Get('public')
+  async getPublicCompanies() {
+    const companies = await this.companyService.listAllCompanies();
+    return companies.filter(c => c.estado?.toUpperCase() === 'ACTIVO').map(c => ({
+      codigo_empresa: c.codigo_empresa, nombre_comercial: c.nombre_comercial,
+      logo_url: c.logo_url || '',
+    }));
+  }
+
   @Get('public/:tenant')
   getPublicCompany(@Param('tenant') tenant: string) {
     return this.companyService.getCompanyInfo(tenant);

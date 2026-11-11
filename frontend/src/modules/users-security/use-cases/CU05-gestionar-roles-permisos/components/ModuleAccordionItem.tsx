@@ -108,7 +108,7 @@ export const ModuleAccordionItem: React.FC<ModuleAccordionItemProps> = ({
           <table className="functions-table">
             <thead>
               <tr>
-                <th style={{ width: '45%' }}>Función / Caso de Uso</th>
+                <th style={{ width: '45%' }}>Función / Acción</th>
                 <th style={{ width: '20%', textAlign: 'center' }}>Asignación</th>
                 <th style={{ width: '35%', textAlign: 'right' }}>Nivel de Acceso</th>
               </tr>

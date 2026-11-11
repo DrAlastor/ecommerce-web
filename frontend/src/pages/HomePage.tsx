@@ -344,7 +344,7 @@ export const HomePage: React.FC = () => {
             originalPrice: cp.tiene_descuento ? cp.precio_base : undefined,
             rating: 4.9,
             reviewsCount: 16,
-            image: cp.imagen_principal || defaultImg,
+            image: cp.imagen_principal || (TENANTS_THEME[activeTenantKey] ? defaultImg : ''),
             isNew: true,
             isSale: cp.tiene_descuento,
             description: cp.descripcion || '',
@@ -362,8 +362,8 @@ export const HomePage: React.FC = () => {
       });
   }, [activeTenantKey]);
 
-  const activeCategories = TENANT_CATEGORIES[activeTenantKey] || TENANT_CATEGORIES['dressly'];
-  const activeCollections = TENANT_FEATURED_COLLECTIONS[activeTenantKey] || TENANT_FEATURED_COLLECTIONS['dressly'];
+  const activeCategories = TENANT_CATEGORIES[activeTenantKey] || [];
+  const activeCollections = TENANT_FEATURED_COLLECTIONS[activeTenantKey] || [];
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -377,6 +377,24 @@ export const HomePage: React.FC = () => {
     e.stopPropagation();
     addToCart(product, 1);
   };
+
+  // New tenants only render their own catalogue; no demo collections or photos.
+  if (!TENANTS_THEME[activeTenantKey]) {
+    return <div className="home-page home-container">
+      <Navbar />
+      <main style={{maxWidth: 1200, margin: '0 auto', padding: '48px 24px'}}>
+        <h1>{appearance?.site_title || activeTenantKey}</h1>
+        {dynamicProducts.length === 0 ? <p>Esta tienda aún no ha publicado productos.</p> : <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:24}}>
+          {dynamicProducts.map(product => <Link key={product.id} to={'/store/' + activeTenantKey + '/product/' + product.id}>
+            {product.image && <img src={product.image} alt={product.name} style={{width:'100%', height:260, objectFit:'contain'}} />}
+            <h2>{product.name}</h2><p>{product.price.toFixed(2)} Bs</p>
+          </Link>)}
+        </div>}
+        <Link to={'/store/' + activeTenantKey + '/catalog'}>Ver catálogo</Link>
+      </main>
+      <CartDrawer /><WishlistDrawer />
+    </div>;
+  }
 
   return (
     <div

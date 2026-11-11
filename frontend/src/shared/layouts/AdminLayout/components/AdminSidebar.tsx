@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../../modules/users-security/shared/components/AuthContext';
 import {
@@ -48,44 +48,23 @@ const getModuleIcon = (modulo: string) => {
   return <LayoutDashboard size={17} />;
 };
 
-const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
-  const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+const getUseCaseRoute = (nombre: string, idFuncion?: number, currentTenant?: string) => {
+  const rawTenant = currentTenant || localStorage.getItem('tenantKey') || 'dressly';
+  const tenantKey = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
+    ? 'urbanly'
+    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
 
-  if (norm.includes('saas') || norm.includes('super admin') || norm.includes('dashboard de super admin')) return '/admin/saas-dashboard';
-  if (norm.includes('monitoreo') || norm.includes('tenant') || norm.includes('telemetria')) return '/admin/saas-monitoring';
-  if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
-  if (norm.includes('usuario')) return '/admin/users';
-  if (norm.includes('rol') || norm.includes('permiso')) return '/admin/roles';
-  if (norm.includes('empleado')) return '/admin/empleados';
-  if (norm.includes('apariencia')) return '/admin/apariencia';
-  if (norm.includes('backup') || norm.includes('restore')) return '/admin/backups';
-  if (norm.includes('empresa')) return '/admin/empresa';
-  if (norm.includes('bitacora')) return '/admin/bitacora';
-  if (norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
-  if (norm.includes('proveedor')) return '/admin/proveedores';
-  if (norm.includes('recomendacion') || norm.includes('ia')) return '/recommendations';
-  if (norm.includes('reserva')) return '/admin/reservas';
-  if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
-  if (norm.includes('movimiento')) return '/admin/movimientos';
-  if (norm.includes('inventario')) return '/admin/inventario';
-  if (norm.includes('pos') || norm.includes('venta presencial') || norm.includes('caja')) return '/pos';
-  if (norm.includes('voz')) return '/admin/reportes-voz';
-  if (norm.includes('ml') || norm.includes('neuronal') || norm.includes('decision')) return '/admin/reportes-ml';
-  if (norm.includes('qbe')) return '/admin/reportes-qbe';
-  if (norm.includes('predefinido')) return '/admin/reportes-predefinidos';
-  if (norm.includes('dashboard')) return '/admin/dashboard';
-  if (norm.includes('reporte')) return '/admin/reportes-predefinidos';
-
-  // Respaldo por ID exacto
+  // 1. Respaldo prioritario por ID exacto de función
   if (idFuncion === 27) return '/pos';
   if (idFuncion === 28) return '/admin/devoluciones';
   if (idFuncion === 22) return '/admin/reservas';
   if (idFuncion === 18) return '/admin/inventario';
   if (idFuncion === 19) return '/admin/movimientos';
   if (idFuncion === 16) return '/admin/sucursales';
+  if (idFuncion === 15) return `/store/${tenantKey}/recommendations`;
   if (idFuncion === 14) return '/admin/proveedores';
   if (idFuncion === 13) return '/admin/catalog?tab=products';
-  if (idFuncion === 11) return '/catalog';
+  if (idFuncion === 11) return `/store/${tenantKey}/catalog`;
   if (idFuncion === 10) return '/admin/bitacora';
   if (idFuncion === 9) return '/admin/backups';
   if (idFuncion === 8) return '/admin/apariencia';
@@ -94,11 +73,40 @@ const getUseCaseRoute = (nombre: string, idFuncion?: number) => {
   if (idFuncion === 5) return '/admin/roles';
   if (idFuncion === 4) return '/admin/users';
   if (idFuncion === 34) return '/admin/reportes-ml';
-  if (idFuncion === 33) return '/admin/reportes-voz';
-  if (idFuncion === 32) return '/admin/reportes-qbe';
-  if (idFuncion === 31) return '/admin/reportes-predefinidos';
-  if (idFuncion === 30) return '/admin/dashboard';
+  if (idFuncion === 33 || idFuncion === 32) return '/admin/reportes-voz';
+  if (idFuncion === 31) return '/admin/reportes-qbe';
+  if (idFuncion === 30) return '/admin/reportes-predefinidos';
   if (idFuncion === 29) return '/admin/dashboard';
+
+  // 2. Mapeo por coincidencia semántica
+  const norm = normalize(nombre).replace(/^cu\d+\s*[-—]\s*/i, '');
+
+  if (norm.includes('venta presencial') || norm.includes('punto de venta') || norm.includes('pos') || norm.includes('caja')) return '/pos';
+  if (norm.includes('saas') || norm.includes('super admin') || norm.includes('dashboard de super admin')) return '/admin/saas-dashboard';
+  if (norm.includes('monitoreo') || norm.includes('telemetria')) return '/admin/saas-monitoring';
+  if (norm.includes('devolucion') || norm.includes('retorno')) return '/admin/devoluciones';
+  if (norm.includes('usuario')) return '/admin/users';
+  if (norm.includes('rol') || norm.includes('permiso')) return '/admin/roles';
+  if (norm.includes('empleado')) return '/admin/empleados';
+  if (norm.includes('apariencia')) return '/admin/apariencia';
+  if (norm.includes('backup') || norm.includes('restore')) return '/admin/backups';
+  if (norm.includes('empresa')) return '/admin/empresa';
+  if (norm.includes('bitacora')) return '/admin/bitacora';
+  if (norm.includes('consultar catalogo') || norm.includes('vitrina') || norm.includes('ver catalogo')) return `/store/${tenantKey}/catalog`;
+  if (norm.includes('gestionar catalogo') || norm.includes('catalogo') || norm.includes('producto') || norm.includes('categoria') || norm.includes('variante')) return '/admin/catalog?tab=products';
+  if (norm.includes('proveedor')) return '/admin/proveedores';
+  if (norm.includes('recomendacion') || /\bia\b/.test(norm) || norm.includes('inteligencia artificial')) return `/store/${tenantKey}/recommendations`;
+  if (norm.includes('reserva')) return '/admin/reservas';
+  if (norm.includes('sucursal') || norm.includes('ciudad')) return '/admin/sucursales';
+  if (norm.includes('movimiento')) return '/admin/movimientos';
+  if (norm.includes('inventario')) return '/admin/inventario';
+  if (norm.includes('predefinido')) return '/admin/reportes-predefinidos';
+  if (norm.includes('dashboard')) return '/admin/dashboard';
+  if (norm.includes('qbe')) return '/admin/reportes-qbe';
+  if (norm.includes('voz')) return '/admin/reportes-voz';
+  if (norm.includes('ml') || norm.includes('neuronal') || norm.includes('decision')) return '/admin/reportes-ml';
+  if (norm.includes('reporte')) return '/admin/reportes-predefinidos';
+
   return '/admin';
 };
 
@@ -110,6 +118,34 @@ interface AdminSidebarProps {
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const { funciones } = useAuth();
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
+
+  const rawTenant = localStorage.getItem('tenantKey') || 'dressly';
+  const tenantKey = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
+    ? 'urbanly'
+    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
+
+  const [currentPlanId, setCurrentPlanId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
+      return saved ? JSON.parse(saved).plan_id || 'plan-enterprise' : 'plan-enterprise';
+    } catch {
+      return 'plan-enterprise';
+    }
+  });
+
+  useEffect(() => {
+    const handlePlanChange = () => {
+      try {
+        const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.plan_id) setCurrentPlanId(parsed.plan_id);
+        }
+      } catch { }
+    };
+    window.addEventListener('tenant-plan-changed', handlePlanChange);
+    return () => window.removeEventListener('tenant-plan-changed', handlePlanChange);
+  }, [tenantKey]);
 
   const toggleModule = (modulo: string) => {
     setOpenModules((prev) => ({ ...prev, [modulo]: !prev[modulo] }));
@@ -150,28 +186,51 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       }
     });
 
-    // Garantizar que en el módulo de reportes siempre figure "Gestionar Reportes por Voz"
-    for (const [modulo, list] of map.entries()) {
-      const normMod = normalize(modulo);
-      if (normMod.includes('reporte') || normMod.includes('inteligencia') || normMod.includes('negocio')) {
-        const hasVoz = list.some((item) => normalize(item.nombre).includes('voz'));
-        if (!hasVoz) {
-          list.push({
-            id_funcion: 33,
-            nombre: 'Gestionar Reportes por Voz',
-            modulo: modulo,
-            nivel_acceso: 'Edición',
-          });
+    // Adaptar módulos según el Plan de Suscripción activo de la empresa (Punto 1 y SaaS.sql)
+    const isFullAccess =
+      currentPlanId === 'plan-unlimited' ||
+      currentPlanId === 'EMPRESARIAL' ||
+      currentPlanId === 'plan-corporate' ||
+      currentPlanId === 'CORPORATIVO';
+
+    const isPremium =
+      isFullAccess ||
+      currentPlanId === 'plan-enterprise' ||
+      currentPlanId === 'PREMIUM';
+
+    if (isPremium) {
+      for (const [modulo, list] of map.entries()) {
+        const normMod = normalize(modulo);
+        if (normMod.includes('reporte') || normMod.includes('inteligencia') || normMod.includes('negocio')) {
+          const hasVoz = list.some((item) => normalize(item.nombre).includes('voz'));
+          if (!hasVoz) {
+            list.push({
+              id_funcion: 33,
+              nombre: 'Gestionar Reportes por Voz',
+              modulo: modulo,
+              nivel_acceso: 'Edición',
+            });
+          }
+          if (isPremium) {
+            const hasMl = list.some((item) => normalize(item.nombre).includes('ml') || normalize(item.nombre).includes('decision'));
+            if (!hasMl) {
+              list.push({
+                id_funcion: 34,
+                nombre: 'Inteligencia de Negocios y Machine Learning',
+                modulo: modulo,
+                nivel_acceso: 'Edición',
+              });
+            }
+          }
         }
-        const hasMl = list.some((item) => normalize(item.nombre).includes('ml') || normalize(item.nombre).includes('decision'));
-        if (!hasMl) {
-          list.push({
-            id_funcion: 34,
-            nombre: 'Decisiones & Machine Learning',
-            modulo: modulo,
-            nivel_acceso: 'Edición',
-          });
-        }
+      }
+    } else {
+      // Filtrar funciones avanzadas de IA para Plan Básico y Plan Prueba
+      for (const [modulo, list] of map.entries()) {
+        const filtered = list.filter((item) => {
+          return item.id_funcion !== 33 && item.id_funcion !== 32 && item.id_funcion !== 34 && item.id_funcion !== 15 && item.id_funcion !== 31;
+        });
+        map.set(modulo, filtered);
       }
     }
 
@@ -184,12 +243,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       const firstB = Math.min(...funcsB.map((funcion) => funcion.id_funcion));
       return firstA - firstB;
     });
-  }, [funciones]);
+  }, [funciones, currentPlanId]);
 
-  const rawTenant = localStorage.getItem('tenantKey') || 'dressly';
-  const tenantKey = rawTenant === 'subversive-urban' || rawTenant === 'subversive'
-    ? 'urbanly'
-    : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
   const tenantBrandMap: Record<string, { name: string; logo: string }> = {
     'dressly': { name: 'Dressly', logo: 'https://fashionstorestorages.blob.core.windows.net/media/logo-dressly.jpg' },
     'urbanly': { name: 'Urbanly', logo: 'https://fashionstorestorages.blob.core.windows.net/media/logo-urbanly.png' },
@@ -204,11 +259,39 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
           <img
             src={activeTenantBrand.logo}
             alt={activeTenantBrand.name}
-            style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }}
+            style={{ width: '34px', height: '34px', borderRadius: '8px', objectFit: 'cover' }}
           />
-          <h2 className="admin-logo" style={{ margin: 0 }}>
-            {activeTenantBrand.name}<span>Admin</span>
-          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h2 className="admin-logo" style={{ margin: 0, lineHeight: 1.15 }}>
+              {activeTenantBrand.name}<span>Admin</span>
+            </h2>
+            {(() => {
+              const getPlanBadgeInfo = (id: string) => {
+                if (id === 'plan-unlimited' || id === 'EMPRESARIAL') return { label: 'Plan Empresarial', color: '#D97706' };
+                if (id === 'plan-corporate' || id === 'CORPORATIVO') return { label: 'Plan Corporativo', color: '#059669' };
+                if (id === 'plan-enterprise' || id === 'PREMIUM' || id === 'plan-pro') return { label: 'Plan Premium', color: '#7C3AED' };
+                if (id === 'plan-trial' || id === 'PRUEBA') return { label: 'Plan Prueba', color: '#64748B' };
+                return { label: 'Plan Básico', color: '#2563EB' };
+              };
+              const badge = getPlanBadgeInfo(currentPlanId);
+              return (
+                <span style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  padding: '1px 7px',
+                  borderRadius: '999px',
+                  background: badge.color,
+                  color: '#FFFFFF',
+                  marginTop: '3px',
+                  width: 'fit-content',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}>
+                  {badge.label}
+                </span>
+              );
+            })()}
+          </div>
         </div>
         {onClose && (
           <button
@@ -255,7 +338,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
                   {funcs.map((funcion) => (
                     <NavLink
                       key={funcion.id_funcion}
-                      to={getUseCaseRoute(funcion.nombre, funcion.id_funcion)}
+                      to={getUseCaseRoute(funcion.nombre, funcion.id_funcion, tenantKey)}
                       end
                       onClick={handleNavClick}
                       className={({ isActive }) => `admin-nav-subitem ${isActive ? 'active' : ''}`}
@@ -282,7 +365,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
             <Settings size={17} />
             <span>Configuración</span>
           </NavLink>
-          <a href="/" className="admin-nav-item" onClick={handleNavClick}>
+          <a href={`/store/${tenantKey}`} className="admin-nav-item" onClick={handleNavClick}>
             <Store size={17} />
             <span>Volver a la Tienda</span>
           </a>

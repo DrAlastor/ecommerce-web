@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './modules/users-security/shared/components/AuthContext';
 import { ProtectedRoute } from './modules/users-security/shared/components/ProtectedRoute';
 import { ShopProvider } from './context/ShopContext';
 import LoginPage from './modules/users-security/use-cases/CU01-gestionar-acceso/pages/LoginPage';
+import { SaasPaymentReturnPage } from './pages/SaasPaymentReturnPage';
 import { HomePage } from './pages/HomePage';
 import { SaasLandingPage } from './pages/SaasLandingPage';
 import { CatalogPage } from './modules/catalog/use-cases/CU11-consultar-catalogo-productos/pages/CatalogPage';
@@ -46,6 +47,20 @@ import { VirtualFittingPage } from './modules/mobile-experience/use-cases/CU33-u
 import { ManageReturnsPage } from './modules/sales-billing/use-cases/CU28-gestionar-devoluciones';
 import { ConfirmProvider } from './shared/components/ConfirmModal';
 
+const TenantCatalogRedirect: React.FC = () => {
+  const raw = localStorage.getItem('tenantKey') || 'dressly';
+  const tenant = raw === 'subversive-urban' || raw === 'subversive' ? 'urbanly' : (raw === 'aura' ? 'aura-sport' : (raw === 'fashionstore' ? 'dressly' : raw));
+  return <Navigate to={`/store/${tenant}/catalog`} replace />;
+};
+
+const TenantHomeRedirect: React.FC = () => {
+  const raw = localStorage.getItem('tenantKey') || 'dressly';
+  const tenant = raw === 'subversive-urban' || raw === 'subversive' ? 'urbanly' : (raw === 'aura' ? 'aura-sport' : (raw === 'fashionstore' ? 'dressly' : raw));
+  return <Navigate to={`/store/${tenant}`} replace />;
+};
+
+function TenantHome() { const {tenant} = useParams(); return <HomePage key={tenant} />; }
+
 function App() {
   return (
     <BrowserRouter>
@@ -55,6 +70,7 @@ function App() {
             <Routes>
               {/* Landing Page Corporativa del SaaS FashionStore (Venta de Planes y Precios) */}
               <Route path="/" element={<SaasLandingPage />} />
+              <Route path="/saas/payment-return" element={<SaasPaymentReturnPage />} />
 
               {/* Autenticación & Acceso al Panel de Super Admin (Fuera del sistema de tiendas) */}
               <Route path="/saas/login" element={<SaasLoginPage />} />
@@ -73,7 +89,7 @@ function App() {
               </Route>
 
               {/* Vitrina / Tienda y rutas completas por Tenant (Urbanly, Dressly, Aura Sport) */}
-              <Route path="/store/:tenant" element={<HomePage />} />
+              <Route path="/store/:tenant" element={<TenantHome />} />
               <Route path="/store/:tenant/catalog" element={<CatalogPage />} />
               <Route path="/store/:tenant/product/:id" element={<ProductDetailPage />} />
               <Route path="/store/:tenant/virtual-fitting/:productId" element={<VirtualFittingPage />} />
@@ -113,8 +129,8 @@ function App() {
               <Route path="/dressly" element={<Navigate to="/store/dressly" replace />} />
               <Route path="/dressly/catalog" element={<Navigate to="/store/dressly/catalog" replace />} />
               <Route path="/dressly/login" element={<Navigate to="/store/dressly/login" replace />} />
-              <Route path="/home" element={<Navigate to="/store/dressly" replace />} />
-              <Route path="/catalog" element={<Navigate to="/store/dressly/catalog" replace />} />
+              <Route path="/home" element={<TenantHomeRedirect />} />
+              <Route path="/catalog" element={<TenantCatalogRedirect />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               {/* Vestidor Virtual 3D / RA (CU25) */}
               <Route path="/virtual-fitting/:productId" element={<VirtualFittingPage />} />

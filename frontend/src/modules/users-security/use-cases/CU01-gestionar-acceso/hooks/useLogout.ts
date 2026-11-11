@@ -19,10 +19,10 @@ export function useLogout() {
     setIsLoggingOut(true);
     try {
       await logout();
-      navigate('/login', { replace: true });
+      navigate(`/store/${localStorage.getItem('tenantKey') || 'dressly'}/login`, { replace: true });
     } catch (error) {
       console.error('Error durante el cierre de sesión:', error);
-      navigate('/login', { replace: true });
+      navigate(`/store/${localStorage.getItem('tenantKey') || 'dressly'}/login`, { replace: true });
     } finally {
       setIsLoggingOut(false);
       setIsConfirmOpen(false);
