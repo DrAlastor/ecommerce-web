@@ -94,3 +94,4 @@ export const SaasPagination: React.FC<SaasPaginationProps> = ({
     </div>
   );
 };
+
