@@ -27,23 +27,26 @@ export const SaasAdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Verificar sesión Super Admin
+    // Verificar sesión Super Admin estricta
     const token = localStorage.getItem('saas_token');
     if (!token) {
-      const adminToken = localStorage.getItem('accessToken');
-      if (!adminToken) {
-        navigate('/saas/login');
-        return;
-      }
+      navigate('/saas/login');
+      return;
     }
 
     saasService
       .getSuperAdminProfile()
-      .then((profile) => setUser(profile))
-      .catch(() => {
-        if (!saasService.getStoredSuperAdmin() && !localStorage.getItem('accessToken')) {
+      .then((profile) => {
+        if (profile.rolGlobal !== 'SUPER_ADMIN') {
+          saasService.logoutSuperAdmin();
           navigate('/saas/login');
+          return;
         }
+        setUser(profile);
+      })
+      .catch(() => {
+        saasService.logoutSuperAdmin();
+        navigate('/saas/login');
       });
   }, [navigate]);
 

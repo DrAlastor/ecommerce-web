@@ -1,12 +1,14 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { SaasMonitoringService } from './saas-monitoring.service.js';
 import {
   ClusterMonitoringOverview,
   OperationalResult,
   UpdateTenantQuotaDto,
 } from '../../dto/saas-monitoring.dto.js';
+import { SaasSuperAdminGuard } from '../../guards/saas-superadmin.guard.js';
 
 @Controller('saas/monitoring')
+@UseGuards(SaasSuperAdminGuard)
 export class SaasMonitoringController {
   constructor(private readonly monitoringService: SaasMonitoringService) {}
 

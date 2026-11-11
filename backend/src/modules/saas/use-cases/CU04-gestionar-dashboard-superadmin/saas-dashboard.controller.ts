@@ -1,8 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { SaasDashboardService } from './saas-dashboard.service.js';
 import { SaasDashboardFilterDto, SaasDashboardMetricsResponse } from '../../dto/saas-dashboard.dto.js';
+import { SaasSuperAdminGuard } from '../../guards/saas-superadmin.guard.js';
 
 @Controller('saas/dashboard')
+@UseGuards(SaasSuperAdminGuard)
 export class SaasDashboardController {
   constructor(private readonly dashboardService: SaasDashboardService) {}
 

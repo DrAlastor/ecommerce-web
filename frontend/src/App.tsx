@@ -186,11 +186,6 @@ function App() {
                 <Route path="users" element={<ManageUsersPage />} />
                 <Route path="bitacora" element={<BitacoraPage />} />
                 <Route path="consultar-bitacora" element={<BitacoraPage />} />
-                {/* Módulo 0 — SaaS y Multi-Tenant (CU04 & CU05) */}
-                <Route path="saas-dashboard" element={<SaasDashboardPage />} />
-                <Route path="dashboard-superadmin" element={<SaasDashboardPage />} />
-                <Route path="saas-monitoring" element={<SaasMonitoringPage />} />
-                <Route path="monitoreo-tenant" element={<SaasMonitoringPage />} />
                 <Route path="roles" element={<ManageRolesPage />} />
                 <Route path="gestionar-roles" element={<ManageRolesPage />} />
                 <Route path="empleados" element={<ManageEmployeesPage />} />

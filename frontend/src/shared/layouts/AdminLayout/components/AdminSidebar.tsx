@@ -15,8 +15,6 @@ import {
   ChevronRight,
   RotateCcw,
   X,
-  Server,
-  Activity,
 } from 'lucide-react';
 
 const normalize = (value: string) =>
@@ -235,24 +233,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
           >
             <LayoutDashboard size={17} />
             <span>Dashboard</span>
-          </NavLink>
-
-          <NavLink
-            to="/saas-admin/dashboard"
-            onClick={handleNavClick}
-            className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          >
-            <Activity size={20} />
-            <span>Dashboard SaaS (ML)</span>
-          </NavLink>
-
-          <NavLink
-            to="/saas-admin/monitoring"
-            onClick={handleNavClick}
-            className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          >
-            <Server size={20} />
-            <span>Monitoreo de Tenants</span>
           </NavLink>
 
           {modulesWithFunctions.map(([modulo, funcs]) => (

@@ -1,7 +1,9 @@
-import { Controller, Delete, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { SaasBackupItem, SaasBackupsService } from './saas-backups.service.js';
+import { SaasSuperAdminGuard } from '../../guards/saas-superadmin.guard.js';
 
 @Controller('saas/backups')
+@UseGuards(SaasSuperAdminGuard)
 export class SaasBackupsController {
   constructor(private readonly backupsService: SaasBackupsService) {}
 

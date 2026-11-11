@@ -11,9 +11,14 @@ const api = axios.create({
 // Interceptor de request: inyecta token JWT y contexto de aislamiento Multi-Tenant (x-tenant-id)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const isSaasEndpoint = Boolean(config.url && (config.url.startsWith('/saas') || config.url.includes('/saas/')));
+    const saasToken = localStorage.getItem('saas_token');
+    const tenantToken = localStorage.getItem('accessToken');
+
+    if (isSaasEndpoint && saasToken) {
+      config.headers.Authorization = `Bearer ${saasToken}`;
+    } else if (tenantToken && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${tenantToken}`;
     }
 
     // Resolver el tenant activo para garantizar aislamiento en cada petición HTTP

@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Headers, Post, Req, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { SaasAuthService } from './saas-auth.service.js';
 import { SaasLoginDto, SaasLoginResponse, SaasUserPayload } from './saas-auth.dto.js';
+import { SaasSuperAdminGuard } from '../../guards/saas-superadmin.guard.js';
 
 @Controller('saas/auth')
 export class SaasAuthController {
@@ -16,12 +17,9 @@ export class SaasAuthController {
   }
 
   @Get('me')
-  async me(@Headers('authorization') authHeader?: string): Promise<SaasUserPayload> {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Token de autenticación no proporcionado');
-    }
-    const token = authHeader.replace('Bearer ', '').trim();
-    return this.authService.validateToken(token);
+  @UseGuards(SaasSuperAdminGuard)
+  async me(@Req() req: any): Promise<SaasUserPayload> {
+    return req.user;
   }
 }
 

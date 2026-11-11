@@ -24,6 +24,7 @@ import { SaasBackupsService } from './use-cases/saas-backups/saas-backups.servic
 
 import { SaasPlansController } from './use-cases/CU02-gestionar-planes-suscripcion/saas-plans.controller.js';
 import { SaasPlansService } from './use-cases/CU02-gestionar-planes-suscripcion/saas-plans.service.js';
+import { SaasSuperAdminGuard } from './guards/saas-superadmin.guard.js';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { SaasPlansService } from './use-cases/CU02-gestionar-planes-suscripcion/
     SaasBitacoraService,
     SaasBackupsService,
     SaasPlansService,
+    SaasSuperAdminGuard,
   ],
   exports: [
     SaasDashboardService,
@@ -66,6 +68,7 @@ import { SaasPlansService } from './use-cases/CU02-gestionar-planes-suscripcion/
     SaasBitacoraService,
     SaasBackupsService,
     SaasPlansService,
+    SaasSuperAdminGuard,
   ],
 })
 export class SaasModule {}

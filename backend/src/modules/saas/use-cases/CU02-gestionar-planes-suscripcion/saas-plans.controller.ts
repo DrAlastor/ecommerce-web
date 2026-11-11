@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { SaasPlansService } from './saas-plans.service.js';
 import { CreateSaasPlanDto, UpdateSaasPlanDto } from './saas-plans.dto.js';
+import { SaasSuperAdminGuard } from '../../guards/saas-superadmin.guard.js';
 
 @Controller('saas/plans')
+@UseGuards(SaasSuperAdminGuard)
 export class SaasPlansController {
   constructor(private readonly plansService: SaasPlansService) {}
 
