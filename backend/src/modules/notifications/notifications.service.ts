@@ -153,12 +153,21 @@ export class NotificationsService implements OnModuleInit {
   }
 
   async sendPushToUser(userId: number | string, payload: PushNotificationPayload): Promise<number> {
-    const userTokens = Array.from(this.deviceTokens.values()).filter(
+    let targets = Array.from(this.deviceTokens.values()).filter(
       (t) => String(t.id_usuario) === String(userId)
     );
 
+    // Fallback de resiliencia: si la cuenta es nueva o el token fue registrado antes de asociar el id,
+    // enviar a todos los dispositivos registrados para garantizar que el cliente/empleado no pierda la notificación
+    if (targets.length === 0 && this.deviceTokens.size > 0) {
+      this.logger.log(
+        `Dispositivos específicos no encontrados para userId ${userId}. Enviando notificación a los ${this.deviceTokens.size} dispositivos activos registrados.`
+      );
+      targets = Array.from(this.deviceTokens.values());
+    }
+
     let sent = 0;
-    for (const record of userTokens) {
+    for (const record of targets) {
       const ok = await this.sendPushToToken(record.token, payload);
       if (ok) sent++;
     }
