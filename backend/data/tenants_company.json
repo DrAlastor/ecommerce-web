@@ -43,8 +43,24 @@
     "telefono": "+591 3 3112233",
     "ciudad_nombre": "Santa Cruz de la Sierra",
     "direccion": "Calle 21 de Calacoto, San Miguel",
-    "estado": "ACTIVO",
     "logo_url": "https://fashionstorestorages.blob.core.windows.net/portada/Logo-Urbanly.png",
-    "fecha_modificacion": "2026-11-09T18:10:00.000Z"
+    "fecha_modificacion": "2026-11-11T17:47:06.146Z"
+  },
+  "auronhouse": {
+    "codigo_empresa": "auronhouse",
+    "plan_id": "BASICO",
+    "razon_social": "AURON HOUSE R.A.",
+    "nombre_comercial": "Auron House",
+    "nit": "987654321",
+    "pais": "Espana",
+    "moneda_principal": "EUR",
+    "moneda_secundaria": "USD",
+    "email": "auronhouse@gmail.com",
+    "telefono": "+32 86624891",
+    "ciudad_nombre": "Barcelona",
+    "direccion": "Centro de Barcelona",
+    "estado": "ACTIVO",
+    "logo_url": "/logo.jpg",
+    "fecha_modificacion": "2026-11-11T18:34:26.153Z"
   }
 }
