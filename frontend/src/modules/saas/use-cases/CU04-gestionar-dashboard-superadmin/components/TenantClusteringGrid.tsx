@@ -5,6 +5,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import type { TenantCluster, TenantPerformancePoint } from '../../../types/saas.types';
+import { SaasPagination } from '../../../components/SaasPagination';
 
 interface TenantClusteringGridProps {
   clusters: TenantCluster[];
@@ -12,12 +13,15 @@ interface TenantClusteringGridProps {
   onSelectTenantForAudit?: (tenantKey: string) => void;
 }
 
+const RANKING_PAGE_SIZE = 10;
+
 export const TenantClusteringGrid: React.FC<TenantClusteringGridProps> = ({
   clusters,
   ranking,
   onSelectTenantForAudit,
 }) => {
   const [activeTab, setActiveTab] = useState<'clusters' | 'ranking'>('clusters');
+  const [rankingPage, setRankingPage] = useState(1);
 
   return (
     <div className="saas-card-full">
@@ -160,7 +164,9 @@ export const TenantClusteringGrid: React.FC<TenantClusteringGridProps> = ({
               </tr>
             </thead>
             <tbody>
-              {ranking.map((t) => (
+              {ranking
+                .slice((rankingPage - 1) * RANKING_PAGE_SIZE, rankingPage * RANKING_PAGE_SIZE)
+                .map((t) => (
                 <tr key={t.tenantKey}>
                   <td>
                     <div className="tenant-td-company">
@@ -216,6 +222,14 @@ export const TenantClusteringGrid: React.FC<TenantClusteringGridProps> = ({
               ))}
             </tbody>
           </table>
+
+          <SaasPagination
+            currentPage={rankingPage}
+            totalItems={ranking.length}
+            pageSize={RANKING_PAGE_SIZE}
+            onPageChange={(page) => setRankingPage(page)}
+            itemLabel="inquilinos en ranking"
+          />
         </div>
       )}
     </div>

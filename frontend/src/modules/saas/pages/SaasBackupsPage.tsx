@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { saasService } from '../services/saas.service';
 import type { SaasBackupItem } from '../types/saas.types';
+import { SaasPagination } from '../components/SaasPagination';
 import {
   HardDrive,
   Plus,
@@ -13,6 +14,8 @@ import {
 } from 'lucide-react';
 import './SaasBackupsPage.css';
 
+const PAGE_SIZE = 10;
+
 export const SaasBackupsPage: React.FC = () => {
   const [backups, setBackups] = useState<SaasBackupItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,19 +24,21 @@ export const SaasBackupsPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const fetchBackups = async () => {
+  const fetchBackups = async (resetPage = false) => {
     setLoading(true);
     try {
       const data = await saasService.listBackups(selectedTenant !== 'ALL' ? selectedTenant : undefined);
       setBackups(data);
+      if (resetPage) setCurrentPage(1);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBackups();
+    fetchBackups(true);
   }, [selectedTenant]);
 
   const showToast = (type: 'success' | 'error' | 'warning', text: string) => {
@@ -180,99 +185,111 @@ export const SaasBackupsPage: React.FC = () => {
               <p>Genera un backup con el botón superior para comenzar.</p>
             </div>
           ) : (
-            <div className="table-responsive">
-              <table className="backups-table">
-                <thead>
-                  <tr>
-                    <th>Inquilino / Base Física</th>
-                    <th>Archivo de Backup</th>
-                    <th>Tamaño</th>
-                    <th>Fecha de Creación</th>
-                    <th>Tipo</th>
-                    <th>Estado</th>
-                    <th>Checksum SHA-256</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {backups.map((bkp) => {
-                    const isRestoring = restoringId === bkp.id;
-                    return (
-                      <tr key={bkp.id}>
-                        <td>
-                          <div className="tenant-cell">
-                            <span className="tenant-name">{bkp.tenantName}</span>
-                            <code className="db-code">{bkp.databaseName}</code>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="file-cell">
-                            <FileCheck size={14} className="text-indigo" />
-                            <span className="file-name">{bkp.nombre_archivo}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <strong>{bkp.tamano_formateado}</strong>
-                        </td>
-                        <td className="date-cell">
-                          {new Date(bkp.fecha_creacion).toLocaleString('es-BO', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </td>
-                        <td>
-                          <span className="backup-type-tag">{bkp.tipo_backup}</span>
-                        </td>
-                        <td>
-                          <span
-                            className={`status-pill ${
-                              bkp.estado === 'DISPONIBLE'
-                                ? 'available'
-                                : bkp.estado === 'RESTAURADO'
-                                ? 'restored'
-                                : 'failed'
-                            }`}
-                          >
-                            {bkp.estado}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="hash-code" title={bkp.checksum_sha256}>
-                            {bkp.checksum_sha256.slice(0, 12)}...
-                          </span>
-                        </td>
-                        <td>
-                          <div className="row-actions">
-                            <button
-                              type="button"
-                              className="btn-restore-action"
-                              onClick={() => handleRestoreBackup(bkp)}
-                              disabled={isRestoring}
-                              title="Restaurar base de datos a este punto en el tiempo"
+            <>
+              <div className="table-responsive">
+                <table className="backups-table">
+                  <thead>
+                    <tr>
+                      <th>Inquilino / Base Física</th>
+                      <th>Archivo de Backup</th>
+                      <th>Tamaño</th>
+                      <th>Fecha de Creación</th>
+                      <th>Tipo</th>
+                      <th>Estado</th>
+                      <th>Checksum SHA-256</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {backups
+                      .slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+                      .map((bkp) => {
+                      const isRestoring = restoringId === bkp.id;
+                      return (
+                        <tr key={bkp.id}>
+                          <td>
+                            <div className="tenant-cell">
+                              <span className="tenant-name">{bkp.tenantName}</span>
+                              <code className="db-code">{bkp.databaseName}</code>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="file-cell">
+                              <FileCheck size={14} className="text-indigo" />
+                              <span className="file-name">{bkp.nombre_archivo}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <strong>{bkp.tamano_formateado}</strong>
+                          </td>
+                          <td className="date-cell">
+                            {new Date(bkp.fecha_creacion).toLocaleString('es-BO', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </td>
+                          <td>
+                            <span className="backup-type-tag">{bkp.tipo_backup}</span>
+                          </td>
+                          <td>
+                            <span
+                              className={`status-pill ${
+                                bkp.estado === 'DISPONIBLE'
+                                  ? 'available'
+                                  : bkp.estado === 'RESTAURADO'
+                                  ? 'restored'
+                                  : 'failed'
+                              }`}
                             >
-                              <RotateCcw size={14} className={isRestoring ? 'spin' : ''} />
-                              <span>{isRestoring ? 'Restaurando...' : 'Restaurar'}</span>
-                            </button>
+                              {bkp.estado}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="hash-code" title={bkp.checksum_sha256}>
+                              {bkp.checksum_sha256.slice(0, 12)}...
+                            </span>
+                          </td>
+                          <td>
+                            <div className="row-actions">
+                              <button
+                                type="button"
+                                className="btn-restore-action"
+                                onClick={() => handleRestoreBackup(bkp)}
+                                disabled={isRestoring}
+                                title="Restaurar base de datos a este punto en el tiempo"
+                              >
+                                <RotateCcw size={14} className={isRestoring ? 'spin' : ''} />
+                                <span>{isRestoring ? 'Restaurando...' : 'Restaurar'}</span>
+                              </button>
 
-                            <button
-                              type="button"
-                              className="btn-delete-action"
-                              onClick={() => handleDeleteBackup(bkp.id)}
-                              title="Eliminar archivo de backup"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                              <button
+                                type="button"
+                                className="btn-delete-action"
+                                onClick={() => handleDeleteBackup(bkp.id)}
+                                title="Eliminar archivo de backup"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <SaasPagination
+                currentPage={currentPage}
+                totalItems={backups.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={(page) => setCurrentPage(page)}
+                itemLabel="copias de seguridad"
+              />
+            </>
           )}
         </div>
       </div>

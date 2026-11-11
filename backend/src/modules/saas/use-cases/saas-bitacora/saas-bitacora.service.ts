@@ -40,7 +40,7 @@ export class SaasBitacoraService {
     limit?: number;
   }): Promise<SaasBitacoraItem[]> {
     const companies = this.loadCompanies();
-    const limit = params?.limit || 150;
+    const limit = params?.limit || 500;
     const targetTenants =
       params?.tenantKey && params.tenantKey !== 'ALL'
         ? [params.tenantKey]
@@ -54,7 +54,7 @@ export class SaasBitacoraService {
         const client = this.prisma.getClientForTenant(key);
         const entries = await client.bitacora.findMany({
           orderBy: { fecha_hora: 'desc' },
-          take: 50,
+          take: 200,
           include: {
             usuario: {
               select: { email: true, id_usuario: true },

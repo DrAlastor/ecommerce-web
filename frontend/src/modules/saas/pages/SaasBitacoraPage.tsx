@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { saasService } from '../services/saas.service';
 import type { SaasBitacoraItem } from '../types/saas.types';
+import { SaasPagination } from '../components/SaasPagination';
 import { Clock, Search, Filter, RefreshCw } from 'lucide-react';
 import './SaasBitacoraPage.css';
+
+const PAGE_SIZE = 20;
 
 export const SaasBitacoraPage: React.FC = () => {
   const [items, setItems] = useState<SaasBitacoraItem[]>([]);
@@ -10,6 +13,7 @@ export const SaasBitacoraPage: React.FC = () => {
   const [selectedTenant, setSelectedTenant] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchBitacora = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
@@ -19,9 +23,10 @@ export const SaasBitacoraPage: React.FC = () => {
       const data = await saasService.getConsolidatedBitacora({
         tenantKey: selectedTenant !== 'ALL' ? selectedTenant : undefined,
         search: searchTerm || undefined,
-        limit: 150,
+        limit: 500,
       });
       setItems(data);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -36,6 +41,12 @@ export const SaasBitacoraPage: React.FC = () => {
     e.preventDefault();
     fetchBitacora();
   };
+
+  // Cálculo de paginación de 20 en 20
+  const paginatedItems = items.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   return (
     <div className="saas-bitacora-container">
@@ -68,7 +79,10 @@ export const SaasBitacoraPage: React.FC = () => {
             <Filter size={15} />
             <select
               value={selectedTenant}
-              onChange={(e) => setSelectedTenant(e.target.value)}
+              onChange={(e) => {
+                setSelectedTenant(e.target.value);
+                setCurrentPage(1);
+              }}
               className="select-tenant-bitacora"
             >
               <option value="ALL">Todos los Tenants</option>
@@ -104,52 +118,66 @@ export const SaasBitacoraPage: React.FC = () => {
             <p>Intenta cambiar los términos de búsqueda o el inquilino seleccionado.</p>
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="bitacora-table">
-              <thead>
-                <tr>
-                  <th>Fecha & Hora (UTC)</th>
-                  <th>Inquilino / Tienda</th>
-                  <th>Acción Realizada</th>
-                  <th>Entidad Afectada</th>
-                  <th>Usuario Responsable</th>
-                  <th>Dirección IP</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="col-date">
-                      {new Date(item.fecha_hora).toLocaleString('es-BO', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
-                    </td>
-                    <td>
-                      <span className="tenant-badge-cell">
-                        {item.tenantName}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="action-pill">{item.accion}</span>
-                    </td>
-                    <td className="col-entity">{item.entidad_afectada}</td>
-                    <td className="col-user">
-                      <span className="user-email-text">{item.usuario_email}</span>
-                      <span className="user-id-sub">ID: #{item.usuario_id}</span>
-                    </td>
-                    <td className="col-ip">
-                      <code>{item.ip || '127.0.0.1'}</code>
-                    </td>
+          <>
+            <div className="table-responsive">
+              <table className="bitacora-table">
+                <thead>
+                  <tr>
+                    <th>Fecha & Hora (UTC)</th>
+                    <th>Inquilino / Tienda</th>
+                    <th>Acción Realizada</th>
+                    <th>Entidad Afectada</th>
+                    <th>Usuario Responsable</th>
+                    <th>Dirección IP</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedItems.map((item) => (
+                    <tr key={item.id}>
+                      <td className="col-date">
+                        {new Date(item.fecha_hora).toLocaleString('es-BO', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </td>
+                      <td>
+                        <span className="tenant-badge-cell">
+                          {item.tenantName}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="action-pill">{item.accion}</span>
+                      </td>
+                      <td className="col-entity">{item.entidad_afectada}</td>
+                      <td className="col-user">
+                        <span className="user-email-text">{item.usuario_email}</span>
+                        <span className="user-id-sub">ID: #{item.usuario_id}</span>
+                      </td>
+                      <td className="col-ip">
+                        <code>{item.ip || '127.0.0.1'}</code>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginación de 20 en 20 */}
+            <SaasPagination
+              currentPage={currentPage}
+              totalItems={items.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              itemLabel="eventos de auditoría"
+            />
+          </>
         )}
       </div>
     </div>

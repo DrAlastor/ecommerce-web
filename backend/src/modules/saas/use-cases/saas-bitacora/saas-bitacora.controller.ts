@@ -14,7 +14,7 @@ export class SaasBitacoraController {
     return this.bitacoraService.getConsolidatedBitacora({
       tenantKey,
       search,
-      limit: limit ? Number(limit) : 150,
+      limit: limit ? Number(limit) : 500,
     });
   }
 }

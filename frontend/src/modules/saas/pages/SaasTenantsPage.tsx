@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { saasService } from '../services/saas.service';
 import type { EnrichedTenantDetails, UpdateTenantDataPayload } from '../types/saas.types';
+import { SaasPagination } from '../components/SaasPagination';
 import {
   Building2,
   Edit3,
@@ -16,11 +17,14 @@ import {
 } from 'lucide-react';
 import './SaasTenantsPage.css';
 
+const TENANTS_PAGE_SIZE = 6;
+
 export const SaasTenantsPage: React.FC = () => {
   const [tenants, setTenants] = useState<EnrichedTenantDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Modal de edición
   const [editingTenant, setEditingTenant] = useState<EnrichedTenantDetails | null>(null);
@@ -152,7 +156,9 @@ export const SaasTenantsPage: React.FC = () => {
 
       {/* Grilla de Tenants */}
       <div className="tenants-cards-grid">
-        {tenants.map((tenant) => {
+        {tenants
+          .slice((currentPage - 1) * TENANTS_PAGE_SIZE, currentPage * TENANTS_PAGE_SIZE)
+          .map((tenant) => {
           const isSuspended = tenant.estado === 'SUSPENDIDO';
           return (
             <div key={tenant.codigo_empresa} className={`tenant-card ${isSuspended ? 'suspended' : ''}`}>
@@ -238,6 +244,16 @@ export const SaasTenantsPage: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      <div style={{ marginTop: '1.5rem', background: '#FFFFFF', borderRadius: '12px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+        <SaasPagination
+          currentPage={currentPage}
+          totalItems={tenants.length}
+          pageSize={TENANTS_PAGE_SIZE}
+          onPageChange={(page) => setCurrentPage(page)}
+          itemLabel="inquilinos"
+        />
       </div>
 
       {/* Modal de Edición de Datos de Tenant */}

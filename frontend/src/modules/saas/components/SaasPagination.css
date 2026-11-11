@@ -1,0 +1,93 @@
+.saas-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  background-color: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+  font-size: 0.85rem;
+  color: #64748B;
+  box-sizing: border-box;
+}
+
+.saas-pagination-info strong {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.saas-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.saas-page-btn.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saas-page-btn.nav-btn:hover:not(:disabled) {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+.saas-page-btn.nav-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background-color: #F8FAFC;
+}
+
+.saas-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.saas-page-number {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E2E8F0;
+  background-color: #FFFFFF;
+  color: #334155;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.saas-page-number:hover:not(.active) {
+  background-color: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+.saas-page-number.active {
+  background-color: #1A1A1A;
+  border-color: #1A1A1A;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.saas-page-ellipsis {
+  padding: 0 0.25rem;
+  color: #94A3B8;
+  font-weight: 600;
+}
