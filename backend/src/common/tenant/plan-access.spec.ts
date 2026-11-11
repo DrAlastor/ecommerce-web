@@ -27,3 +27,62 @@ describe('Restricciones por plan y edición de apariencia', () => {
     expect((await validate(dto, {whitelist:true, forbidNonWhitelisted:true})).map(e=>e.property).sort()).toEqual(['css_variables','fecha_modificacion']);
   });
 });
+
+describe('Plan efectivo administrado por SaaS', () => {
+  function mockFiles(companies: unknown, metadata: unknown, plans: unknown) {
+    vi.mocked(fs.readFileSync).mockImplementation(((file: unknown) => {
+      const filename = String(file);
+      if (filename.includes('tenants_company')) return JSON.stringify(companies);
+      if (filename.includes('tenants_saas_meta')) return JSON.stringify(metadata);
+      return JSON.stringify(plans);
+    }) as any);
+  }
+
+  it('respeta los accesos declarados para las tres empresas existentes', async () => {
+    const realFs = await vi.importActual<typeof import('node:fs')>('node:fs');
+    const companies = JSON.parse(realFs.readFileSync('data/tenants_company.json', 'utf8'));
+    const metadata = JSON.parse(realFs.readFileSync('data/tenants_saas_meta.json', 'utf8'));
+    const plans = JSON.parse(realFs.readFileSync('data/saas_plans.json', 'utf8'));
+    mockFiles(companies, metadata, plans);
+    for (const [tenant, ia, ml] of [['dressly', true, true], ['urbanly', true, false], ['aura-sport', true, true]] as const) {
+      tenantStorage.run({ tenantId: tenant }, () => {
+        expect(planAllowsFunction('Gestionar reportes qbe')).toBe(ia);
+        expect(planAllowsFunction('Gestionar reportes por voz')).toBe(ia);
+        expect(planAllowsFunction('Predicciones Machine Learning')).toBe(ml);
+      });
+    }
+  });
+
+  it('aplica una reducción de plan en SaaS aunque company conserve el anterior', () => {
+    mockFiles({ tienda: { plan_id: 'EMPRESARIAL' } }, { tienda: { planId: 'BASICO' } }, [
+      { codigo: 'BASICO', activo: true, permite_ia_reportes: false, permite_ml_analytics: false },
+      { codigo: 'EMPRESARIAL', activo: true, permite_ia_reportes: true, permite_ml_analytics: true },
+    ]);
+    tenantStorage.run({ tenantId: 'tienda' }, () => {
+      expect(planAllowsFunction('Gestionar reportes qbe')).toBe(false);
+      expect(planAllowsFunction('Predicciones Machine Learning')).toBe(false);
+    });
+  });
+
+  it('mantiene el plan inicial de empresas nuevas y restringe empresas desconocidas', () => {
+    mockFiles({ nueva: { plan_id: 'plan-enterprise' } }, {}, [
+      { codigo: 'PREMIUM', activo: true, permite_ia_reportes: true, permite_ml_analytics: false },
+    ]);
+    tenantStorage.run({ tenantId: 'nueva' }, () => {
+      expect(planAllowsFunction('Gestionar reportes qbe')).toBe(true);
+      expect(planAllowsFunction('Predicciones Machine Learning')).toBe(false);
+    });
+    tenantStorage.run({ tenantId: 'desconocida' }, () => {
+      expect(planAllowsFunction('Gestionar reportes qbe')).toBe(false);
+    });
+  });
+
+  it('no habilita capacidades de un plan inactivo', () => {
+    mockFiles({}, { tienda: { planId: 'EMPRESARIAL' } }, [
+      { codigo: 'EMPRESARIAL', activo: false, permite_ia_reportes: true, permite_ml_analytics: true },
+    ]);
+    tenantStorage.run({ tenantId: 'tienda' }, () => {
+      expect(planAllowsFunction('Gestionar reportes qbe')).toBe(false);
+    });
+  });
+});
