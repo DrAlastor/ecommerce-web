@@ -25,11 +25,12 @@ jobs:
           cd backend
           npm ci --legacy-peer-deps
           npm run build
+          npm prune --production --legacy-peer-deps
 
       - name: Create deployment package
         run: |
           cd backend
-          zip -r ../backend.zip dist package.json package-lock.json prisma "Base de Datos" data
+          zip -r ../backend.zip dist package.json package-lock.json prisma "Base de Datos" data node_modules
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3

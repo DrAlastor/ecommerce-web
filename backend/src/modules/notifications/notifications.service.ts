@@ -4,8 +4,6 @@
  */
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
-import { getMessaging, Message } from 'firebase-admin/messaging';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -26,17 +24,26 @@ export interface PushNotificationPayload {
 @Injectable()
 export class NotificationsService implements OnModuleInit {
   private readonly logger = new Logger(NotificationsService.name);
-  private firebaseApp: App | null = null;
+  private firebaseApp: any = null;
   private readonly tokensFilePath = path.resolve(process.cwd(), 'device-tokens.json');
   private deviceTokens: Map<string, DeviceTokenRecord> = new Map();
 
-  onModuleInit() {
-    this.initFirebase();
+  async onModuleInit() {
+    await this.initFirebase();
     this.loadTokensFromFile();
   }
 
-  private initFirebase() {
+  private async initFirebase() {
     try {
+      let fbAppModule: any;
+      try {
+        fbAppModule = await import('firebase-admin/app');
+      } catch (err: any) {
+        this.logger.warn(`firebase-admin no está disponible en este entorno: ${err.message}`);
+        return;
+      }
+
+      const { initializeApp, cert, getApps } = fbAppModule;
       const existingApps = getApps();
       if (existingApps.length > 0) {
         this.firebaseApp = existingApps[0]!;
@@ -121,7 +128,9 @@ export class NotificationsService implements OnModuleInit {
     }
 
     try {
-      const message: Message = {
+      const { getMessaging } = await import('firebase-admin/messaging');
+
+      const message: any = {
         token,
         notification: {
           title: payload.title,
