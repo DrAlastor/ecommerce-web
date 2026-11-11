@@ -17,6 +17,7 @@ import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { BitacoraService } from '../../../users-security/shared/services/bitacora.service.js';
 import { CreatePresentialSaleDto } from './dto/create-presential-sale.dto.js';
 import { QueryPOSProductsDto } from './dto/query-pos-products.dto.js';
+import { decrementPosStock } from './decrement-pos-stock.js';
 
 @Injectable()
 export class PresentialSaleService {
@@ -78,7 +79,7 @@ export class PresentialSaleService {
   /**
    * Obtiene el catálogo de productos con variantes y existencias en la sucursal seleccionada
    */
-  async getPOSProducts(query: QueryPOSProductsDto) {
+  async getPOSProducts(query: QueryPOSProductsDto, complete = false) {
     const { id_sucursal, search, id_categoria } = query;
     const now = new Date();
 
@@ -130,7 +131,7 @@ export class PresentialSaleService {
         },
       },
       orderBy: { nombre: 'asc' },
-      take: 100,
+      take: complete ? undefined : 100,
     });
 
     return productos.map((p) => {
@@ -241,14 +242,16 @@ export class PresentialSaleService {
   /**
    * Registra una venta física en mostrador, procesa el cobro, descuenta inventario y genera factura
    */
-  async registerPresentialSale(user: any, dto: CreatePresentialSaleDto, ip?: string) {
+  async registerPresentialSale(user: any, dto: CreatePresentialSaleDto, ip?: string, transaction?: any, approved?: { prices: Map<number, { regular: number; final: number }>; employee: number; occurredAt: string }, recordedAt?: string) {
+    const db = transaction ?? this.prisma;
     const userId = Number(user?.id_usuario ?? user?.sub);
     const rolNorm = (user?.rol || user?.rol?.nombre || '').toLowerCase().trim();
     const isAdmin = user?.id_rol === 1 || rolNorm === 'administrador';
     const now = new Date();
+    const saleDate = new Date(approved?.occurredAt ?? recordedAt ?? now.toISOString());
 
     // 1. Validar Cajero y Sucursal
-    const sucursal = await this.prisma.sucursal.findUnique({
+    const sucursal = await db.sucursal.findUnique({
       where: { id_sucursal: dto.id_sucursal },
       include: { ciudad: true },
     });
@@ -258,7 +261,7 @@ export class PresentialSaleService {
     }
 
     if (!isAdmin) {
-      const acceso = await this.prisma.empleado_sucursal.findFirst({
+      const acceso = await db.empleado_sucursal.findFirst({
         where: {
           id_empleado: userId,
           id_sucursal: dto.id_sucursal,
@@ -267,7 +270,7 @@ export class PresentialSaleService {
 
       // Si no tiene asignación directa pero el usuario existe, validar si es empleado
       if (!acceso) {
-        const esEmpleado = await this.prisma.empleado.findFirst({
+        const esEmpleado = await db.empleado.findFirst({
           where: { id_empleado: userId, estado: 'activo' },
         });
 
@@ -281,15 +284,15 @@ export class PresentialSaleService {
 
     // Encontrar ID de empleado responsable para registrar en venta y movimiento
     const empRecord =
-      (await this.prisma.empleado.findFirst({
+      (await db.empleado.findFirst({
         where: { id_empleado: userId, estado: 'activo' },
       })) ||
-      (await this.prisma.empleado.findFirst({
+      (await db.empleado.findFirst({
         where: { estado: 'activo' },
         orderBy: { id_empleado: 'asc' },
       }));
 
-    const idEmpleadoResponsable = empRecord ? empRecord.id_empleado : userId;
+    const idEmpleadoResponsable = approved?.employee ?? (empRecord ? empRecord.id_empleado : userId);
 
     // 2. Validar Existencias e Items en la Sucursal
     const itemRecords: {
@@ -304,7 +307,7 @@ export class PresentialSaleService {
     }[] = [];
 
     for (const it of dto.items) {
-      const variante = await this.prisma.producto_variante.findUnique({
+      const variante = await db.producto_variante.findUnique({
         where: { id_producto_variante: it.id_producto_variante },
         include: {
           producto: {
@@ -339,7 +342,7 @@ export class PresentialSaleService {
       // Precios y Promociones Oficiales Autorizadas
       const precioBase = Number(variante.producto.precio_base);
       const precioAdicional = Number(variante.precio_adicional || 0);
-      const precioUnitario = Math.round((precioBase + precioAdicional) * 100) / 100;
+      let precioUnitario = Math.round((precioBase + precioAdicional) * 100) / 100;
 
       const activePromo = (variante.producto.promocion_producto || []).find((pp: any) => {
         const promo = pp.promocion;
@@ -361,6 +364,9 @@ export class PresentialSaleService {
         }
       }
 
+      const authorizedPrice = approved?.prices.get(it.id_producto_variante);
+      if (approved && !authorizedPrice) throw new BadRequestException('La preparación no contiene el precio de esta variante');
+      if (authorizedPrice) { precioUnitario = authorizedPrice.regular; precioFinal = authorizedPrice.final; }
       const subtotalOrig = Math.round(precioUnitario * it.cantidad * 100) / 100;
       const subtotalFin = Math.round(precioFinal * it.cantidad * 100) / 100;
       const descItem = Math.round((subtotalOrig - subtotalFin) * 100) / 100;
@@ -400,7 +406,7 @@ export class PresentialSaleService {
     let clienteCI = dto.cliente_ci?.trim() || '0';
 
     if (dto.id_cliente) {
-      const cli = await this.prisma.cliente.findUnique({
+      const cli = await db.cliente.findUnique({
         where: { id_cliente: dto.id_cliente },
       });
       if (cli) {
@@ -409,7 +415,7 @@ export class PresentialSaleService {
       }
     } else if (dto.cliente_ci && dto.cliente_ci.trim() !== '' && dto.cliente_ci !== '0') {
       // Buscar si ya existe por CI
-      const existingCli = await this.prisma.cliente.findFirst({
+      const existingCli = await db.cliente.findFirst({
         where: { ci: dto.cliente_ci.trim() },
       });
       if (existingCli) {
@@ -419,7 +425,7 @@ export class PresentialSaleService {
     }
 
     // 6. Generar correlativo de factura
-    const nextVentaMax = await this.prisma.venta.aggregate({
+    const nextVentaMax = await db.venta.aggregate({
       _max: { id_venta: true },
     });
     const nextVentaId = (nextVentaMax._max.id_venta || 0) + 1;
@@ -438,7 +444,7 @@ export class PresentialSaleService {
     }
 
     // 7. Transacción Atómica en Base de Datos
-    await this.prisma.$transaction(async (tx) => {
+    const persist = async (tx: any) => {
       // A. Crear Cabecera de Venta
       await tx.venta.create({
         data: {
@@ -448,7 +454,7 @@ export class PresentialSaleService {
           subtotal: subtotalVenta,
           descuento: descuentoVenta,
           estado: 'Pagada',
-          fecha_venta: new Date(),
+          fecha_venta: saleDate,
           id_cliente: targetClienteId,
           id_empleado: idEmpleadoResponsable,
         },
@@ -481,18 +487,9 @@ export class PresentialSaleService {
           },
         });
 
-        // Descontar inventario local
-        await tx.inventario_sucursal.update({
-          where: {
-            id_inventario_sucursal: rec.inventario.id_inventario_sucursal,
-          },
-          data: {
-            stock_disponible: {
-              decrement: rec.itemDto.cantidad,
-            },
-            ultima_actualizacion: new Date(),
-          },
-        });
+        // La verificación previa puede quedar obsoleta por una venta concurrente.
+        // El descuento condicional y la venta se confirman o revierten juntos.
+        await decrementPosStock(tx.inventario_sucursal, rec.inventario.id_inventario_sucursal, rec.itemDto.cantidad);
 
         // Registrar movimiento de auditoría de inventario
         await tx.movimiento_inventario.create({
@@ -522,14 +519,16 @@ export class PresentialSaleService {
           importe: totalVenta,
           transaccion_externa: transaccionRef,
           estado: 'completado',
-          fecha_pago: new Date(),
+          fecha_pago: saleDate,
           id_venta: nextVentaId,
         },
       });
-    });
+    };
+    if (transaction) await persist(transaction);
+    else await db.$transaction(persist);
 
     // 8. Registro de Auditoría en Bitácora
-    await this.bitacora.logAction(
+    if (!transaction) await this.bitacora.logAction(
       `Venta presencial #${codigoFactura} registrada por empleado #${idEmpleadoResponsable} en sucursal ${sucursal.nombre} (${dto.metodo_pago.toUpperCase()}) por un total de ${totalVenta} Bs`,
       'VENTA',
       userId,
@@ -548,7 +547,7 @@ export class PresentialSaleService {
       id_venta: nextVentaId,
       codigo_factura: codigoFactura,
       estado_venta: 'Pagada',
-      fecha: new Date().toISOString(),
+      fecha: saleDate.toISOString(),
       sucursal: {
         id_sucursal: sucursal.id_sucursal,
         nombre: sucursal.nombre,

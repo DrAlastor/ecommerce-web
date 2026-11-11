@@ -38,3 +38,6 @@ test_*.js
 
 # Separate mobile repository checked out alongside the web project
 /ecommerce-movil/
+
+# Private PostgreSQL backups for the offline migration
+/backend/.offline-backups/

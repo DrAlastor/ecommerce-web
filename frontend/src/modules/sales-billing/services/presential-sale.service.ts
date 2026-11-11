@@ -1,4 +1,6 @@
 import api from '../../../services/api/api';
+import { offlineCatalog, offlineContext, offlinePending, sellOffline, syncOfflinePOS } from '../../../services/offline/offlinePOS';
+import { readOfflinePreparation } from '../../../services/offline/offlineStorage';
 import type {
   POSBranch,
   POSProduct,
@@ -13,8 +15,14 @@ export const presentialSaleService = {
    * Obtiene la lista de sucursales habilitadas para el cajero
    */
   async getBranches(): Promise<POSBranch[]> {
-    const response = await api.get<POSBranch[]>('/sales-billing/pos/branches');
-    return response.data;
+    if (!navigator.onLine) return (await offlineCatalog()).branches;
+    try {
+      const response = await api.get<POSBranch[]>('/sales-billing/pos/branches');
+      return response.data;
+    } catch (error) {
+      if (!(error as { response?: unknown }).response) return (await offlineCatalog()).branches;
+      throw error;
+    }
   },
 
   /**
@@ -25,6 +33,11 @@ export const presentialSaleService = {
     search?: string;
     id_categoria?: number;
   }): Promise<POSProduct[]> {
+    const prepared = await readOfflinePreparation(offlineContext(params.id_sucursal));
+    if (!navigator.onLine || prepared && Date.parse(prepared.expiresAt) > Date.now()) {
+      const data = await offlineCatalog(params.id_sucursal);
+      return data.products.filter(p => (!params.id_categoria || p.id_categoria === params.id_categoria) && (!params.search || `${p.nombre} ${p.variantes.map(v => v.sku).join(' ')}`.toLowerCase().includes(params.search.toLowerCase())));
+    }
     const response = await api.get<POSProduct[]>('/sales-billing/pos/products', {
       params,
     });
@@ -47,6 +60,16 @@ export const presentialSaleService = {
   async registerSale(
     payload: CreatePresentialSalePayload,
   ): Promise<PaymentConfirmationResult> {
+    const prepared = await readOfflinePreparation(offlineContext(payload.id_sucursal));
+    if (!navigator.onLine || prepared && payload.metodo_pago === 'efectivo') {
+      const temporary = await sellOffline(payload);
+      if (navigator.onLine) {
+        await syncOfflinePOS(payload.id_sucursal).catch(() => {});
+        const sale = (await offlinePending(payload.id_sucursal)).find(item => item.id === temporary.pago.transaccion);
+        if (sale?.status === 'CONFIRMED') return sale.result as PaymentConfirmationResult;
+      }
+      return temporary;
+    }
     const response = await api.post<PaymentConfirmationResult>(
       '/sales-billing/pos/sales',
       payload,

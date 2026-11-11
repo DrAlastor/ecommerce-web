@@ -39,6 +39,8 @@ export interface PrintableReceiptData {
 }
 
 export function printReceipt(data: PrintableReceiptData): void {
+  const provisional = data.estado === 'PENDIENTE_SINCRONIZACION' || data.codigo_factura.startsWith('OFFLINE-');
+  const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]!));
   // 1. Formatear datos
   const fechaStr = new Date(data.fecha_venta).toLocaleDateString('es-BO', {
     day: '2-digit',
@@ -48,8 +50,8 @@ export function printReceipt(data: PrintableReceiptData): void {
     minute: '2-digit',
   });
 
-  const clienteNombre = data.cliente?.nombre_completo || 'Cliente General';
-  const clienteCi = data.cliente?.ci || '0';
+  const clienteNombre = escape(data.cliente?.nombre_completo || 'Cliente General');
+  const clienteCi = escape(data.cliente?.ci || '0');
   const metodoPago =
     data.pago?.metodo_pago === 'stripe'
       ? 'Tarjeta de Crédito / Débito (Stripe)'
@@ -66,11 +68,11 @@ export function printReceipt(data: PrintableReceiptData): void {
       <tr>
         <td style="text-align: center; padding: 8px 6px; border-bottom: 1px solid #E5E7EB; font-weight: 600;">${it.cantidad}</td>
         <td style="padding: 8px 10px; border-bottom: 1px solid #E5E7EB;">
-          <div style="font-weight: 700; color: #111827; font-size: 13px;">${it.nombre_producto}</div>
+          <div style="font-weight: 700; color: #111827; font-size: 13px;">${escape(it.nombre_producto)}</div>
           <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">
-            ${it.talla ? `Talla: <strong>${it.talla}</strong> ` : ''}
-            ${it.color ? `| Color: <strong>${it.color}</strong> ` : ''}
-            ${it.sku ? `| SKU: ${it.sku}` : ''}
+            ${it.talla ? `Talla: <strong>${escape(it.talla)}</strong> ` : ''}
+            ${it.color ? `| Color: <strong>${escape(it.color)}</strong> ` : ''}
+            ${it.sku ? `| SKU: ${escape(it.sku)}` : ''}
           </div>
         </td>
         <td style="text-align: right; padding: 8px 10px; border-bottom: 1px solid #E5E7EB; font-size: 13px;">
@@ -90,7 +92,7 @@ export function printReceipt(data: PrintableReceiptData): void {
     <html lang="es">
     <head>
       <meta charset="utf-8" />
-      <title>Comprobante Fiscal - ${data.codigo_factura}</title>
+      <title>${provisional ? 'Comprobante provisional' : 'Comprobante Fiscal'} - ${escape(data.codigo_factura)}</title>
       <style>
         @page {
           size: A4 portrait;
@@ -245,12 +247,12 @@ export function printReceipt(data: PrintableReceiptData): void {
           <div>
             <div class="brand-title">Dressly Fashion Store</div>
             <p class="brand-sub">Casa Matriz: Av. San Martín #450 • Equipetrol, Santa Cruz</p>
-            <p class="brand-sub">NIT: 1029384019 • Autorización N°: 290400192831</p>
+            <p class="brand-sub">${provisional ? 'Registro local pendiente de sincronización' : 'NIT: 1029384019 • Autorización N°: 290400192831'}</p>
             <p class="brand-sub">Teléfono: (+591) 3 345-6789 • Web: www.dressly.fashion</p>
           </div>
           <div class="invoice-box">
-            <div class="invoice-box-tag">Factura Comercial</div>
-            <div class="invoice-box-num">${data.codigo_factura}</div>
+            <div class="invoice-box-tag">${provisional ? 'Comprobante provisional' : 'Factura Comercial'}</div>
+            <div class="invoice-box-num">${escape(data.codigo_factura)}</div>
             <div class="invoice-box-date">${fechaStr}</div>
           </div>
         </div>
@@ -321,11 +323,11 @@ export function printReceipt(data: PrintableReceiptData): void {
         <!-- Fiscal Legend Footer -->
         <div class="fiscal-footer">
           <div class="fiscal-legend">
-            "ESTA FACTURA CONTRIBUYE AL DESARROLLO DEL PAÍS, EL USO ILÍCITO SERÁ SANCIONADO PENALMENTE DE ACUERDO A LEY"
+            ${provisional ? 'REGISTRADO SIN CONEXIÓN — PENDIENTE DE SINCRONIZACIÓN. NO ES FACTURA FISCAL.' : '"ESTA FACTURA CONTRIBUYE AL DESARROLLO DEL PAÍS, EL USO ILÍCITO SERÁ SANCIONADO PENALMENTE DE ACUERDO A LEY"'}
           </div>
           <div>Ley N° 453: El proveedor deberá suministrar el bien o servicio en las condiciones ofertadas y convenidas.</div>
           <div style="margin-top: 4px; font-family: monospace; font-size: 9px; color: #9CA3AF;">
-            Código Control: A8-4F-3B-9C-1E • Fecha Límite Emisión: 31/12/2026
+            ${provisional ? 'Conserva este identificador local para consultar el comprobante conciliado.' : 'Código Control: A8-4F-3B-9C-1E • Fecha Límite Emisión: 31/12/2026'}
           </div>
         </div>
       </div>

@@ -1,0 +1,9 @@
+{
+  "name": "Fashion Store POS",
+  "short_name": "Store POS",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#172337"
+}

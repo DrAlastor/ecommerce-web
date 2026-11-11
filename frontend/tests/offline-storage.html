@@ -1,0 +1,26 @@
+<body>RUNNING<script type="module">
+import {prepareOfflineStorage,recordOfflineSale,listOfflineSales,readOfflinePreparation,acknowledgeOfflineSale,saveOfflineCashCount} from './storage.js';
+try {
+const context={tenant:'test',user:1,branch:1,terminal:'browser-test'};
+const preparation={id:'prep',sessionId:'session-one',initialMinor:0,context,version:'1',expiresAt:new Date(Date.now()+3600000).toISOString(),products:[{variantes:[{id_producto_variante:1}]}],branches:[],variants:[{variant:1,quantity:2,priceMinor:100}]};
+await prepareOfflineStorage(preparation);
+const sale={id:'sale',preparationId:'prep',sessionId:'session-one',context,createdAt:new Date().toISOString(),status:'PENDING',receivedMinor:100,items:[{variant:1,quantity:1,priceMinor:100}]};
+await recordOfflineSale(sale);
+let rejected=false;
+try {await recordOfflineSale(sale);} catch {rejected=true;}
+if(!rejected)throw Error('Duplicate UUID accepted');
+rejected=false;
+try { await recordOfflineSale({...sale,id:'oversell',items:[{variant:1,quantity:2,priceMinor:100}],receivedMinor:200}); } catch { rejected=true; }
+if(!rejected || (await listOfflineSales(context)).length!==1) throw Error('Atomic rollback failed');
+if((await readOfflinePreparation(context)).products[0].variantes[0].stock_disponible!==1) throw Error('Wrong stock after rollback');
+if((await listOfflineSales({...context,tenant:'other'})).length) throw Error('Tenant isolation failed');
+rejected=false;try {await prepareOfflineStorage(preparation);} catch {rejected=true;}if(!rejected) throw Error('Pending sale overwritten');
+await acknowledgeOfflineSale(context,'sale','CONFIRMED',{official:123});
+if((await listOfflineSales(context))[0].status!=='CONFIRMED') throw Error('Acknowledgement failed');
+await prepareOfflineStorage({...preparation,id:'new-preparation',sessionId:'session-two'});
+await saveOfflineCashCount(context,0,0);
+const count=await new Promise((resolve,reject)=>{const request=indexedDB.open('DresslyOffline');request.onsuccess=()=>{const db=request.result;const tx=db.transaction('cashCounts','readonly');const rows=tx.objectStore('cashCounts').getAll();tx.oncomplete=()=>{resolve(rows.result[0]);db.close();};tx.onabort=()=>reject(tx.error);};request.onerror=()=>reject(request.error);});
+if(count.expectedMinor!==0||count.saleIds.length!==0)throw Error('Prior sessions included in cash count');
+document.body.textContent='PASS: atomic sale, rollback, tenant isolation, pending protection, acknowledgement';
+} catch(e) {document.body.textContent='FAIL: '+e.stack;}
+</script></body>

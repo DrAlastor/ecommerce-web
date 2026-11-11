@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { useConfirm } from '../../../../../shared/components/ConfirmModal';
 import './POSPage.css';
+import { OfflinePOSPanel } from '../../../../../services/offline/OfflinePOSPanel';
 
 export const POSPage: React.FC = () => {
   const { user, rol } = useAuth();
@@ -445,6 +446,7 @@ export const POSPage: React.FC = () => {
 
   return (
     <div className="pos-page-layout">
+      <OfflinePOSPanel branch={selectedBranchId} canResolve={rol?.nombre?.toLowerCase() === 'administrador'} />
       {/* Topbar del Cajero */}
       <header className="pos-topbar">
         <div className="pos-topbar-left">

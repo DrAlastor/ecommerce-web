@@ -27,10 +27,12 @@ import { PresentialSaleService } from './use-cases/CU27-registrar-venta-presenci
 import { ReturnsController } from './use-cases/CU28-gestionar-devoluciones/returns.controller.js';
 import { ReturnsService } from './use-cases/CU28-gestionar-devoluciones/returns.service.js';
 import { SaasCheckoutController } from './saas-checkout.controller.js';
+import { OfflineController } from './use-cases/CU27-registrar-venta-presencial/offline.controller.js';
 
 @Module({
   imports: [PrismaModule, AuthModule, UsersSecurityModule],
   controllers: [
+    OfflineController,
     CartController,
     DigitalPurchaseController,
     PurchasesHistoryController,

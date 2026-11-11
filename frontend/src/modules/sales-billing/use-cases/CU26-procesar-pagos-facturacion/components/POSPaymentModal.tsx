@@ -331,7 +331,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
                 <p>Casa Matriz: Av. San Martín #450 • Santa Cruz, Bolivia</p>
                 <p className="ticket-nit">NIT: 1029384019</p>
                 <div className="ticket-divider" />
-                <p className="ticket-fac-number">FACTURA: {receipt.codigo_factura}</p>
+                <p className="ticket-fac-number">{receipt.estado_venta === 'PENDIENTE_SINCRONIZACION' ? 'COMPROBANTE PROVISIONAL' : 'FACTURA'}: {receipt.codigo_factura}</p>
                 <p className="ticket-date">{new Date(receipt.fecha).toLocaleString('es-BO')}</p>
               </div>
 
@@ -409,6 +409,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
                 className="btn-print-ticket"
                 onClick={() => {
                   printReceipt({
+                    estado: receipt.estado_venta,
                     codigo_factura: receipt.codigo_factura || receipt.factura?.numero_factura || 'FAC-POS',
                     fecha_venta: receipt.fecha || new Date().toISOString(),
                     cliente: {
