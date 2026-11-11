@@ -1,3 +1,4 @@
+import { planAllowsFunction, tenantCapabilities } from '../../../../common/tenant/plan-access.js';
 /**
  * @file function.guard.ts
  * @description Guardián de autorización granular basado en funciones y permisos del sistema (RBAC dinámico).
@@ -48,6 +49,11 @@ export class FunctionGuard implements CanActivate {
       throw new ForbiddenException('Sesión inválida');
     }
 
+    const route = request.url || '';
+    const caps = tenantCapabilities();
+    if (!planAllowsFunction(requiredFunc.modulo) || (/\/reports\/ai\/(predictions|rfm-clusters|scenarios)/.test(route) && !caps.ml) || (/\/reports\/(qbe|ai\/(chat|analyze|tts|transcribe))/.test(route) && !caps.ia)) {
+      throw new ForbiddenException('Esta funci?n no est? incluida en el plan de la empresa.');
+    }
     const dbUser = await this.prisma.usuario.findUnique({
       where: { id_usuario: user.id_usuario },
       select: { id_rol: true }

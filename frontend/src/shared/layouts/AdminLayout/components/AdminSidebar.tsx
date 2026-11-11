@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import api from '../../../../services/api/api';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../../modules/users-security/shared/components/AuthContext';
 import {
@@ -124,27 +125,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     ? 'urbanly'
     : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
 
-  const [currentPlanId, setCurrentPlanId] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
-      return saved ? JSON.parse(saved).plan_id || 'plan-enterprise' : 'plan-enterprise';
-    } catch {
-      return 'plan-enterprise';
-    }
-  });
-
+  const [currentPlanId, setCurrentPlanId] = useState('PRUEBA');
   useEffect(() => {
-    const handlePlanChange = () => {
-      try {
-        const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.plan_id) setCurrentPlanId(parsed.plan_id);
-        }
-      } catch { }
-    };
-    window.addEventListener('tenant-plan-changed', handlePlanChange);
-    return () => window.removeEventListener('tenant-plan-changed', handlePlanChange);
+    let active = true;
+    api.get('/users-security/company/public/' + encodeURIComponent(tenantKey)).then(res => {
+      if (active) setCurrentPlanId(res.data.plan_id || 'PRUEBA');
+    }).catch(() => { if (active) setCurrentPlanId('PRUEBA'); });
+    return () => { active = false; };
   }, [tenantKey]);
 
   const toggleModule = (modulo: string) => {
@@ -186,54 +173,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       }
     });
 
-    // Adaptar módulos según el Plan de Suscripción activo de la empresa (Punto 1 y SaaS.sql)
-    const isFullAccess =
-      currentPlanId === 'plan-unlimited' ||
-      currentPlanId === 'EMPRESARIAL' ||
-      currentPlanId === 'plan-corporate' ||
-      currentPlanId === 'CORPORATIVO';
-
-    const isPremium =
-      isFullAccess ||
-      currentPlanId === 'plan-enterprise' ||
-      currentPlanId === 'PREMIUM';
-
-    if (isPremium) {
-      for (const [modulo, list] of map.entries()) {
-        const normMod = normalize(modulo);
-        if (normMod.includes('reporte') || normMod.includes('inteligencia') || normMod.includes('negocio')) {
-          const hasVoz = list.some((item) => normalize(item.nombre).includes('voz'));
-          if (!hasVoz) {
-            list.push({
-              id_funcion: 33,
-              nombre: 'Gestionar Reportes por Voz',
-              modulo: modulo,
-              nivel_acceso: 'Edición',
-            });
-          }
-          if (isPremium) {
-            const hasMl = list.some((item) => normalize(item.nombre).includes('ml') || normalize(item.nombre).includes('decision'));
-            if (!hasMl) {
-              list.push({
-                id_funcion: 34,
-                nombre: 'Inteligencia de Negocios y Machine Learning',
-                modulo: modulo,
-                nivel_acceso: 'Edición',
-              });
-            }
-          }
-        }
-      }
-    } else {
-      // Filtrar funciones avanzadas de IA para Plan Básico y Plan Prueba
-      for (const [modulo, list] of map.entries()) {
-        const filtered = list.filter((item) => {
-          return item.id_funcion !== 33 && item.id_funcion !== 32 && item.id_funcion !== 34 && item.id_funcion !== 15 && item.id_funcion !== 31;
-        });
-        map.set(modulo, filtered);
-      }
-    }
-
     for (const list of map.values()) {
       list.sort((a, b) => a.id_funcion - b.id_funcion);
     }
@@ -243,7 +182,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       const firstB = Math.min(...funcsB.map((funcion) => funcion.id_funcion));
       return firstA - firstB;
     });
-  }, [funciones, currentPlanId]);
+  }, [funciones]);
 
   const tenantBrandMap: Record<string, { name: string; logo: string }> = {
     'dressly': { name: 'Dressly', logo: 'https://fashionstorestorages.blob.core.windows.net/media/logo-dressly.jpg' },

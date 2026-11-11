@@ -69,9 +69,10 @@ export const appearanceService = {
     data: Partial<AppearanceData>,
     tenant?: string,
   ): Promise<{ success: boolean; message: string; data: AppearanceData }> {
+    const { css_variables: _css, fecha_modificacion: _date, ...editable } = data;
     const res = await api.put<{ success: boolean; message: string; data: AppearanceData }>(
       '/users-security/appearance',
-      data,
+      editable,
       {
         params: tenant ? { tenant } : undefined,
       },

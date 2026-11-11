@@ -3,6 +3,10 @@ import { IsString, IsOptional, Matches, MaxLength } from 'class-validator';
 export class UpdateAppearanceDto {
   @IsOptional()
   @IsString()
+  @MaxLength(200)
+  site_title?: string;
+  @IsOptional()
+  @IsString()
   @MaxLength(50)
   codigo_empresa?: string;
 

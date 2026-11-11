@@ -6,22 +6,7 @@ import { saveOfflineCashCount } from './offlineStorage';
 import { offlineContext } from './offlinePOS';
 import { printReceipt } from '../../shared/utils/printReceipt';
 import type { PaymentConfirmationResult } from '../../modules/sales-billing/types/payment-billing.types';
-import {
-  Wifi,
-  WifiOff,
-  RefreshCw,
-  Download,
-  ShieldCheck,
-  FileText,
-  Printer,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  AlertTriangle,
-  Coins,
-  Lock,
-  Upload,
-} from 'lucide-react';
+
 import './OfflinePOSPanel.css';
 
 export function OfflinePOSPanel({
@@ -52,10 +37,6 @@ export function OfflinePOSPanel({
   const errorText = (error: unknown) => (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error instanceof Error ? error.message : 'No se pudo completar la operación');
 
   // Estados de acordeón colapsables
-  const [openArqueo, setOpenArqueo] = useState(false);
-  const [openConciliacion, setOpenConciliacion] = useState(false);
-  const [openPendientes, setOpenPendientes] = useState(false);
-  const [openConciliados, setOpenConciliados] = useState(false);
 
   const printSale = (sale: OfflineSale) => {
     const receipt = (sale.status === 'CONFIRMED'

@@ -1,3 +1,4 @@
+import api from '../../../../../services/api/api';
 import React, { useEffect, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -45,27 +46,13 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
     ? 'urbanly'
     : (rawTenant === 'aura' ? 'aura-sport' : (rawTenant === 'fashionstore' ? 'dressly' : rawTenant));
 
-  const [currentPlanId, setCurrentPlanId] = useState<string>(() => {
-    try {
-      const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
-      return saved ? JSON.parse(saved).plan_id || 'plan-enterprise' : 'plan-enterprise';
-    } catch {
-      return 'plan-enterprise';
-    }
-  });
-
+  const [currentPlanId, setCurrentPlanId] = useState('PRUEBA');
   useEffect(() => {
-    const handlePlanChange = () => {
-      try {
-        const saved = localStorage.getItem(`tenant_extended_${tenantKey}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.plan_id) setCurrentPlanId(parsed.plan_id);
-        }
-      } catch { }
-    };
-    window.addEventListener('tenant-plan-changed', handlePlanChange);
-    return () => window.removeEventListener('tenant-plan-changed', handlePlanChange);
+    let active = true;
+    api.get('/users-security/company/public/' + encodeURIComponent(tenantKey)).then(res => {
+      if (active) setCurrentPlanId(res.data.plan_id || 'PRUEBA');
+    }).catch(() => {});
+    return () => { active = false; };
   }, [tenantKey]);
 
   const {

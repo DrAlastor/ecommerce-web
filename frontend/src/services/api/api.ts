@@ -29,27 +29,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-const REMOTE_API_FALLBACK = 'https://dressly-api-gjajasdeb8b0ethf.chilecentral-01.azurewebsites.net';
-
 // Interceptor de response: maneja 401 y fallback de red
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const config = error.config;
-
-    // Resiliencia: Si el backend local no está levantado (Network Error / net::ERR_CONNECTION_REFUSED),
-    // reintentar automáticamente contra el despliegue oficial de Azure.
-    if (
-      (!error.response || error.message === 'Network Error' || error.code === 'ERR_NETWORK') &&
-      config &&
-      !config._retryRemote &&
-      typeof config.baseURL === 'string' &&
-      (config.baseURL.includes('localhost') || config.baseURL.startsWith('/'))
-    ) {
-      config._retryRemote = true;
-      config.baseURL = REMOTE_API_FALLBACK;
-      return axios(config);
-    }
 
     if (error.response?.status === 401 && !isLoginRequest(config?.url) && !config?.url?.includes('/saas')) {
       const currentToken = localStorage.getItem('accessToken');

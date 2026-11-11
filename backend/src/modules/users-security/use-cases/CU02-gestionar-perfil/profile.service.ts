@@ -1,3 +1,4 @@
+import { planAllowsFunction } from '../../../../common/tenant/plan-access.js';
 /**
  * @file profile.service.ts
  * @caso-de-uso CU02 — Registrar y gestionar perfil de cliente
@@ -74,7 +75,7 @@ export class ProfileService {
     return {
       user: userWithoutPassword,
       rol: { id_rol: usuario.rol.id_rol, nombre: usuario.rol.nombre },
-      funciones,
+      funciones: funciones.filter(f => planAllowsFunction(f.nombre)),
     };
   }
 

@@ -1,3 +1,4 @@
+import { planAllowsFunction } from '../../../../common/tenant/plan-access.js';
 /**
  * @file login.service.ts
  * @caso-de-uso CU01 — Gestionar acceso al sistema
@@ -150,7 +151,7 @@ export class LoginService {
         empleado: user.empleado
       },
       rol: { id_rol: rol.id_rol, nombre: rol.nombre },
-      funciones,
+      funciones: funciones.filter(f => planAllowsFunction(f.nombre)),
     };
   }
 }
