@@ -15,40 +15,39 @@ import type {
   ReportData,
 } from '../types/reports.types';
 
-export const useReportsDashboard = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+export const useReportsDashboard = (initialTab?: TabType) => {
+  const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
 
-  const getValidTab = (tab: string | null): TabType => {
+  const getValidTab = (tab: string | null): TabType | null => {
     if (tab === 'dashboard') return 'dashboard';
     if (tab === 'reports') return 'reports';
     if (tab === 'qbe') return 'qbe';
     if (tab === 'voz') return 'voz';
     if (tab === 'ml') return 'ml';
-    return 'dashboard';
+    return null;
   };
 
-  const [activeTab, setActiveTabState] = useState<TabType>(() => getValidTab(tabParam));
+  const [activeTab, setActiveTabState] = useState<TabType>(() => {
+    const valid = getValidTab(tabParam);
+    if (valid) return valid;
+    if (initialTab) return initialTab;
+    return 'dashboard';
+  });
 
-  // Sincronizar activeTab cuando cambia el URL query param (?tab=...)
+  // Sincronizar activeTab cuando cambia el URL query param (?tab=...) solo si viene explícito
   useEffect(() => {
     const valid = getValidTab(tabParam);
-    setActiveTabState((current) => (current !== valid ? valid : current));
+    if (valid) {
+      setActiveTabState((current) => (current !== valid ? valid : current));
+    }
   }, [tabParam]);
 
   const setActiveTab = useCallback(
     (tab: TabType) => {
       setActiveTabState(tab);
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          next.set('tab', tab);
-          return next;
-        },
-        { replace: true },
-      );
     },
-    [setSearchParams],
+    [],
   );
 
   // Estado del Dashboard

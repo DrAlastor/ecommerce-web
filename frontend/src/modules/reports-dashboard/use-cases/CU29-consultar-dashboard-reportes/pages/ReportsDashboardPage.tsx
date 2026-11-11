@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileBarChart2,
@@ -28,8 +28,17 @@ interface ReportsDashboardPageProps {
   defaultTab?: TabType;
 }
 
+const TAB_ROUTES: Record<TabType, string> = {
+  dashboard: '/admin/dashboard',
+  reports: '/admin/reportes-predefinidos',
+  qbe: '/admin/reportes-qbe',
+  voz: '/admin/reportes-voz',
+  ml: '/admin/decisiones-ml',
+};
+
 export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defaultTab }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     activeTab,
     setActiveTab,
@@ -64,24 +73,37 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
     setPageSize,
     feedbackMsg,
     setFeedbackMsg,
-  } = useReportsDashboard();
+  } = useReportsDashboard(defaultTab);
 
-  // Sincronizar tab según la prop o la ruta actual
+  // Manejo de cambio de pestaña con sincronización de ruta y sidebar
+  const handleTabClick = useCallback(
+    (tab: TabType) => {
+      setActiveTab(tab);
+      const targetRoute = TAB_ROUTES[tab];
+      if (targetRoute && location.pathname !== targetRoute) {
+        navigate(targetRoute);
+      }
+    },
+    [navigate, location.pathname, setActiveTab],
+  );
+
+  // Sincronizar tab según la ruta actual del navegador
   useEffect(() => {
-    if (defaultTab) {
-      setActiveTab(defaultTab);
-    } else if (location.pathname.includes('reportes-ml') || location.pathname.includes('decisiones-ml')) {
+    const path = location.pathname;
+    if (path.includes('reportes-ml') || path.includes('decisiones-ml')) {
       setActiveTab('ml');
-    } else if (location.pathname.includes('reportes-voz')) {
+    } else if (path.includes('reportes-voz')) {
       setActiveTab('voz');
-    } else if (location.pathname.includes('reportes-qbe')) {
+    } else if (path.includes('reportes-qbe')) {
       setActiveTab('qbe');
-    } else if (location.pathname.includes('reportes-predefinidos')) {
+    } else if (path.includes('reportes-predefinidos') || path.includes('/admin/reportes')) {
       setActiveTab('reports');
-    } else if (location.pathname.includes('dashboard')) {
+    } else if (path.includes('dashboard') || path.includes('consultar-dashboard')) {
       setActiveTab('dashboard');
+    } else if (defaultTab) {
+      setActiveTab(defaultTab);
     }
-  }, [defaultTab, location.pathname, setActiveTab]);
+  }, [location.pathname, defaultTab, setActiveTab]);
 
   return (
     <div style={{ padding: '0.25rem 0.5rem 1.5rem', maxWidth: '1440px', margin: '0 auto', color: '#1C1510' }}>
@@ -137,7 +159,7 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
             }}
           >
             <button
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => handleTabClick('dashboard')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -159,7 +181,7 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
             </button>
 
             <button
-              onClick={() => setActiveTab('reports')}
+              onClick={() => handleTabClick('reports')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -181,7 +203,7 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
             </button>
 
             <button
-              onClick={() => setActiveTab('qbe')}
+              onClick={() => handleTabClick('qbe')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -203,7 +225,7 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
             </button>
 
             <button
-              onClick={() => setActiveTab('voz')}
+              onClick={() => handleTabClick('voz')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -225,7 +247,7 @@ export const ReportsDashboardPage: React.FC<ReportsDashboardPageProps> = ({ defa
             </button>
 
             <button
-              onClick={() => setActiveTab('ml')}
+              onClick={() => handleTabClick('ml')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

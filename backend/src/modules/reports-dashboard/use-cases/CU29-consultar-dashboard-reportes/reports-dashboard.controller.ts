@@ -258,7 +258,7 @@ export class ReportsDashboardController {
     // 2. Fallback local con espeak-ng configurado en variante femenina y tono cálido (+f3)
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Cache-Control', 'no-cache');
-    const child = spawn('espeak-ng', ['-v', 'es+f3', '-s', '140', '-p', '65', '--stdout', cleanText]);
+    const child = spawn('espeak-ng', ['-v', 'es+f3', '-s', '175', '-p', '65', '--stdout', cleanText]);
     child.stdout.pipe(res);
     child.on('error', (err) => {
       this.logger.error('Error al invocar espeak-ng para TTS:', err);

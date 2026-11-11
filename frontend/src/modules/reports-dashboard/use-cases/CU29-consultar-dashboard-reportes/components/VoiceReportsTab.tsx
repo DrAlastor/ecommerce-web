@@ -66,6 +66,7 @@ export const VoiceReportsTab: React.FC = () => {
       const blob = await reportsService.getSpeechAudio(cleanSpeech);
       const audioUrl = URL.createObjectURL(blob);
       const audio = new Audio(audioUrl);
+      audio.playbackRate = 1.18;
       audioPlayerRef.current = audio;
 
       audio.onended = () => {
@@ -169,8 +170,8 @@ export const VoiceReportsTab: React.FC = () => {
         utterance.lang = 'es-ES';
       }
 
-      utterance.rate = 0.98;
-      utterance.pitch = 1.12;
+      utterance.rate = 1.18;
+      utterance.pitch = 1.08;
 
       utterance.onstart = () => {
         setVoiceState('speaking');
