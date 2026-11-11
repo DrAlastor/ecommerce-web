@@ -255,7 +255,7 @@ export const POSPaymentModal: React.FC<POSPaymentModalProps> = ({
           id_cliente: presentialSale.id_cliente,
           cliente_ci: presentialSale.cliente_ci,
           cliente_nombre: presentialSale.cliente_nombre,
-        });
+        }, totalPagar);
       } else if (sale) {
         const payload = {
           id_venta: sale.id_venta,

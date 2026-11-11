@@ -10,17 +10,22 @@ import type {
   POSSaleHistoryItem,
 } from '../types/presential-sale.types';
 
+function preferredBranches(branches: POSBranch[]): POSBranch[] {
+  const preferred = offlineContext().branch;
+  return [...branches].sort((a, b) => Number(b.id_sucursal === preferred) - Number(a.id_sucursal === preferred));
+}
+
 export const presentialSaleService = {
   /**
    * Obtiene la lista de sucursales habilitadas para el cajero
    */
   async getBranches(): Promise<POSBranch[]> {
-    if (!navigator.onLine) return (await offlineCatalog()).branches;
+    if (!navigator.onLine) return preferredBranches((await offlineCatalog()).branches);
     try {
       const response = await api.get<POSBranch[]>('/sales-billing/pos/branches');
-      return response.data;
+      return preferredBranches(response.data);
     } catch (error) {
-      if (!(error as { response?: unknown }).response) return (await offlineCatalog()).branches;
+      if (!(error as { response?: unknown }).response) return preferredBranches((await offlineCatalog()).branches);
       throw error;
     }
   },
@@ -59,10 +64,12 @@ export const presentialSaleService = {
    */
   async registerSale(
     payload: CreatePresentialSalePayload,
+    quotedTotal?: number,
   ): Promise<PaymentConfirmationResult> {
     const prepared = await readOfflinePreparation(offlineContext(payload.id_sucursal));
+    if (payload.metodo_pago === 'efectivo' && (!prepared || prepared.catalogOnly || prepared.closed)) throw new Error('Abre el turno de caja antes de cobrar en efectivo. La preparación offline es automática.');
     if (!navigator.onLine || prepared && payload.metodo_pago === 'efectivo') {
-      const temporary = await sellOffline(payload);
+      const temporary = await sellOffline(payload, quotedTotal);
       if (navigator.onLine) {
         await syncOfflinePOS(payload.id_sucursal).catch(() => {});
         const sale = (await offlinePending(payload.id_sucursal)).find(item => item.id === temporary.pago.transaccion);

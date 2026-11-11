@@ -23,6 +23,8 @@ export interface OfflinePreparation {
   id: string;
   sessionId?: string;
   initialMinor?: number;
+  catalogOnly?: boolean;
+  closed?: boolean;
   products: import('../../modules/sales-billing/types/presential-sale.types').POSProduct[];
   branches: import('../../modules/sales-billing/types/presential-sale.types').POSBranch[];
   context: OfflineContext;
@@ -39,7 +41,7 @@ export async function expireOfflinePreparation(context: OfflineContext): Promise
       const tx = db.transaction('preparation', 'readwrite');
       const store = tx.objectStore('preparation');
       const request = store.get(key);
-      request.onsuccess = () => { if (request.result) store.put({ ...request.result, expiresAt: '1970-01-01T00:00:00.000Z' }); };
+      request.onsuccess = () => { if (request.result) store.put({ ...request.result, closed: true, expiresAt: '1970-01-01T00:00:00.000Z' }); };
       tx.oncomplete = () => resolve();
       tx.onabort = () => reject(tx.error);
     });
@@ -54,12 +56,18 @@ export async function readOfflinePreparation(context: OfflineContext): Promise<O
       const tx = db.transaction(['preparation', 'stock'], 'readonly');
       const request = tx.objectStore('preparation').get(key);
       let data: OfflinePreparation | undefined;
-      request.onsuccess = () => {
-        data = request.result;
+      const resolveStock = (preparation: OfflinePreparation | undefined) => {
+        data = preparation;
         if (data) for (const product of data.products) for (const variant of product.variantes) {
           const stock = tx.objectStore('stock').get(`${key}:${variant.id_producto_variante}`);
           stock.onsuccess = () => { variant.stock_disponible = stock.result?.quantity ?? 0; };
         }
+      };
+      request.onsuccess = () => {
+        const authorized = request.result as OfflinePreparation | undefined;
+        if (authorized && !authorized.closed && Date.parse(authorized.expiresAt) !== 0) { resolveStock(authorized); return; }
+        const catalog = tx.objectStore('preparation').get(`catalog:${key}`);
+        catalog.onsuccess = () => resolveStock(catalog.result ?? authorized);
       };
       tx.oncomplete = () => resolve(data);
       tx.onabort = () => reject(tx.error);
@@ -136,7 +144,7 @@ export async function recordOfflineSale(sale: OfflineSale): Promise<void> {
       const preparation = tx.objectStore('preparation').get(prefix);
       preparation.onsuccess = () => {
         const data = preparation.result as (OfflinePreparation & { key: string }) | undefined;
-        if (!data || data.id !== sale.preparationId || Date.parse(data.expiresAt) <= Date.now() || sale.items.some(item => !data.variants.some(variant => variant.variant === item.variant && variant.priceMinor === item.priceMinor))) {
+        if (!data || data.catalogOnly || data.closed || data.id !== sale.preparationId || Date.parse(data.expiresAt) <= Date.now() || sale.items.some(item => !data.variants.some(variant => variant.variant === item.variant && variant.priceMinor === item.priceMinor))) {
           failure = new Error('Preparación vencida o precios no autorizados');
           tx.abort();
         }
@@ -178,8 +186,16 @@ export async function prepareOfflineStorage(preparation: OfflinePreparation): Pr
           tx.abort();
           return;
         }
-        tx.objectStore('preparation').put({ ...preparation, key });
-        for (const variant of preparation.variants) tx.objectStore('stock').put({ key: `${key}:${variant.variant}`, quantity: variant.quantity });
+        const existing = tx.objectStore('preparation').get(key);
+        existing.onsuccess = () => {
+          const current = existing.result as OfflinePreparation | undefined;
+          if (preparation.catalogOnly && current?.sessionId && !current.catalogOnly && !current.closed && Date.parse(current.expiresAt) !== 0) return;
+          // Una pestaña anterior no debe confundir el catálogo automático con autorización de cobro.
+          const target = preparation.catalogOnly ? `catalog:${key}` : key;
+          tx.objectStore('preparation').put({ ...preparation, key: target });
+          if (!preparation.catalogOnly) tx.objectStore('preparation').delete(`catalog:${key}`);
+          for (const variant of preparation.variants) tx.objectStore('stock').put({ key: `${key}:${variant.variant}`, quantity: variant.quantity });
+        };
       };
     });
   } finally { db.close(); }

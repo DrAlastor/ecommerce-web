@@ -13,8 +13,8 @@ Ejecutor de migración: `backend/scripts/migrate-offline.mjs`. Desde backend, va
 Migración aplicada el 11 de noviembre de 2026 en Azure a `dressly_db`, `urbanly_db` y `aura_sport_db`, con respaldos completos previos. El informe privado está en `backend/.offline-backups/20261111/offline-migration-report.json`; respaldos e informe están excluidos de Git. Se verificaron hashes y lectura completa de los tres archivos mediante pg_restore. SHA-256 del SQL aplicado: `11b6abe4317550c5bc6fa79a12abb4a2a1ba1c4ff6aaf4d0f4c1105927449025`. No se ejecutó despliegue ni push.
 
 1. Respaldar la base de prueba y aplicar `backend/prisma/offline-schema.sql`. El script es repetible y se aplica por tenant; el servidor no modifica bases al arrancar. Las tablas se gestionan mediante este SQL y deben conservarse al planificar otras migraciones Prisma.
-2. Compilar backend y frontend y servir la web mediante HTTPS o localhost. El service worker se genera para producción. Abrir una vez la aplicación con conexión y recargar después de su instalación para quedar bajo su control.
-3. Iniciar sesión, elegir sucursal, introducir fondo inicial en el arqueo y pulsar «Preparar sin conexión». Un empleado debe estar asignado explícitamente a la sucursal. Se abre un turno o se reutiliza el suyo si sigue abierto; una segunda terminal/usuario no puede abrir otro turno de la misma sucursal.
+2. Compilar backend y frontend y servir la web mediante HTTPS o localhost. El service worker se genera para producción y toma el control al activarse. La primera visita necesita conexión para descargar la aplicación y los datos.
+3. Iniciar sesión y elegir sucursal: el catálogo se prepara automáticamente al entrar al POS, recuperar conexión y volver a primer plano. No existe un interruptor de modo offline. Para cobrar, abrir el turno de caja con su fondo inicial; esta operación de negocio sigue siendo explícita y requiere conexión. Un empleado debe estar asignado a la sucursal. Una segunda terminal/usuario no puede abrir otro turno de la misma sucursal.
 4. La preparación dura ocho horas. Se guarda el catálogo completo de POS y sus existencias. Durante el turno preparado, el POS utiliza esos precios y existencias locales. Las ventas en efectivo se registran primero localmente tanto con red como sin red, para que entren en el mismo turno; con conexión se intenta confirmarlas inmediatamente. Si falla el servidor, se conserva el comprobante provisional.
 5. Desconectar, vender en efectivo, imprimir el provisional, cerrar y reabrir el navegador y comprobar pendientes e inventario local. Una venta no se confirma localmente si no se guardaron juntos el registro y el descuento de existencias.
 6. Reconectar y sincronizar. Las ventas confirmadas conservan su resultado y permiten imprimir el comprobante conciliado desde el panel. Las que requieren revisión no se borran. Reintentar conserva UUID y contenido.
@@ -33,7 +33,8 @@ Todas las rutas bajo `/sales-billing/pos/offline` usan JWT y el tenant que valid
 
 | Método y ruta | Operación |
 |---|---|
-| `POST /prepare` | `{branch, terminal, initialMinor}`: turno, catálogo y autorización temporal. |
+| `GET /catalog` | Consulta automática con `branch` y `terminal`, sin abrir una caja. Una versión anterior del backend devuelve 404 y no puede abrir una caja por ignorar un campo nuevo. |
+| `POST /prepare` | `{branch, terminal, initialMinor, catalogOnly?}`: `catalogOnly=true` descarga sin abrir caja; la apertura explícita genera turno y autorización temporal. |
 | `POST /sync` | `{id, preparationId, createdAt, receivedMinor, items:[{variant, quantity, priceMinor}]}`: una venta de hasta 100 partidas. |
 | `GET /operations/:id` | Resultado propio: pendiente, confirmado o revisión. |
 | `GET /incidents` | Incidencias del tenant, solo administrador. |
@@ -59,3 +60,7 @@ Los importes de los contratos locales se expresan en centavos enteros. Una misma
 - Se pudo iniciar PostgreSQL temporal en localhost mediante `embedded-postgres`, instalado fuera del proyecto en `/tmp/examen2-offline-postgres`, resolviendo el bloqueo de Docker.
 - IndexedDB: `npm run test:offline` en frontend, con Chromium instalado. Comprueba guardado atómico, rollback, aislamiento y protección de pendientes.
 - Móvil: `npm run typecheck`, `npm test -- --runInBand` y bundle Android de Metro. Las pruebas nativas en teléfono y la actualización del service worker con colas reales deben verificarse antes del despliegue.
+
+## Cliente de la tienda web
+
+La preparación automática anterior corresponde al POS. En la tienda web del comprador se guardan los archivos generales de la aplicación, favoritos y un respaldo del carrito; el catálogo, los detalles y la reconciliación del carrito autenticado todavía dependen del servidor. No se debe presentar ese recorrido como equivalente al modo offline implementado en la aplicación móvil.

@@ -5,6 +5,7 @@ const ts=require('typescript');
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'dressly-offline-test-'));
 const source=fs.readFileSync(path.join(__dirname,'../src/services/offline/offlineStorage.ts'),'utf8');
 fs.writeFileSync(path.join(directory,'storage.js'),ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText);
+fs.writeFileSync(path.join(directory,'autoPreparation.js'),ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/services/offline/autoPreparation.ts'),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText);
 fs.copyFileSync(path.join(__dirname,'../tests/offline-storage.html'),path.join(directory,'index.html'));
 const {spawn}=require('node:child_process');
 const browser=spawn('chromium',['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--allow-file-access-from-files','--user-data-dir='+path.join(directory,'profile'),'--remote-debugging-pipe'],{stdio:['ignore','ignore','ignore','pipe','pipe']});

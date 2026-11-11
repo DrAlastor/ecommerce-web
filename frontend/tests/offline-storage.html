@@ -1,9 +1,19 @@
 <body>RUNNING<script type="module">
 import {prepareOfflineStorage,recordOfflineSale,listOfflineSales,readOfflinePreparation,acknowledgeOfflineSale,saveOfflineCashCount} from './storage.js';
+import {automaticPreparationAction} from './autoPreparation.js';
 try {
 const context={tenant:'test',user:1,branch:1,terminal:'browser-test'};
 const preparation={id:'prep',sessionId:'session-one',initialMinor:0,context,version:'1',expiresAt:new Date(Date.now()+3600000).toISOString(),products:[{variantes:[{id_producto_variante:1}]}],branches:[],variants:[{variant:1,quantity:2,priceMinor:100}]};
+if(automaticPreparationAction(undefined,0)!=='catalog')throw Error('Automatic activation opens a cash session');
+if(automaticPreparationAction({...preparation,expiresAt:'2000-01-01T00:00:00Z'},1)!=='blocked')throw Error('Pending sales replaced during renewal');
+if(automaticPreparationAction({...preparation,closed:true},0)!=='catalog')throw Error('Closed cash reopened automatically');
+if(automaticPreparationAction({...preparation,expiresAt:'2000-01-01T00:00:00Z'},0)!=='renew')throw Error('Open session not renewed');
+await prepareOfflineStorage({...preparation,id:'catalog',sessionId:undefined,catalogOnly:true});
+try { await recordOfflineSale({id:'not-authorized',preparationId:'catalog',context,createdAt:new Date().toISOString(),status:'PENDING',receivedMinor:100,items:[{variant:1,quantity:1,priceMinor:100}]});throw Error('Cash accepted without open session'); }catch(error){if(error.message==='Cash accepted without open session')throw error;}
+if((await listOfflineSales(context)).length!==0)throw Error('Unauthorized sale persisted');
 await prepareOfflineStorage(preparation);
+await prepareOfflineStorage({...preparation,id:'late-catalog',sessionId:undefined,catalogOnly:true});
+if((await readOfflinePreparation(context)).id!==preparation.id)throw Error('Automatic catalog replaced an open cash session');
 const sale={id:'sale',preparationId:'prep',sessionId:'session-one',context,createdAt:new Date().toISOString(),status:'PENDING',receivedMinor:100,items:[{variant:1,quantity:1,priceMinor:100}]};
 await recordOfflineSale(sale);
 let rejected=false;

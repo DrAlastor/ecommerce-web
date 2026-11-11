@@ -178,6 +178,14 @@ export const POSPage: React.FC = () => {
   }, [selectedBranchId, productSearch, selectedCategory]);
 
   useEffect(() => {
+    const prepared = (event: Event) => {
+      if ((event as CustomEvent<{ branch: number }>).detail?.branch === selectedBranchId) void loadPOSProducts();
+    };
+    window.addEventListener('offline-pos-prepared', prepared);
+    return () => window.removeEventListener('offline-pos-prepared', prepared);
+  }, [selectedBranchId, productSearch, selectedCategory]);
+
+  useEffect(() => {
     if (activeTab === 'historial') {
       loadSalesHistory();
     }

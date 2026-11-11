@@ -9,11 +9,21 @@ const body = { id, preparationId, createdAt: '2026-11-11T12:00:00Z', receivedMin
 function setup() {
   const tx = { $executeRaw: vi.fn().mockResolvedValue(1), $executeRawUnsafe: vi.fn().mockResolvedValue(1), $queryRaw: vi.fn() };
   const prisma = { $transaction: vi.fn((fn: any) => fn(tx)), empleado_sucursal: { findFirst: vi.fn() } };
-  const pos = { registerPresentialSale: vi.fn(), getCashierBranches: vi.fn() };
+  const pos = { registerPresentialSale: vi.fn(), getCashierBranches: vi.fn(), getPOSProducts: vi.fn() };
   return { tx, prisma, pos, controller: new OfflineController(prisma as any, pos as any) };
 }
 
 describe('Contrato offline v1', () => {
+  it('descarga automáticamente el catálogo sin abrir una caja ni fijar dinero', async () => {
+    const { controller, prisma, pos } = setup();
+    pos.getCashierBranches.mockResolvedValue([{ id_sucursal: 1 }]);
+    pos.getPOSProducts.mockResolvedValue([]);
+    const result = await controller.catalog(request, '1', 'test');
+    expect(result.catalogOnly).toBe(true);
+    expect(result.sessionId).toBeNull();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it('conserva una venta cobrada cuando el stock central impide aplicarla', async () => {
     const { tx, pos, controller } = setup();
     tx.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([{ branch_id: 1, created_at: '2026-11-11T11:00:00Z', expires_at: '2026-11-11T19:00:00Z', catalog: [{ variantes: [{ id_producto_variante: 1, precio_final: 20 }] }] }]);

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { randomUUID, createHash } from 'node:crypto';
 import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { JwtAuthGuard } from '../../../users-security/shared/guards/jwt-auth.guard.js';
@@ -12,6 +12,11 @@ import { validate } from 'class-validator';
 @UseGuards(JwtAuthGuard)
 export class OfflineController {
   constructor(private readonly prisma: PrismaService, private readonly pos: PresentialSaleService) {}
+
+  @Get('catalog')
+  async catalog(@Req() req: any, @Query('branch') branch: string, @Query('terminal') terminal: string) {
+    return this.prepare(req, { branch: Number(branch), terminal, catalogOnly: true });
+  }
 
   private admin(req: any) {
     if (req.user.id_rol !== 1 && String(req.user.rol).toLowerCase() !== 'administrador') throw new ForbiddenException('La conciliación requiere un administrador de esta tienda');
@@ -108,7 +113,7 @@ export class OfflineController {
   }
 
   @Post('prepare')
-  async prepare(@Req() req: any, @Body() body: { branch: number; terminal: string; initialMinor?: number }) {
+  async prepare(@Req() req: any, @Body() body: { branch: number; terminal: string; initialMinor?: number; catalogOnly?: boolean }) {
     if (!Number.isSafeInteger(body.branch) || typeof body.terminal !== 'string' || !/^[\w-]{1,100}$/.test(body.terminal)) throw new BadRequestException('Terminal o sucursal inválida');
     if (req.user.id_rol !== 1 && req.user.rol?.toLowerCase() !== 'administrador') {
       const assignment = await this.prisma.empleado_sucursal.findFirst({ where: { id_empleado: req.user.id_usuario, id_sucursal: body.branch } });
@@ -119,6 +124,9 @@ export class OfflineController {
     const products = await this.pos.getPOSProducts({ id_sucursal: body.branch }, true);
     const id = randomUUID();
     const expiresAt = new Date(Date.now() + 8 * 3600_000);
+    if (body.catalogOnly !== undefined && typeof body.catalogOnly !== 'boolean') throw new BadRequestException('Modo de preparación inválido');
+    // La descarga automática del catálogo no abre una caja ni fija un fondo inicial.
+    if (body.catalogOnly) return { version: 1, id, expiresAt, products, branches, catalogOnly: true, sessionId: null, initialMinor: 0 };
     const initial = body.initialMinor ?? 0;
     if (!Number.isSafeInteger(initial) || initial < 0 || initial > 2147483647) throw new BadRequestException('Fondo inicial inválido');
     const sessionId = await this.prisma.$transaction(async tx => {

@@ -2,6 +2,8 @@ import axios from 'axios';
 import { expireOfflinePreparation, listOfflineSales, listTerminalSales, prepareOfflineStorage, readOfflinePreparation, recordOfflineSale } from './offlineStorage';
 import type { OfflineContext, OfflineSale } from './offlineStorage';
 import { syncOfflineSales } from './syncEngine';
+import { automaticPreparationAction } from './autoPreparation';
+import type { OfflinePreparation } from './offlineStorage';
 import type { CreatePresentialSalePayload, PaymentConfirmationResult } from '../../modules/sales-billing/types/presential-sale.types';
 
 function identity() {
@@ -23,13 +25,40 @@ function client() {
   // Nunca usar el fallback automático a otro servidor para operaciones offline.
   return axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api', timeout: 30000, headers: { Authorization: `Bearer ${user.token}`, 'x-tenant-id': user.tenant } });
 }
-export async function prepareOfflinePOS(branch: number, initialMinor = 0) {
+export async function prepareOfflinePOS(branch: number, initialMinor = 0, catalogOnly = false) {
   if (import.meta.env.PROD && !navigator.serviceWorker?.controller) throw new Error('Espera a que la aplicación se prepare y recarga esta página antes de habilitar ventas sin conexión');
   const context = offlineContext(branch);
-  const { data } = await client().post('/sales-billing/pos/offline/prepare', { branch, terminal: context.terminal, initialMinor });
-  await prepareOfflineStorage({ id: data.id, sessionId: data.sessionId, initialMinor: data.initialMinor, context, version: String(data.version), expiresAt: data.expiresAt, products: data.products, branches: data.branches, variants: data.products.flatMap((p: any) => p.variantes.map((v: any) => ({ variant: v.id_producto_variante, quantity: v.stock_disponible, priceMinor: Math.round(v.precio_final * 100) }))) });
+  const { data } = catalogOnly
+    ? await client().get('/sales-billing/pos/offline/catalog', { params: { branch, terminal: context.terminal } })
+    : await client().post('/sales-billing/pos/offline/prepare', { branch, terminal: context.terminal, initialMinor });
+  await prepareOfflineStorage({ id: data.id, sessionId: data.sessionId, initialMinor: data.initialMinor, catalogOnly: data.catalogOnly === true, context, version: String(data.version), expiresAt: data.expiresAt, products: data.products, branches: data.branches, variants: data.products.flatMap((p: any) => p.variantes.map((v: any) => ({ variant: v.id_producto_variante, quantity: v.stock_disponible, priceMinor: Math.round(v.precio_final * 100) }))) });
   localStorage.setItem(`offlineBranch:${context.tenant}:${context.user}`, String(branch));
   if (navigator.storage?.persist) await navigator.storage.persist().catch(() => false);
+  window.dispatchEvent(new CustomEvent('offline-pos-prepared', { detail: { branch } }));
+}
+
+export interface AutomaticPOSState { status: 'ready' | 'catalog' | 'waiting' | 'unavailable' | 'blocked'; preparation?: OfflinePreparation }
+const automaticRuns = new Map<string, Promise<AutomaticPOSState>>();
+export function ensureOfflinePOS(branch: number): Promise<AutomaticPOSState> {
+  const context = offlineContext(branch);
+  const key = JSON.stringify(context);
+  const active = automaticRuns.get(key);
+  if (active) return active;
+  const run = (async (): Promise<AutomaticPOSState> => {
+    const preparation = await readOfflinePreparation(context);
+    const pending = (await listOfflineSales(context)).filter(sale => sale.status !== 'CONFIRMED');
+    const action = automaticPreparationAction(preparation, pending.length);
+    if (action === 'reuse') return { status: preparation?.catalogOnly ? 'catalog' : 'ready', preparation };
+    if (!navigator.onLine) return { status: 'unavailable', preparation };
+    if (import.meta.env.PROD && !navigator.serviceWorker?.controller) return { status: 'waiting', preparation };
+    if (action === 'blocked') return { status: 'blocked', preparation };
+    await prepareOfflinePOS(branch, preparation?.initialMinor ?? 0, action === 'catalog');
+    const saved = await readOfflinePreparation(context);
+    return { status: saved?.catalogOnly ? 'catalog' : 'ready', preparation: saved };
+  })();
+  automaticRuns.set(key, run);
+  void run.finally(() => { if (automaticRuns.get(key) === run) automaticRuns.delete(key); }).catch(() => {});
+  return run;
 }
 export async function offlineCatalog(branch?: number) {
   const preparation = await readOfflinePreparation(offlineContext(branch));
@@ -64,9 +93,10 @@ export async function closeRecoveredOfflineCash(session: string, countedMinor: n
   return (await client().post(`/sales-billing/pos/offline/cash/${session}/close`, { countedMinor, operationIds: data.operationIds, note })).data;
 }
 
-export async function sellOffline(payload: CreatePresentialSalePayload): Promise<PaymentConfirmationResult> {
+export async function sellOffline(payload: CreatePresentialSalePayload, quotedTotal?: number): Promise<PaymentConfirmationResult> {
   if (payload.metodo_pago !== 'efectivo') throw new Error('Sin conexión solo se admiten ventas presenciales en efectivo');
   const preparation = await offlineCatalog(payload.id_sucursal);
+  if (preparation.catalogOnly || preparation.closed) throw new Error('Abre el turno de caja con conexión antes de cobrar. Los datos offline ya se preparan automáticamente.');
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
   const receiptItems = payload.items.map(item => {
@@ -76,6 +106,7 @@ export async function sellOffline(payload: CreatePresentialSalePayload): Promise
     return { id_detalle_venta: 0, id_producto: product.id_producto, nombre_producto: product.nombre, sku: variant.sku, talla: variant.talla, color: variant.color, imagen: product.imagen, cantidad: item.cantidad, precio_unitario: variant.precio_final, subtotal: Math.round(variant.precio_final * 100) * item.cantidad / 100 };
   });
   const total = receiptItems.reduce((sum, i) => sum + Math.round(i.subtotal * 100), 0) / 100;
+  if (quotedTotal !== undefined && Math.round(quotedTotal * 100) !== Math.round(total * 100)) throw new Error('Los precios cambiaron. Cierra el cobro y vuelve a agregar las prendas antes de confirmar.');
   const received = payload.monto_recibido ?? total;
   const sale: OfflineSale = { id, preparationId: preparation.id, sessionId: preparation.sessionId, context: preparation.context, createdAt: now, status: 'PENDING', receivedMinor: Math.round(received * 100), items: payload.items.map((item, index) => ({ variant: item.id_producto_variante, quantity: item.cantidad, priceMinor: Math.round(receiptItems[index].precio_unitario * 100) })) };
   sale.customer = { id: payload.id_cliente, ci: payload.cliente_ci, name: payload.cliente_nombre, nit: payload.nit_factura, businessName: payload.razon_social_factura, phone: payload.cliente_telefono };

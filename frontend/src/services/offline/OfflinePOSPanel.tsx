@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import { administrativeTerminalBackup, closeOfflineCash, closeRecoveredOfflineCash, offlineIncidents, offlinePending, prepareOfflinePOS, recoverOfflineOperation, resolveOfflineIncident, syncOfflinePOS } from './offlinePOS';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { administrativeTerminalBackup, closeOfflineCash, closeRecoveredOfflineCash, ensureOfflinePOS, offlineIncidents, offlinePending, prepareOfflinePOS, recoverOfflineOperation, resolveOfflineIncident, syncOfflinePOS } from './offlinePOS';
+import type { AutomaticPOSState } from './offlinePOS';
 import type { OfflineSale } from './offlineStorage';
 import { saveOfflineCashCount } from './offlineStorage';
 import { offlineContext } from './offlinePOS';
@@ -18,6 +19,11 @@ export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number
   const [recoveryNote, setRecoveryNote] = useState('');
   const [recoverySession, setRecoverySession] = useState('');
   const [verifiedRecovery, setVerifiedRecovery] = useState(false);
+  const [automatic, setAutomatic] = useState<AutomaticPOSState>();
+  const [preparing, setPreparing] = useState(false);
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+  const cashIsOpen = Boolean(automatic?.preparation?.sessionId && !automatic.preparation.closed && Date.parse(automatic.preparation.expiresAt) !== 0);
   const errorText = (error: unknown) => (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error instanceof Error ? error.message : 'No se pudo completar la operación');
   const printSale = (sale: OfflineSale) => {
     const receipt = (sale.status === 'CONFIRMED' ? sale.result : sale.receipt ?? sale.result) as PaymentConfirmationResult | undefined;
@@ -41,7 +47,7 @@ export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number
   useEffect(() => {
     void refresh();
     const changed = () => { void refresh(); };
-    const connected = () => { setOnline(true); void sync(); };
+    const connected = () => setOnline(true);
     const disconnected = () => setOnline(false);
     window.addEventListener('online', connected);
     window.addEventListener('offline', disconnected);
@@ -52,17 +58,53 @@ export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number
       window.removeEventListener('offline-sales-changed', changed);
     };
   }, [refresh, sync]);
+  useEffect(() => {
+    if (!branch) return;
+    let active = true;
+    let running = false;
+    setAutomatic(undefined);
+    const prepare = async () => {
+      if (!active || running || busyRef.current) return;
+      running = true;
+      setPreparing(true);
+      try {
+        if (navigator.onLine && (await offlinePending(branch)).some(sale => sale.status !== 'CONFIRMED')) await syncOfflinePOS(branch);
+        const result = await ensureOfflinePOS(branch);
+        if (active) {
+          setAutomatic(result);
+          if (result.preparation?.sessionId && !result.preparation.closed) setInitial(String((result.preparation.initialMinor ?? 0) / 100));
+          await refresh();
+        }
+      } catch (error) { if (active) setMessage(errorText(error)); }
+      finally { running = false; if (active) setPreparing(false); }
+    };
+    const resume = () => { void prepare(); };
+    const visible = () => { if (document.visibilityState === 'visible') resume(); };
+    void prepare();
+    const timer = setInterval(() => { if (navigator.onLine && document.visibilityState === 'visible') resume(); }, 30000);
+    window.addEventListener('online', resume);
+    document.addEventListener('visibilitychange', visible);
+    navigator.serviceWorker?.addEventListener('controllerchange', resume);
+    return () => {
+      active = false; clearInterval(timer);
+      window.removeEventListener('online', resume);
+      document.removeEventListener('visibilitychange', visible);
+      navigator.serviceWorker?.removeEventListener('controllerchange', resume);
+    };
+  }, [branch, refresh]);
   return <section aria-label="Operación offline" style={{ padding: 12, background: online ? '#eef5ff' : '#fff3cd', color: '#172337' }}>
     <strong>{online ? 'Con conexión' : 'Sin conexión — solo efectivo'}</strong>
     <span> · Pendientes: {sales.filter(s => s.status === 'PENDING').length} · Revisión: {sales.filter(s => s.status === 'REVIEW').length}</span>
-    <button disabled={!online || busy || !branch} onClick={async () => {
+    <p role="status">{preparing ? 'Actualizando datos para trabajar sin conexión…' : automatic?.status === 'ready' ? 'Modo offline disponible automáticamente. Caja abierta.' : automatic?.status === 'catalog' ? 'Catálogo guardado automáticamente. Abre la caja para cobrar.' : automatic?.status === 'blocked' ? 'Sincroniza o concilia las ventas pendientes para renovar los datos.' : automatic?.status === 'waiting' ? 'Preparando la aplicación para trabajar sin conexión…' : 'La preparación sin conexión se realiza automáticamente cuando el servidor está disponible.'}</p>
+    {!cashIsOpen && <label>Fondo inicial de caja (Bs) <input type="number" min="0" step="0.01" value={initial} onChange={event => setInitial(event.target.value)} /></label>}
+    {!cashIsOpen && <button disabled={!online || busy || preparing || automatic?.status === 'waiting' || !branch} onClick={async () => {
       if (!branch) return;
       setBusy(true);
-      try { await prepareOfflinePOS(branch, Math.round(Number(initial) * 100)); setMessage('Turno abierto y terminal preparada para 8 horas. Comprueba que la aplicación pueda abrirse sin conexión.'); }
+      try { await prepareOfflinePOS(branch, Math.round(Number(initial) * 100)); setAutomatic(await ensureOfflinePOS(branch)); setMessage('Turno de caja abierto. El modo offline está disponible automáticamente.'); }
       catch (error) { setMessage(errorText(error)); }
       finally { setBusy(false); }
-    }}>Preparar sin conexión</button>
-    <button disabled={!online || busy || !branch} onClick={() => void sync()}>Sincronizar pendientes</button>
+    }}>Abrir turno de caja</button>}
+    <button disabled={!online || busy || preparing || !branch} onClick={() => void sync()}>Sincronizar pendientes</button>
     <button disabled={busy || !branch} onClick={async () => {
       if (!branch) return;
       try {
@@ -75,21 +117,22 @@ export function OfflinePOSPanel({ branch, canResolve = false }: { branch: number
     <p role="status">{message}</p>
     <details><summary>Arqueo provisional de ventas offline</summary>
       <p>Este arqueo incluye las ventas offline guardadas en esta terminal. Para el cierre definitivo deben conciliarse también las ventas online y los movimientos del turno.</p>
-      <label>Fondo inicial (Bs) <input type="number" min="0" step="0.01" value={initial} onChange={e => setInitial(e.target.value)} /></label>
+      <p>Fondo inicial: {Number(initial).toFixed(2)} Bs</p>
       <label>Efectivo contado (Bs) <input type="number" min="0" step="0.01" value={counted} onChange={e => setCounted(e.target.value)} /></label>
-      <button disabled={!branch || busy} onClick={async () => {
+      <button disabled={!branch || busy || !cashIsOpen} onClick={async () => {
         if (!branch) return;
         setBusy(true);
         try { await saveOfflineCashCount(offlineContext(branch), Math.round(Number(initial) * 100), Math.round(Number(counted) * 100)); setMessage('Arqueo provisional guardado en esta terminal; falta conciliación para cerrar el turno.'); }
         catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo guardar el arqueo'); }
         finally { setBusy(false); }
       }}>Guardar arqueo provisional</button>
-      <button disabled={!online || !branch || busy} onClick={async () => {
+      <button disabled={!online || !branch || busy || !cashIsOpen} onClick={async () => {
         if (!branch) return;
         setBusy(true);
         try {
           await syncOfflinePOS(branch);
           const result = await closeOfflineCash(branch, Math.round(Number(counted) * 100));
+          setAutomatic({ status: 'catalog' });
           setMessage(`Turno conciliado. Esperado: ${(result.expectedMinor / 100).toFixed(2)} Bs. Diferencia: ${(result.differenceMinor / 100).toFixed(2)} Bs.`);
           await refresh();
         } catch (error) { setMessage(errorText(error)); }
