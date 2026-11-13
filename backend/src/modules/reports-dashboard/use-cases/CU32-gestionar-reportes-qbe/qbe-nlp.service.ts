@@ -3,6 +3,8 @@ import {
   ExecuteQbeQueryDto,
   InterpretedQbeResponse,
   QbeAggregationDto,
+  QbeChartSpecDto,
+  QbeChartType,
   QbeFilterDto,
 } from './qbe.dto.js';
 
@@ -267,6 +269,14 @@ export class QbeNlpService {
       limit,
     );
 
+    const chartSpec = this.buildChartSpec(
+      entity,
+      groupBy && groupBy.length > 0 ? groupBy : undefined,
+      aggregations,
+      orderBy,
+      rawText,
+    );
+
     const suggestedPayload: ExecuteQbeQueryDto = {
       entity,
       fields,
@@ -275,13 +285,63 @@ export class QbeNlpService {
       aggregations: aggregations.length > 0 ? aggregations : undefined,
       orderBy,
       limit,
+      chartSpec,
     };
 
     return {
       interpreted: true,
       explanation,
       suggestedPayload,
+      chartSpec,
       detectedKeywords,
+    };
+  }
+
+  public buildChartSpec(
+    entity: string,
+    groupBy: string[] | undefined,
+    aggregations: QbeAggregationDto[],
+    orderBy: { field: string; direction: 'asc' | 'desc' } | undefined,
+    prompt: string,
+  ): QbeChartSpecDto {
+    const norm = this.normalizeText(prompt);
+    let chartType: QbeChartType = 'bar_vertical';
+
+    if (/\b(circular|torta|pie|donut|dona|distribucion|proporcion|porcentaje)\b/.test(norm)) {
+      chartType = 'donut_percentage';
+    } else if (/\b(pico|picos|area|linea|lineas|tendencia|historico|evolucion|diario|semanal|mensual|tiempo)\b/.test(norm)) {
+      chartType = 'peak_area';
+    } else if (/\b(ranking|top|horizontal|mas vendido|menos vendido|menor stock)\b/.test(norm)) {
+      chartType = 'bar_horizontal';
+    } else if (groupBy && groupBy.length === 1 && ['sucursal', 'tipo_venta', 'categoria'].includes(groupBy[0])) {
+      chartType = 'bar_vertical';
+    }
+
+    const xKey = groupBy && groupBy.length > 0 ? groupBy[0] : (entity === 'producto' ? 'nombre' : (entity === 'venta' ? 'sucursal' : 'id'));
+    const yKey = aggregations.length > 0 ? (aggregations[0].alias || aggregations[0].field) : (entity === 'venta' ? 'total' : 'stock_disponible');
+    const unit = ['total', 'subtotal', 'precio_base'].some((k) => yKey.toLowerCase().includes(k)) ? 'Bs.' : 'unidades';
+
+    const entityTitles: Record<string, string> = {
+      venta: 'Análisis de Facturación y Ventas',
+      producto: 'Inventario y Catálogo de Prendas',
+      inventario_sucursal: 'Disponibilidad de Stock por Sucursal',
+      cliente: 'Comportamiento y Fidelización de Clientes',
+      reserva: 'Monitoreo de Reservas de Prendas',
+      movimiento_inventario: 'Kardex de Movimientos de Inventario',
+    };
+
+    const title = `${entityTitles[entity] || 'Reporte Dinámico'} ${groupBy && groupBy.length > 0 ? `por ${groupBy[0]}` : ''}`.trim();
+
+    return {
+      chartType,
+      title,
+      subtitle: `Visualización generada a partir de consulta: "${prompt.slice(0, 50)}${prompt.length > 50 ? '...' : ''}"`,
+      xAxisKey: xKey,
+      xAxisLabel: xKey.charAt(0).toUpperCase() + xKey.slice(1).replace('_', ' '),
+      yAxisKey: yKey,
+      yAxisLabel: unit === 'Bs.' ? 'Monto Acumulado (Bs.)' : 'Cantidad',
+      unit,
+      aiInsight: `Visualización analítica configurada para evaluar ${title.toLowerCase()} en base a los registros activos.`,
     };
   }
 

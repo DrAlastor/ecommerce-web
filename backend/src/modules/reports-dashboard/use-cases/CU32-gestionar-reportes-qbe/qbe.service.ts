@@ -10,6 +10,8 @@ import {
   ExportQbeQueryDto,
   InterpretedQbeResponse,
   QbeAggregationDto,
+  QbeChartSpecDto,
+  QbeChartType,
   QbeFilterDto,
 } from './qbe.dto.js';
 import { ExportFormat } from '../../dto/query-reports.dto.js';
@@ -325,6 +327,21 @@ export class QbeService {
       });
     }
 
+    const totalSum = chartData.reduce((acc, curr) => acc + (Number(curr.total) || 0), 0) || 1;
+    const enrichedChartData = chartData.map((item) => {
+      const val = Number(item.total) || 0;
+      return {
+        ...item,
+        total: val,
+        percentage: Math.round((val / totalSum) * 100),
+        formattedTotal: val.toLocaleString('es-BO'),
+      };
+    });
+
+    const effectiveChartSpec =
+      dto.chartSpec ||
+      this.inferChartSpec(entityMeta, finalColumns, enrichedChartData, chartSuggestion);
+
     return {
       title: `Consulta Dinámica QBE: ${entityMeta.name}`,
       entity: entityMeta.id,
@@ -339,7 +356,43 @@ export class QbeService {
       allRowsCount: finalRows.length,
       indicators,
       chartSuggestion,
-      chartData,
+      chartData: enrichedChartData,
+      chartSpec: effectiveChartSpec,
+    };
+  }
+
+  private inferChartSpec(
+    entityMeta: QbeEntityMeta,
+    columns: { key: string; label: string; type: string }[],
+    chartData: any[],
+    chartSuggestion: 'bar' | 'pie' | 'line',
+  ): QbeChartSpecDto {
+    const primaryNum = columns.find((c) => c.type === 'currency' || c.type === 'number');
+    const primaryLabel = columns.find((c) => c.type === 'string' || c.type === 'enum') || columns[0];
+    const isCurrency = primaryNum?.type === 'currency' || entityMeta.id === 'venta';
+
+    let chartType: QbeChartType = 'bar_vertical';
+    if (chartSuggestion === 'pie' || (chartData.length <= 7 && chartData.length > 1)) {
+      chartType = 'donut_percentage';
+    } else if (chartSuggestion === 'line' || columns.some((c) => c.type === 'date')) {
+      chartType = 'peak_area';
+    }
+
+    const title = `Distribución de ${primaryNum?.label || 'Registros'} por ${primaryLabel?.label || 'Categoría'}`;
+
+    return {
+      chartType,
+      title,
+      subtitle: `Entidad: ${entityMeta.name} — ${chartData.length} segmentos analizados`,
+      xAxisKey: primaryLabel?.key || 'name',
+      xAxisLabel: primaryLabel?.label || 'Concepto',
+      yAxisKey: primaryNum?.key || 'total',
+      yAxisLabel: isCurrency ? 'Total Acumulado (Bs.)' : 'Cantidad',
+      unit: isCurrency ? 'Bs.' : 'unidades',
+      aiInsight:
+        chartData.length > 0
+          ? `El segmento con mayor volumen es "${chartData[0]?.name}" con ${chartData[0]?.formattedTotal || chartData[0]?.total} ${isCurrency ? 'Bs.' : 'unidades'} (${chartData[0]?.percentage || 0}% del total).`
+          : 'Sin datos suficientes para generar conclusiones.',
     };
   }
 

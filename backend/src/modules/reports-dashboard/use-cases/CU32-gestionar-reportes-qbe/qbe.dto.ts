@@ -88,6 +88,71 @@ export class QbeOrderByDto {
   direction!: 'asc' | 'desc';
 }
 
+export type QbeChartType =
+  | 'bar_vertical'
+  | 'bar_horizontal'
+  | 'peak_area'
+  | 'line_temporal'
+  | 'donut_percentage'
+  | 'pie'
+  | 'bar';
+
+export class QbeChartSeriesDto {
+  @IsString()
+  key!: string;
+
+  @IsString()
+  label!: string;
+
+  @IsOptional()
+  @IsString()
+  color?: string;
+}
+
+export class QbeChartSpecDto {
+  @IsString()
+  @IsNotEmpty()
+  chartType!: QbeChartType;
+
+  @IsString()
+  @IsNotEmpty()
+  title!: string;
+
+  @IsOptional()
+  @IsString()
+  subtitle?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  xAxisKey!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  xAxisLabel!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  yAxisKey!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  yAxisLabel!: string;
+
+  @IsOptional()
+  @IsString()
+  unit?: string;
+
+  @IsOptional()
+  @IsString()
+  aiInsight?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QbeChartSeriesDto)
+  series?: QbeChartSeriesDto[];
+}
+
 export class ExecuteQbeQueryDto {
   @IsString()
   @IsNotEmpty()
@@ -133,6 +198,11 @@ export class ExecuteQbeQueryDto {
   @IsOptional()
   @IsString()
   chartType?: 'bar' | 'pie' | 'line';
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => QbeChartSpecDto)
+  chartSpec?: QbeChartSpecDto;
 }
 
 export class ExportQbeQueryDto extends ExecuteQbeQueryDto {
@@ -151,6 +221,7 @@ export interface InterpretedQbeResponse {
   interpreted: boolean;
   explanation: string;
   suggestedPayload: ExecuteQbeQueryDto;
+  chartSpec?: QbeChartSpecDto;
   detectedKeywords: {
     entityFound: string;
     metricsFound: string[];

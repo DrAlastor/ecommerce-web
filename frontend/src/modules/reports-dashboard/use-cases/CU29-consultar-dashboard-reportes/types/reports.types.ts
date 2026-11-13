@@ -259,6 +259,34 @@ export interface QbeAggregation {
   alias?: string;
 }
 
+export type QbeChartType =
+  | 'bar_vertical'
+  | 'bar_horizontal'
+  | 'peak_area'
+  | 'line_temporal'
+  | 'donut_percentage'
+  | 'pie'
+  | 'bar';
+
+export interface QbeChartSeriesMeta {
+  key: string;
+  label: string;
+  color?: string;
+}
+
+export interface QbeChartSpec {
+  chartType: QbeChartType;
+  title: string;
+  subtitle?: string;
+  xAxisKey: string;
+  xAxisLabel: string;
+  yAxisKey: string;
+  yAxisLabel: string;
+  unit?: string;
+  aiInsight?: string;
+  series?: QbeChartSeriesMeta[];
+}
+
 export interface QbeQueryPayload {
   entity: string;
   fields?: string[];
@@ -269,6 +297,7 @@ export interface QbeQueryPayload {
   limit?: number;
   page?: number;
   chartType?: 'bar' | 'pie' | 'line';
+  chartSpec?: QbeChartSpec;
 }
 
 export interface QbeQueryResult {
@@ -285,13 +314,22 @@ export interface QbeQueryResult {
   allRowsCount: number;
   indicators: ReportIndicator[];
   chartSuggestion: 'bar' | 'pie' | 'line';
-  chartData: { name: string; total: number; count?: number }[];
+  chartSpec?: QbeChartSpec;
+  chartData: {
+    name: string;
+    total: number;
+    count?: number;
+    percentage?: number;
+    formattedTotal?: string;
+    [key: string]: any;
+  }[];
 }
 
 export interface InterpretedQbeResponse {
   interpreted: boolean;
   explanation: string;
   suggestedPayload: QbeQueryPayload;
+  chartSpec?: QbeChartSpec;
   detectedKeywords: {
     entityFound: string;
     metricsFound: string[];

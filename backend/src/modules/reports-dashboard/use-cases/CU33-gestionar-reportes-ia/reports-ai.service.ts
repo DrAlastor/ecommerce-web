@@ -172,7 +172,7 @@ export class ReportsAiService implements OnModuleInit, OnModuleDestroy {
     if (apiKey) {
       try {
         const geminiPrompt = `
-Eres el motor de traducción a consultas analíticas estructuradas de Dressly Boutique (sistema de moda y retail).
+Eres el motor de traducción y generación de visualizaciones analíticas avanzadas de Dressly Boutique (sistema de moda y retail).
 El usuario escribe o dicta por voz la siguiente consulta: "${raw}".
 
 Las entidades disponibles son:
@@ -182,6 +182,8 @@ Las entidades disponibles son:
 - "cliente": Campos: id_cliente, nombre, apellido, email, telefono, puntos_fidelidad, total_compras, ciudad, estado.
 - "reserva": Campos: id_reserva, codigo_reserva, fecha_reserva, fecha_limite, estado, total_estimado, sucursal, cliente.
 - "movimiento_inventario": Campos: id_movimiento, tipo_movimiento, cantidad, motivo, fecha, sucursal, producto.
+
+Analiza qué métrica o entidad solicita el usuario, cómo agruparla y cuál es la MEJOR VISUALIZACIÓN GRÁFICA (bar_vertical, bar_horizontal, peak_area, line_temporal, donut_percentage).
 
 Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin formato Markdown, sin comillas invertidas):
 {
@@ -197,6 +199,17 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
   "orderBy": { "field": "campo", "direction": "asc|desc" },
   "limit": 50,
   "chartSuggestion": "bar|donut|line|area",
+  "chartSpec": {
+    "chartType": "bar_vertical | bar_horizontal | peak_area | line_temporal | donut_percentage",
+    "title": "Título ejecutivo y analítico del gráfico",
+    "subtitle": "Subtítulo descriptivo",
+    "xAxisKey": "campo_para_eje_x",
+    "xAxisLabel": "Etiqueta del eje X",
+    "yAxisKey": "campo_para_eje_y",
+    "yAxisLabel": "Etiqueta del eje Y",
+    "unit": "Bs. | unidades | clientes",
+    "aiInsight": "Conclusión ejecutiva directa en 1 frase de lo que revela el gráfico."
+  },
   "explanation": "Breve explicación en una sola frase de lo que se va a mostrar.",
   "detectedKeywords": {
     "entityFound": "nombre_entidad",
@@ -216,6 +229,16 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
           const parsed = JSON.parse(cleanJson);
 
           if (parsed && parsed.entity && Array.isArray(parsed.fields)) {
+            const chartSpec = parsed.chartSpec?.chartType
+              ? parsed.chartSpec
+              : this.nlpService.buildChartSpec(
+                  parsed.entity,
+                  Array.isArray(parsed.groupBy) ? parsed.groupBy : undefined,
+                  Array.isArray(parsed.aggregations) ? parsed.aggregations : [],
+                  parsed.orderBy,
+                  raw,
+                );
+
             const suggestedPayload: ExecuteQbeQueryDto = {
               entity: parsed.entity,
               fields: parsed.fields.length > 0 ? parsed.fields : ['id_venta', 'total'],
@@ -248,11 +271,13 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
               orderBy: parsed.orderBy?.field ? parsed.orderBy : undefined,
               limit: Number(parsed.limit) || 100,
               chartType: parsed.chartSuggestion === 'pie' || parsed.chartSuggestion === 'donut' ? 'pie' : 'bar',
+              chartSpec,
             };
 
             return {
               interpreted: true,
               suggestedPayload,
+              chartSpec,
               explanation: parsed.explanation || 'Consulta interpretada exitosamente con Gemini.',
               detectedKeywords: {
                 entityFound: parsed.detectedKeywords?.entityFound || parsed.entity,

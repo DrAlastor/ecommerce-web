@@ -12,20 +12,17 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
   Plus,
   Trash2,
   AlertCircle,
   RotateCcw,
   Layers,
   Check,
-  Activity,
-  BarChart2,
-  PieChart,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
 import { reportsService } from '../services/reports.service';
+import { DynamicQbeCharts } from './DynamicQbeCharts';
 import type {
   QbeMetadata,
   QbeEntityMeta,
@@ -36,19 +33,6 @@ import type {
   InterpretedQbeResponse,
   AiReportAnalysis,
 } from '../types/reports.types';
-
-const PALETTE = [
-  '#8C5E35',
-  '#C4956A',
-  '#3D5A80',
-  '#293241',
-  '#059669',
-  '#D97706',
-  '#DC2626',
-  '#7C3AED',
-  '#6B705C',
-  '#A98467',
-];
 
 interface EntityPreset {
   id: string;
@@ -267,159 +251,6 @@ const ENTITY_PRESETS: Record<string, EntityPreset[]> = {
 };
 
 // =============================================================================
-// SUB-COMPONENTE: GRAFICA DE PICOS (PEAK / AREA CHART CON CURVA Y CRESTAS)
-// =============================================================================
-interface PeakPoint {
-  name: string;
-  total: number;
-}
-
-const PeakChartView: React.FC<{ data: PeakPoint[] }> = ({ data }) => {
-  if (!data || data.length === 0) return null;
-
-  const points = data.slice(0, 16);
-  const totals = points.map((p) => Number(p.total) || 0);
-  const minVal = Math.min(...totals);
-  const maxVal = Math.max(...totals, 1);
-  const range = maxVal - minVal || 1;
-
-  const width = 820;
-  const height = 240;
-  const padLeft = 70;
-  const padRight = 35;
-  const padTop = 38;
-  const padBottom = 48;
-
-  const plotW = width - padLeft - padRight;
-  const plotH = height - padTop - padBottom;
-
-  const coords = points.map((p, idx) => {
-    const x = padLeft + (points.length > 1 ? (idx / (points.length - 1)) * plotW : plotW / 2);
-    const val = Number(p.total) || 0;
-    const y = padTop + plotH - ((val - minVal) / range) * plotH;
-    return { x, y, val, name: p.name };
-  });
-
-  // Curva Bezier suave que conecta los picos
-  const linePath = coords.reduce((acc, pt, idx) => {
-    if (idx === 0) return `M ${pt.x} ${pt.y}`;
-    const prev = coords[idx - 1];
-    const cx = (prev.x + pt.x) / 2;
-    return `${acc} C ${cx} ${prev.y}, ${cx} ${pt.y}, ${pt.x} ${pt.y}`;
-  }, '');
-
-  // Area sombreada bajo la curva
-  const areaPath = `${linePath} L ${coords[coords.length - 1].x} ${padTop + plotH} L ${coords[0].x} ${padTop + plotH} Z`;
-
-  // Indice del pico maximo
-  const peakIdx = totals.indexOf(maxVal);
-
-  const gridSteps = [0, 0.33, 0.66, 1];
-
-  return (
-    <div style={{ width: '100%', overflowX: 'auto', padding: '0.5rem 0' }}>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        style={{ width: '100%', minWidth: '650px', height: 'auto', display: 'block' }}
-      >
-        <defs>
-          <linearGradient id="qbePeakGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8C5E35" stopOpacity="0.45" />
-            <stop offset="65%" stopColor="#8C5E35" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#8C5E35" stopOpacity="0.0" />
-          </linearGradient>
-        </defs>
-
-        {/* Lineas de guia horizontal */}
-        {gridSteps.map((step, i) => {
-          const y = padTop + plotH * (1 - step);
-          const valLabel = Math.round(minVal + range * step);
-          return (
-            <g key={i}>
-              <line
-                x1={padLeft}
-                y1={y}
-                x2={width - padRight}
-                y2={y}
-                stroke="#EAE6DF"
-                strokeDasharray="4 4"
-                strokeWidth="1"
-              />
-              <text
-                x={padLeft - 10}
-                y={y + 4}
-                textAnchor="end"
-                fontSize="10"
-                fill="#8A8279"
-                fontWeight="500"
-              >
-                {valLabel.toLocaleString('es-BO')}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Area bajo la curva con gradiente */}
-        <path d={areaPath} fill="url(#qbePeakGradient)" />
-
-        {/* Trazo continuo de la curva de picos */}
-        <path d={linePath} fill="none" stroke="#8C5E35" strokeWidth="2.75" />
-
-        {/* Marcadores de picos y valles */}
-        {coords.map((pt, idx) => {
-          const isPeak = idx === peakIdx;
-          return (
-            <g key={idx}>
-              <circle
-                cx={pt.x}
-                cy={pt.y}
-                r={isPeak ? 6 : 3.5}
-                fill={isPeak ? '#1C1510' : '#FFFFFF'}
-                stroke={isPeak ? '#C4956A' : '#8C5E35'}
-                strokeWidth={isPeak ? 2.5 : 2}
-              />
-              {isPeak && (
-                <g transform={`translate(${pt.x}, ${pt.y - 14})`}>
-                  <rect
-                    x="-46"
-                    y="-19"
-                    width="92"
-                    height="19"
-                    rx="4"
-                    fill="#1C1510"
-                  />
-                  <text
-                    x="0"
-                    y="-6"
-                    textAnchor="middle"
-                    fontSize="9.5"
-                    fill="#FFFFFF"
-                    fontWeight="700"
-                  >
-                    Pico: {pt.val.toLocaleString('es-BO')}
-                  </text>
-                </g>
-              )}
-              {/* Etiqueta en el eje horizontal */}
-              <text
-                x={pt.x}
-                y={padTop + plotH + 18}
-                textAnchor="middle"
-                fontSize="10"
-                fill="#4B433B"
-                fontWeight={isPeak ? '700' : '500'}
-              >
-                {pt.name.length > 13 ? pt.name.slice(0, 12) + '..' : pt.name}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-};
-
-// =============================================================================
 // COMPONENTE PRINCIPAL: QBE TAB (ARMADOR DE CONSULTAS EN TIEMPO REAL)
 // =============================================================================
 export const QbeTab: React.FC = () => {
@@ -433,9 +264,6 @@ export const QbeTab: React.FC = () => {
   const [orderByField, setOrderByField] = useState<string>('');
   const [orderDirection, setOrderDirection] = useState<'asc' | 'desc'>('desc');
   const [limit, setLimit] = useState<number>(100);
-
-  // Modo de Grafica: 'peak' (Picos/Area), 'bar' (Barras), 'donut' (Circular)
-  const [chartMode, setChartMode] = useState<'peak' | 'bar' | 'donut'>('peak');
 
   // Pildora de consulta rapida activa
   const [activePresetId, setActivePresetId] = useState<string>('todas');
@@ -455,7 +283,8 @@ export const QbeTab: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(15);
 
   // Asistente Opcional de Lenguaje Natural / IA
-  const [showAiAssistant, setShowAiAssistant] = useState<boolean>(false);
+  // Asistente IA desplegado por defecto para experiencia Prompt-to-Chart
+  const [showAiAssistant, setShowAiAssistant] = useState<boolean>(true);
   const [nlPrompt, setNlPrompt] = useState<string>('');
   const [interpreting, setInterpreting] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
@@ -489,13 +318,6 @@ export const QbeTab: React.FC = () => {
       setResults(res);
       setCurrentPage(1);
       setTableSearch('');
-
-      // Si no hay modo explícito, preferir 'peak' si hay datos numéricos suficientes o 'bar'
-      if (res.chartData && res.chartData.length >= 4) {
-        setChartMode('peak');
-      } else if (res.chartSuggestion === 'pie') {
-        setChartMode('donut');
-      }
 
       // Diagnostico automatico opcional de Gemini
       if (res && res.rows && res.rows.length > 0) {
@@ -1103,13 +925,82 @@ export const QbeTab: React.FC = () => {
                   borderRadius: '7px',
                   fontSize: '0.82rem',
                   fontWeight: 600,
-                  cursor: nlPrompt.trim() ? 'pointer' : 'not-allowed',
+                  cursor: nlPrompt.trim() && !interpreting ? 'pointer' : 'not-allowed',
+                  opacity: interpreting ? 0.7 : 1,
                 }}
               >
                 <Send size={13} />
-                <span>Interpretar</span>
+                <span>{interpreting ? 'Interpretando...' : 'Generar Gráfico'}</span>
               </button>
             </div>
+
+            {/* Chips de Consultas Rápidas Sugeridas */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.65rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#8C5E35', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Sparkles size={12} /> Sugerencias rápidas:
+              </span>
+              {[
+                'Top 5 prendas más vendidas del mes',
+                'Ingresos por sucursal en gráfica circular',
+                'Tendencia de ventas de los últimos 30 días',
+                'Prendas con inventario bajo por categoría',
+                'Ventas por canal digital y presencial',
+              ].map((sug, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setNlPrompt(sug);
+                    handleInterpretQuery(sug);
+                  }}
+                  disabled={interpreting}
+                  style={{
+                    padding: '0.2rem 0.55rem',
+                    borderRadius: '12px',
+                    border: '1px solid #DCD5CB',
+                    backgroundColor: '#FFFFFF',
+                    color: '#4B433B',
+                    fontSize: '0.71rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#F4ECE1';
+                    e.currentTarget.style.borderColor = '#8C5E35';
+                    e.currentTarget.style.color = '#8C5E35';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    e.currentTarget.style.borderColor = '#DCD5CB';
+                    e.currentTarget.style.color = '#4B433B';
+                  }}
+                >
+                  {sug}
+                </button>
+              ))}
+            </div>
+
+            {/* Spinner / Indicador de Procesamiento IA */}
+            {interpreting && (
+              <div
+                style={{
+                  marginTop: '0.65rem',
+                  padding: '0.45rem 0.75rem',
+                  backgroundColor: '#FEF3C7',
+                  borderRadius: '6px',
+                  border: '1px solid #FCD34D',
+                  fontSize: '0.76rem',
+                  color: '#92400E',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                }}
+              >
+                <Sparkles size={13} color="#D97706" />
+                <span>Analizando solicitud con IA, seleccionando métricas y configurando gráfico dinámico...</span>
+              </div>
+            )}
 
             {voiceError && (
               <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.76rem', color: '#DC2626' }}>{voiceError}</p>
@@ -1889,196 +1780,16 @@ export const QbeTab: React.FC = () => {
           )}
 
           {/* ========================================================================= */}
-          {/* VISUALIZACION GRAFICA MULTIMODAL (CON GRAFICA DE PICOS) */}
+          {/* VISUALIZACION GRAFICA DINAMICA ASISTIDA POR IA (PROMPT-TO-CHART) */}
           {/* ========================================================================= */}
           {results.chartData && results.chartData.length > 0 && (
-            <div
-              style={{
-                backgroundColor: '#FAF8F5',
-                borderRadius: '12px',
-                border: '1px solid #EAE6DF',
-                padding: '1.25rem',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '1rem',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <TrendingUp size={16} color="#8C5E35" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1C1510' }}>
-                    Comportamiento Grafico de la Consulta
-                  </span>
-                </div>
-
-                {/* Selector de Tipo de Grafica: Picos | Barras | Circular */}
-                <div style={{ display: 'flex', gap: '0.35rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setChartMode('peak')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                      padding: '0.3rem 0.65rem',
-                      borderRadius: '6px',
-                      border: chartMode === 'peak' ? '1px solid #8C5E35' : '1px solid #D1C9BE',
-                      backgroundColor: chartMode === 'peak' ? '#8C5E35' : '#FFFFFF',
-                      color: chartMode === 'peak' ? '#FFFFFF' : '#4B433B',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Activity size={13} />
-                    <span>Grafica de Picos</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setChartMode('bar')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                      padding: '0.3rem 0.65rem',
-                      borderRadius: '6px',
-                      border: chartMode === 'bar' ? '1px solid #8C5E35' : '1px solid #D1C9BE',
-                      backgroundColor: chartMode === 'bar' ? '#8C5E35' : '#FFFFFF',
-                      color: chartMode === 'bar' ? '#FFFFFF' : '#4B433B',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <BarChart2 size={13} />
-                    <span>Barras</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setChartMode('donut')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.3rem',
-                      padding: '0.3rem 0.65rem',
-                      borderRadius: '6px',
-                      border: chartMode === 'donut' ? '1px solid #8C5E35' : '1px solid #D1C9BE',
-                      backgroundColor: chartMode === 'donut' ? '#8C5E35' : '#FFFFFF',
-                      color: chartMode === 'donut' ? '#FFFFFF' : '#4B433B',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <PieChart size={13} />
-                    <span>Circular</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* MODO 1: GRAFICA DE PICOS (PEAK / AREA CHART) */}
-              {chartMode === 'peak' && <PeakChartView data={results.chartData} />}
-
-              {/* MODO 2: GRAFICA DE BARRAS */}
-              {chartMode === 'bar' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-                  {(() => {
-                    const maxVal = Math.max(...results.chartData.map((d) => Number(d.total) || 0), 1);
-                    return results.chartData.slice(0, 10).map((item, idx) => {
-                      const val = Number(item.total) || 0;
-                      const pct = Math.max(5, Math.round((val / maxVal) * 100));
-                      return (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                          <span
-                            style={{
-                              width: '160px',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              color: '#4B433B',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              textAlign: 'right',
-                            }}
-                          >
-                            {item.name}
-                          </span>
-                          <div style={{ flex: 1, backgroundColor: '#EAE6DF', height: '18px', borderRadius: '4px', overflow: 'hidden' }}>
-                            <div
-                              style={{
-                                width: `${pct}%`,
-                                height: '100%',
-                                backgroundColor: PALETTE[idx % PALETTE.length],
-                                transition: 'width 0.4s ease',
-                              }}
-                            />
-                          </div>
-                          <span style={{ width: '85px', fontSize: '0.78rem', fontWeight: 700, color: '#1C1510' }}>
-                            {val.toLocaleString('es-BO')}
-                          </span>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              )}
-
-              {/* MODO 3: GRAFICA CIRCULAR */}
-              {chartMode === 'donut' && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', padding: '1rem 0' }}>
-                  <svg width="140" height="140" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                    {(() => {
-                      const totalSum = results.chartData.reduce((acc, curr) => acc + (Number(curr.total) || 0), 0) || 1;
-                      let accumulatedPct = 0;
-                      return results.chartData.slice(0, 7).map((item, idx) => {
-                        const val = Number(item.total) || 0;
-                        const pct = (val / totalSum) * 100;
-                        const strokeDasharray = `${pct} ${100 - pct}`;
-                        const strokeDashoffset = -accumulatedPct;
-                        accumulatedPct += pct;
-                        return (
-                          <circle
-                            key={idx}
-                            cx="50"
-                            cy="50"
-                            r="36"
-                            fill="transparent"
-                            stroke={PALETTE[idx % PALETTE.length]}
-                            strokeWidth="18"
-                            strokeDasharray={strokeDasharray}
-                            strokeDashoffset={strokeDashoffset}
-                            pathLength="100"
-                          />
-                        );
-                      });
-                    })()}
-                    <circle cx="50" cy="50" r="22" fill="#FAF8F5" />
-                  </svg>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', maxWidth: '280px' }}>
-                    {results.chartData.slice(0, 7).map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.76rem' }}>
-                        <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: PALETTE[idx % PALETTE.length], flexShrink: 0 }} />
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: '#4B433B' }}>
-                          {item.name}
-                        </span>
-                        <span style={{ fontWeight: 700, color: '#1C1510' }}>
-                          {Number(item.total).toLocaleString('es-BO')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <DynamicQbeCharts
+              data={results.chartData}
+              spec={results.chartSpec || interpretationResult?.chartSpec}
+              entityName={results.entityName}
+              onExportPdf={() => handleExport('pdf')}
+              onExportExcel={() => handleExport('excel')}
+            />
           )}
 
           {/* ========================================================================= */}
