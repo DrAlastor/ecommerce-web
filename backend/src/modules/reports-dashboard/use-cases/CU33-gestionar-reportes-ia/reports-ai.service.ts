@@ -252,6 +252,7 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
                     if (op === 'equals' || op === 'equal' || op === '=') op = 'eq';
                     if (op === 'not_equals' || op === '!=' || op === '<>') op = 'neq';
                     if (op === 'like') op = 'contains';
+                    if (op === 'not_in' || op === 'notin') op = 'notIn';
                     return {
                       field: f.field,
                       operator: op,
@@ -260,6 +261,7 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
                     };
                   })
                 : [],
+              filterLogic: parsed.filterLogic === 'OR' ? 'OR' : 'AND',
               groupBy: Array.isArray(parsed.groupBy) && parsed.groupBy.length > 0 ? parsed.groupBy : undefined,
               aggregations: Array.isArray(parsed.aggregations) && parsed.aggregations.length > 0
                 ? parsed.aggregations.map((a: any) => ({
@@ -270,6 +272,7 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
                 : undefined,
               orderBy: parsed.orderBy?.field ? parsed.orderBy : undefined,
               limit: Number(parsed.limit) || 100,
+              prompt: raw,
               chartType: parsed.chartSuggestion === 'pie' || parsed.chartSuggestion === 'donut' ? 'pie' : 'bar',
               chartSpec,
             };

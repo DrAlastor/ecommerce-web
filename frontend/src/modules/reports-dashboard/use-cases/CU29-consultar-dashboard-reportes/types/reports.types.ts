@@ -296,8 +296,11 @@ export interface QbeQueryPayload {
   orderBy?: { field: string; direction: 'asc' | 'desc' };
   limit?: number;
   page?: number;
-  chartType?: 'bar' | 'pie' | 'line';
+  filterLogic?: 'AND' | 'OR';
+  prompt?: string;
+  chartType?: QbeChartType;
   chartSpec?: QbeChartSpec;
+  chartImage?: string;
 }
 
 export interface QbeQueryResult {

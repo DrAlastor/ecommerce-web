@@ -241,12 +241,21 @@ export class QbeService {
         throw new BadRequestException(`Entidad '${dto.entity}' no soportada.`);
     }
 
-    // 1. Aplicar filtros dinámicos en memoria de forma segura
+    // 1. Aplicar filtros dinámicos en memoria de forma segura (soporta lógica AND y OR)
     let filteredRecords = rawRecords;
     if (dto.filters && dto.filters.length > 0) {
-      filteredRecords = filteredRecords.filter((rec) =>
-        dto.filters!.every((filter) => this.matchesFilter(rec, filter)),
+      const activeFilters = dto.filters.filter(
+        (f) => f.value !== '' && f.value !== undefined && f.value !== null,
       );
+      if (activeFilters.length > 0) {
+        const logic = (dto.filterLogic || 'AND').toUpperCase();
+        filteredRecords = filteredRecords.filter((rec) => {
+          if (logic === 'OR') {
+            return activeFilters.some((filter) => this.matchesFilter(rec, filter));
+          }
+          return activeFilters.every((filter) => this.matchesFilter(rec, filter));
+        });
+      }
     }
 
     const totalFiltered = filteredRecords.length;
@@ -255,7 +264,12 @@ export class QbeService {
     let finalRows: Record<string, any>[] = [];
     let finalColumns: { key: string; label: string; type: string }[] = [];
     let chartData: any[] = [];
-    let chartSuggestion: 'bar' | 'pie' | 'line' = dto.chartType || 'bar';
+    let chartSuggestion: 'bar' | 'pie' | 'line' =
+      dto.chartType === 'pie' || dto.chartType === 'donut_percentage'
+        ? 'pie'
+        : dto.chartType === 'line' || dto.chartType === 'peak_area'
+          ? 'line'
+          : 'bar';
 
     if (dto.groupBy && dto.groupBy.length > 0 && dto.aggregations && dto.aggregations.length > 0) {
       const grouped = this.applyGrouping(filteredRecords, dto.groupBy, dto.aggregations, entityMeta);
@@ -305,15 +319,17 @@ export class QbeService {
       chartData = this.buildAutoChartData(finalRows, finalColumns);
     }
 
-    // Paginación si se especifica
-    const limit = Math.min(dto.limit || 100, 1000);
+    // Paginación si se especifica: para exportaciones permitimos hasta 10000 registros completos
+    const isExport = Boolean(dto.limit && dto.limit > 1000);
+    const limit = isExport ? Math.min(dto.limit || 10000, 10000) : Math.min(dto.limit || 100, 1000);
     const page = Math.max(dto.page || 1, 1);
-    const paginatedRows = finalRows.slice((page - 1) * limit, page * limit);
+    const paginatedRows = isExport ? finalRows.slice(0, limit) : finalRows.slice((page - 1) * limit, page * limit);
 
     // Indicadores clave para el encabezado del reporte
+    const isGrouped = Boolean(dto.groupBy && dto.groupBy.length > 0 && dto.aggregations && dto.aggregations.length > 0);
     const indicators: ReportIndicator[] = [
-      { label: 'Registros Encontrados', value: totalFiltered },
-      { label: 'Columnas Visualizadas', value: finalColumns.length },
+      { label: isGrouped ? 'Registros Procesados' : 'Registros Encontrados', value: totalFiltered },
+      { label: isGrouped ? 'Filas Consolidadas' : 'Columnas Visualizadas', value: isGrouped ? finalRows.length : finalColumns.length },
     ];
 
     // Si hay una columna monetaria o numérica relevante, sumarla en los indicadores
@@ -328,13 +344,17 @@ export class QbeService {
     }
 
     const totalSum = chartData.reduce((acc, curr) => acc + (Number(curr.total) || 0), 0) || 1;
+    const avgSum = chartData.length > 0 ? totalSum / chartData.length : 0;
     const enrichedChartData = chartData.map((item) => {
       const val = Number(item.total) || 0;
+      const pct = Math.round((val / totalSum) * 100);
+      const deltaVsAvg = Math.round((val - avgSum) * 100) / 100;
       return {
         ...item,
         total: val,
-        percentage: Math.round((val / totalSum) * 100),
+        percentage: pct,
         formattedTotal: val.toLocaleString('es-BO'),
+        deltaVsAvg,
       };
     });
 
@@ -400,13 +420,16 @@ export class QbeService {
    * Exporta la consulta QBE a PDF, CSV o Excel
    */
   async exportQuery(dto: ExportQbeQueryDto, user: any): Promise<{ buffer: Buffer; fileName: string; mimeType: string }> {
-    // Para exportar se toman todos los registros (hasta 2000)
-    const execResult = await this.executeQuery({ ...dto, limit: 2000, page: 1 }, user);
+    // Para exportar se toman todos los registros completos (hasta 10000 filas sin recortes)
+    const execResult = await this.executeQuery({ ...dto, limit: 10000, page: 1 }, user);
+
+    const effectiveChartSpec = dto.chartSpec || execResult.chartSpec;
+    const effectiveChartType = dto.chartType || dto.chartSpec?.chartType || execResult.chartSpec?.chartType || 'bar_vertical';
 
     const reportPayload: ReportPayload = {
       title: execResult.title,
       code: `QBE-${dto.entity.toUpperCase().slice(0, 3)}`,
-      periodo: 'Consulta Dinámica Personalizada',
+      periodo: dto.prompt ? `Consulta: "${dto.prompt.slice(0, 65)}"` : 'Consulta Dinámica Personalizada',
       sucursalNombre: 'Alcance Autorizado',
       generatedBy: user.email,
       generatedAt: new Date().toLocaleString('es-BO'),
@@ -414,6 +437,10 @@ export class QbeService {
       columns: execResult.columns as any,
       rows: execResult.rows,
       chartData: execResult.chartData,
+      chartSpec: effectiveChartSpec,
+      chartType: effectiveChartType,
+      chartImage: dto.chartImage,
+      aiInsight: effectiveChartSpec?.aiInsight || execResult.chartSpec?.aiInsight,
     };
 
     const formato = dto.format || ExportFormat.EXCEL;
@@ -472,7 +499,7 @@ export class QbeService {
         pago: { select: { metodo_pago: true } },
       },
       orderBy: { fecha_venta: 'desc' },
-      take: 1000,
+      take: 10000,
     });
 
     return ventas.map((v) => {
@@ -508,7 +535,7 @@ export class QbeService {
         producto_variante: { select: { sku: true }, take: 1 },
       },
       orderBy: { nombre: 'asc' },
-      take: 1000,
+      take: 10000,
     });
 
     return productos.map((p) => ({
@@ -541,7 +568,7 @@ export class QbeService {
           },
         },
       },
-      take: 1000,
+      take: 10000,
     });
 
     return inv.map((i) => {
@@ -567,7 +594,7 @@ export class QbeService {
       include: {
         usuario: { select: { email: true } },
       },
-      take: 1000,
+      take: 10000,
     });
 
     return clientes.map((c) => ({
@@ -593,7 +620,7 @@ export class QbeService {
         cliente: { select: { nombre: true, apellido: true } },
       },
       orderBy: { fecha_reserva: 'desc' },
-      take: 1000,
+      take: 10000,
     });
 
     return reservas.map((r) => ({
@@ -618,7 +645,7 @@ export class QbeService {
         sucursal: { select: { nombre: true } },
       },
       orderBy: { fecha: 'desc' },
-      take: 1000,
+      take: 10000,
     });
 
     return movs.map((m) => ({
@@ -632,7 +659,7 @@ export class QbeService {
   }
 
   // ==========================================================================
-  // EVALUADOR SEGURO DE FILTROS
+  // EVALUADOR SEGURO DE FILTROS Y COMPARACIONES
   // ==========================================================================
 
   private matchesFilter(record: Record<string, any>, filter: QbeFilterDto): boolean {
@@ -643,28 +670,47 @@ export class QbeService {
       return false;
     }
 
+    const normalize = (val: any) =>
+      String(val ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+
+    const isDate = typeof rawVal === 'string' && /^\d{4}-\d{2}-\d{2}/.test(rawVal);
+
     switch (filter.operator) {
       case 'eq':
-        return String(rawVal).toLowerCase() === String(targetVal).toLowerCase();
+        return normalize(rawVal) === normalize(targetVal);
       case 'neq':
-        return String(rawVal).toLowerCase() !== String(targetVal).toLowerCase();
+        return normalize(rawVal) !== normalize(targetVal);
       case 'contains':
-        return String(rawVal).toLowerCase().includes(String(targetVal).toLowerCase());
+        return normalize(rawVal).includes(normalize(targetVal));
       case 'startsWith':
-        return String(rawVal).toLowerCase().startsWith(String(targetVal).toLowerCase());
+        return normalize(rawVal).startsWith(normalize(targetVal));
+      case 'in': {
+        const list = Array.isArray(targetVal)
+          ? targetVal.map(normalize)
+          : String(targetVal).split(',').map(normalize);
+        return list.includes(normalize(rawVal));
+      }
+      case 'notIn': {
+        const list = Array.isArray(targetVal)
+          ? targetVal.map(normalize)
+          : String(targetVal).split(',').map(normalize);
+        return !list.includes(normalize(rawVal));
+      }
       case 'gt':
+        if (isDate) return String(rawVal) > String(targetVal);
         return Number(rawVal) > Number(targetVal);
       case 'gte':
-        if (typeof rawVal === 'string' && rawVal.match(/^\d{4}-\d{2}-\d{2}/)) {
-          return rawVal >= String(targetVal);
-        }
+        if (isDate) return String(rawVal) >= String(targetVal);
         return Number(rawVal) >= Number(targetVal);
       case 'lt':
+        if (isDate) return String(rawVal) < String(targetVal);
         return Number(rawVal) < Number(targetVal);
       case 'lte':
-        if (typeof rawVal === 'string' && rawVal.match(/^\d{4}-\d{2}-\d{2}/)) {
-          return rawVal <= String(targetVal);
-        }
+        if (isDate) return String(rawVal) <= String(targetVal);
         return Number(rawVal) <= Number(targetVal);
       case 'between': {
         const v1 = Number(targetVal);

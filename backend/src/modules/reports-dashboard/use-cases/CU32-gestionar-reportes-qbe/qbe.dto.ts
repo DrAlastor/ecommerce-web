@@ -21,7 +21,8 @@ export type QbeOperator =
   | 'contains'
   | 'startsWith'
   | 'between'
-  | 'in';
+  | 'in'
+  | 'notIn';
 
 export type QbeAggFunction = 'SUM' | 'AVG' | 'COUNT' | 'MIN' | 'MAX';
 
@@ -53,6 +54,7 @@ export class QbeFilterDto {
     'startsWith',
     'between',
     'in',
+    'notIn',
   ])
   operator!: QbeOperator;
 
@@ -197,12 +199,24 @@ export class ExecuteQbeQueryDto {
 
   @IsOptional()
   @IsString()
-  chartType?: 'bar' | 'pie' | 'line';
+  chartType?: string;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => QbeChartSpecDto)
   chartSpec?: QbeChartSpecDto;
+
+  @IsOptional()
+  @IsIn(['AND', 'OR', 'and', 'or'])
+  filterLogic?: 'AND' | 'OR';
+
+  @IsOptional()
+  @IsString()
+  prompt?: string;
+
+  @IsOptional()
+  @IsString()
+  chartImage?: string;
 }
 
 export class ExportQbeQueryDto extends ExecuteQbeQueryDto {

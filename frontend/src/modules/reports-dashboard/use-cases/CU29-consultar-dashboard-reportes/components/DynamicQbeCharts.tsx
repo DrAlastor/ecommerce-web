@@ -25,8 +25,9 @@ interface DynamicQbeChartsProps {
   data: DynamicChartItem[];
   spec?: QbeChartSpec;
   entityName?: string;
-  onExportPdf?: () => void;
+  onExportPdf?: (chartType: QbeChartType, chartPngDataUrl?: string) => void;
   onExportExcel?: () => void;
+  onChartTypeChange?: (chartType: QbeChartType) => void;
 }
 
 const PALETTE = [
@@ -48,6 +49,7 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
   entityName = 'Consulta Dinámica',
   onExportPdf,
   onExportExcel,
+  onChartTypeChange,
 }) => {
   // Estado local para alternar modo de gráfica libremente
   const initialMode = useMemo<QbeChartType>(() => {
@@ -68,6 +70,60 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+
+  React.useEffect(() => {
+    setActiveChartType(initialMode);
+    onChartTypeChange?.(initialMode);
+  }, [initialMode, onChartTypeChange]);
+
+  const handleSelectType = (t: QbeChartType) => {
+    setActiveChartType(t);
+    onChartTypeChange?.(t);
+  };
+
+  const captureSvgAsPng = (): Promise<string | undefined> => {
+    return new Promise((resolve) => {
+      if (!svgRef.current) {
+        resolve(undefined);
+        return;
+      }
+      try {
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svgRef.current);
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const URLObj = window.URL || window.webkitURL || window;
+        const blobURL = URLObj.createObjectURL(svgBlob);
+        const image = new Image();
+        image.onload = () => {
+          const canvas = document.createElement('canvas');
+          const scale = 2;
+          const w = 860;
+          const h = 340;
+          canvas.width = w * scale;
+          canvas.height = h * scale;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(undefined);
+            return;
+          }
+          ctx.scale(scale, scale);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(image, 0, 0, w, h);
+          const pngUrl = canvas.toDataURL('image/png');
+          URLObj.revokeObjectURL(blobURL);
+          resolve(pngUrl);
+        };
+        image.onerror = () => {
+          URLObj.revokeObjectURL(blobURL);
+          resolve(undefined);
+        };
+        image.src = blobURL;
+      } catch {
+        resolve(undefined);
+      }
+    });
+  };
 
   // Totales y cálculos estadísticos
   const safeData = useMemo(() => {
@@ -243,7 +299,7 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
           >
             <button
               type="button"
-              onClick={() => setActiveChartType('bar_vertical')}
+              onClick={() => handleSelectType('bar_vertical')}
               title="Barras Verticales"
               style={{
                 display: 'flex',
@@ -266,7 +322,7 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveChartType('peak_area')}
+              onClick={() => handleSelectType('peak_area')}
               title="Curva de Picos / Área"
               style={{
                 display: 'flex',
@@ -289,7 +345,7 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveChartType('donut_percentage')}
+              onClick={() => handleSelectType('donut_percentage')}
               title="Gráfico Circular / Porcentajes"
               style={{
                 display: 'flex',
@@ -312,7 +368,7 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveChartType('bar_horizontal')}
+              onClick={() => handleSelectType('bar_horizontal')}
               title="Ranking Horizontal"
               style={{
                 display: 'flex',
@@ -385,7 +441,10 @@ export const DynamicQbeCharts: React.FC<DynamicQbeChartsProps> = ({
             {onExportPdf && (
               <button
                 type="button"
-                onClick={onExportPdf}
+                onClick={async () => {
+                  const png = await captureSvgAsPng();
+                  onExportPdf(activeChartType, png);
+                }}
                 title="Exportar reporte completo con tabla a formato PDF"
                 style={{
                   display: 'flex',

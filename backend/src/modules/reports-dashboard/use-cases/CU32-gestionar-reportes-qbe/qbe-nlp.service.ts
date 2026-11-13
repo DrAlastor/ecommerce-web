@@ -186,6 +186,7 @@ export class QbeNlpService {
   interpretPrompt(prompt: string): InterpretedQbeResponse {
     const rawText = (prompt || '').trim();
     const normalized = this.normalizeText(rawText);
+    const isComparison = /\b(compara|comparar|comparativa|comparacion|vs|contra|frente|diferencia)\b/.test(normalized);
 
     // 1. Identificar la entidad objetivo
     const entityMatch = this.detectEntity(normalized);
@@ -209,6 +210,10 @@ export class QbeNlpService {
     if (groupByDetected) {
       groupBy = [groupByDetected.field];
       detectedKeywords.groupByFound.push(groupByDetected.label);
+    } else if (isComparison) {
+      const fallbackGroup = entity === 'venta' ? 'sucursal' : (entity === 'inventario_sucursal' ? 'sucursal' : 'categoria');
+      groupBy = [fallbackGroup];
+      detectedKeywords.groupByFound.push(fallbackGroup);
     }
 
     // 3. Extraer Agregaciones y Métricas
@@ -216,6 +221,19 @@ export class QbeNlpService {
     if (aggsDetected.length > 0) {
       aggregations.push(...aggsDetected);
       aggsDetected.forEach((a) =>
+        detectedKeywords.metricsFound.push(`${a.func}(${a.field})`),
+      );
+    } else if (isComparison && groupBy && groupBy.length > 0) {
+      if (entity === 'venta') {
+        aggregations.push({ field: 'total', func: 'SUM', alias: 'total_ventas' });
+      } else if (entity === 'inventario_sucursal') {
+        aggregations.push({ field: 'stock_disponible', func: 'SUM', alias: 'total_stock' });
+      } else if (entity === 'producto') {
+        aggregations.push({ field: 'precio_base', func: 'AVG', alias: 'precio_promedio' });
+      } else if (entity === 'cliente') {
+        aggregations.push({ field: 'id_cliente', func: 'COUNT', alias: 'total_clientes' });
+      }
+      aggregations.forEach((a) =>
         detectedKeywords.metricsFound.push(`${a.func}(${a.field})`),
       );
     }
@@ -277,14 +295,18 @@ export class QbeNlpService {
       rawText,
     );
 
+    const filterLogic: 'AND' | 'OR' = isComparison && filters.length > 1 ? 'OR' : 'AND';
+
     const suggestedPayload: ExecuteQbeQueryDto = {
       entity,
       fields,
       filters: filters.length > 0 ? filters : undefined,
+      filterLogic,
       groupBy: groupBy && groupBy.length > 0 ? groupBy : undefined,
       aggregations: aggregations.length > 0 ? aggregations : undefined,
       orderBy,
       limit,
+      prompt: rawText,
       chartSpec,
     };
 
@@ -305,7 +327,8 @@ export class QbeNlpService {
     prompt: string,
   ): QbeChartSpecDto {
     const norm = this.normalizeText(prompt);
-    let chartType: QbeChartType = 'bar_vertical';
+    const isComparison = /\b(compara|comparar|comparativa|vs|contra|frente|diferencia)\b/.test(norm);
+    let chartType: QbeChartType = isComparison ? 'bar_vertical' : 'bar_vertical';
 
     if (/\b(circular|torta|pie|donut|dona|distribucion|proporcion|porcentaje)\b/.test(norm)) {
       chartType = 'donut_percentage';
@@ -330,7 +353,10 @@ export class QbeNlpService {
       movimiento_inventario: 'Kardex de Movimientos de Inventario',
     };
 
-    const title = `${entityTitles[entity] || 'Reporte Dinámico'} ${groupBy && groupBy.length > 0 ? `por ${groupBy[0]}` : ''}`.trim();
+    const baseTitle = entityTitles[entity] || 'Reporte Dinámico';
+    const title = isComparison
+      ? `Comparativa: ${baseTitle} ${groupBy && groupBy.length > 0 ? `por ${groupBy[0]}` : ''}`.trim()
+      : `${baseTitle} ${groupBy && groupBy.length > 0 ? `por ${groupBy[0]}` : ''}`.trim();
 
     return {
       chartType,
@@ -341,7 +367,9 @@ export class QbeNlpService {
       yAxisKey: yKey,
       yAxisLabel: unit === 'Bs.' ? 'Monto Acumulado (Bs.)' : 'Cantidad',
       unit,
-      aiInsight: `Visualización analítica configurada para evaluar ${title.toLowerCase()} en base a los registros activos.`,
+      aiInsight: isComparison
+        ? `Evaluación comparativa multi-variable para contrastar métricas y variaciones entre segmentos.`
+        : `Visualización analítica configurada para evaluar ${title.toLowerCase()} en base a los registros activos.`,
     };
   }
 
@@ -386,27 +414,47 @@ export class QbeNlpService {
     text: string,
     entity: string,
   ): { field: string; label: string } | null {
-    if (/\b(por sucursal|por tienda|por sede|agrupado por sucursal)\b/.test(text)) {
+    if (/\b(por sucursal|por tienda|por sede|agrupado por sucursal|entre sucursales|entre tiendas|comparar sucursales|compara sucursales)\b/.test(text)) {
       return { field: 'sucursal', label: 'Sucursal' };
     }
-    if (/\b(por categoria|por rubro|por tipo de prenda|agrupado por categoria)\b/.test(text)) {
+    if (/\b(por categoria|por rubro|por tipo de prenda|agrupado por categoria|entre categorias|comparar categorias)\b/.test(text)) {
       return { field: 'categoria', label: 'Categoría' };
     }
     if (/\b(por estado|por estatus|agrupado por estado)\b/.test(text)) {
       return { field: 'estado', label: 'Estado' };
     }
-    if (/\b(por tipo|por canal|por tipo de venta)\b/.test(text)) {
+    if (/\b(por tipo|por canal|por tipo de venta|presencial vs digital|digital vs presencial|canales de venta)\b/.test(text)) {
       return { field: entity === 'venta' ? 'tipo_venta' : 'tipo_movimiento', label: 'Tipo / Canal' };
     }
-    if (/\b(por genero|por sexo)\b/.test(text)) {
+    if (/\b(por genero|por sexo|hombres vs mujeres|mujeres vs hombres)\b/.test(text)) {
       return { field: entity === 'cliente' ? 'sexo' : 'genero', label: 'Género' };
     }
     if (/\b(por temporada|por coleccion)\b/.test(text)) {
       return { field: 'temporada', label: 'Temporada' };
     }
-    if (/\b(por producto|por prenda)\b/.test(text)) {
+    if (/\b(por producto|por prenda|entre productos|entre prendas)\b/.test(text)) {
       return { field: 'producto', label: 'Prenda' };
     }
+
+    // Si es una consulta comparativa explícita y no se especificó 'por ...', inferir el agrupamiento lógico
+    if (/\b(compara|comparar|comparativa|vs|contra|diferencia)\b/.test(text)) {
+      if (/\b(sucursal|tienda|cochabamba|la paz|santa cruz)\b/.test(text)) {
+        return { field: 'sucursal', label: 'Sucursal' };
+      }
+      if (/\b(canal|presencial|digital|online)\b/.test(text)) {
+        return { field: entity === 'venta' ? 'tipo_venta' : 'tipo_movimiento', label: 'Tipo / Canal' };
+      }
+      if (/\b(categoria|prenda|vestido|abrigo|pantalon)\b/.test(text)) {
+        return { field: entity === 'inventario_sucursal' ? 'producto' : 'categoria', label: 'Categoría / Prenda' };
+      }
+      if (/\b(genero|sexo|mujer|hombre)\b/.test(text)) {
+        return { field: entity === 'cliente' ? 'sexo' : 'genero', label: 'Género' };
+      }
+      if (entity === 'venta') {
+        return { field: 'sucursal', label: 'Sucursal' };
+      }
+    }
+
     return null;
   }
 
@@ -478,16 +526,22 @@ export class QbeNlpService {
   ): Array<{ filter: QbeFilterDto; description: string }> {
     const list: Array<{ filter: QbeFilterDto; description: string }> = [];
 
-    // Ciudades / Sucursales
+    // Ciudades / Sucursales (soporta comparación con operador IN)
     const cities = ['cochabamba', 'la paz', 'santa cruz', 'sucre', 'tarija', 'oruro', 'potosi', 'beni', 'pando'];
-    for (const city of cities) {
-      if (text.includes(city)) {
-        const capitalCity = city.charAt(0).toUpperCase() + city.slice(1);
-        list.push({
-          filter: { field: 'sucursal', operator: 'contains', value: capitalCity },
-          description: `Sucursal contiene "${capitalCity}"`,
-        });
-      }
+    const matchedCities = cities
+      .filter((city) => text.includes(city))
+      .map((city) => city.charAt(0).toUpperCase() + city.slice(1));
+
+    if (matchedCities.length > 1) {
+      list.push({
+        filter: { field: 'sucursal', operator: 'in', value: matchedCities.join(', ') },
+        description: `Sucursal en (${matchedCities.join(', ')})`,
+      });
+    } else if (matchedCities.length === 1) {
+      list.push({
+        filter: { field: 'sucursal', operator: 'contains', value: matchedCities[0] },
+        description: `Sucursal contiene "${matchedCities[0]}"`,
+      });
     }
 
     // Estados
@@ -522,20 +576,55 @@ export class QbeNlpService {
       });
     }
 
-    // Canal de venta
+    // Canal de venta (soporta comparación Presencial vs Digital)
     if (entity === 'venta') {
-      if (/\b(digital|online|web|ecommerce)\b/.test(text)) {
+      const hasDigital = /\b(digital|online|web|ecommerce)\b/.test(text);
+      const hasPresencial = /\b(presencial|tienda fisica|pos)\b/.test(text);
+      if (hasDigital && hasPresencial) {
+        list.push({
+          filter: { field: 'tipo_venta', operator: 'in', value: 'digital, presencial' },
+          description: 'Canal de venta en (digital, presencial)',
+        });
+      } else if (hasDigital) {
         list.push({
           filter: { field: 'tipo_venta', operator: 'eq', value: 'digital' },
           description: 'Canal de venta es "digital"',
         });
-      }
-      if (/\b(presencial|tienda fisica|pos)\b/.test(text)) {
+      } else if (hasPresencial) {
         list.push({
           filter: { field: 'tipo_venta', operator: 'eq', value: 'presencial' },
           description: 'Canal de venta es "presencial"',
         });
       }
+    }
+
+    // Comparación de categorías / prendas
+    const garmentMap: Record<string, string> = {
+      vestido: 'Vestidos',
+      vestidos: 'Vestidos',
+      abrigo: 'Abrigos',
+      abrigos: 'Abrigos',
+      pantalon: 'Pantalones',
+      pantalones: 'Pantalones',
+      camisa: 'Camisas',
+      camisas: 'Camisas',
+      blusa: 'Blusas',
+      blusas: 'Blusas',
+      falda: 'Faldas',
+      faldas: 'Faldas',
+    };
+    const matchedGarments = Array.from(
+      new Set(
+        Object.keys(garmentMap)
+          .filter((k) => new RegExp(`\\b${k}\\b`).test(text))
+          .map((k) => garmentMap[k]),
+      ),
+    );
+    if (matchedGarments.length > 1) {
+      list.push({
+        filter: { field: entity === 'inventario_sucursal' ? 'producto' : 'categoria', operator: 'in', value: matchedGarments.join(', ') },
+        description: `Categorías comparadas en (${matchedGarments.join(', ')})`,
+      });
     }
 
     // Género

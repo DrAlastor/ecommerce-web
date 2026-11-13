@@ -30,6 +30,7 @@ import type {
   QbeAggregation,
   QbeQueryResult,
   QbeQueryPayload,
+  QbeChartType,
   InterpretedQbeResponse,
   AiReportAnalysis,
 } from '../types/reports.types';
@@ -273,6 +274,9 @@ export const QbeTab: React.FC = () => {
 
   // Resultados
   const [results, setResults] = useState<QbeQueryResult | null>(null);
+  const [lastExecutedPayload, setLastExecutedPayload] = useState<QbeQueryPayload | null>(null);
+  const [selectedChartType, setSelectedChartType] = useState<QbeChartType>('bar_vertical');
+  const [chartPngDataUrl] = useState<string | undefined>(undefined);
   const [loadingQuery, setLoadingQuery] = useState<boolean>(false);
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -314,6 +318,7 @@ export const QbeTab: React.FC = () => {
     setLoadingQuery(true);
     setErrorMsg(null);
     try {
+      setLastExecutedPayload(payload);
       const res = await reportsService.executeQbeQuery(payload);
       setResults(res);
       setCurrentPage(1);
@@ -688,17 +693,43 @@ export const QbeTab: React.FC = () => {
   };
 
   // Exportar Consulta QBE
-  const handleExport = async (format: 'csv' | 'pdf' | 'excel') => {
+  const handleExport = async (
+    format: 'csv' | 'pdf' | 'excel',
+    chartTypeOverride?: QbeChartType,
+    chartPngOverride?: string,
+  ) => {
     if (!results) return;
     setExportingFormat(format);
     try {
-      const payload: QbeQueryPayload = {
+      const activeType = chartTypeOverride || selectedChartType || results.chartSpec?.chartType || 'bar_vertical';
+      const activePng = chartPngOverride || chartPngDataUrl;
+
+      const basePayload = lastExecutedPayload || {
         entity: selectedEntityId,
         fields: selectedFields,
         filters: filters.filter((f) => f.value !== '' && f.value !== undefined),
         groupBy: groupByField ? [groupByField] : undefined,
         aggregations: groupByField && aggregations.length > 0 ? aggregations : undefined,
         orderBy: orderByField ? { field: orderByField, direction: orderDirection } : undefined,
+      };
+
+      const payload: QbeQueryPayload = {
+        ...basePayload,
+        limit: 10000,
+        page: 1,
+        chartType: activeType,
+        chartSpec: results.chartSpec
+          ? { ...results.chartSpec, chartType: activeType }
+          : {
+              chartType: activeType,
+              title: results.title,
+              xAxisKey: 'name',
+              xAxisLabel: 'Categoría',
+              yAxisKey: 'total',
+              yAxisLabel: 'Monto / Cantidad',
+            },
+        chartImage: activePng,
+        prompt: nlPrompt || undefined,
       };
       await reportsService.exportQbeQuery(payload, format);
     } catch (err: any) {
@@ -940,11 +971,13 @@ export const QbeTab: React.FC = () => {
                 <Sparkles size={12} /> Sugerencias rápidas:
               </span>
               {[
+                'Comparar ventas entre sucursales',
+                'Ventas presenciales vs tienda digital',
+                'Comparativa de stock de vestidos vs abrigos',
                 'Top 5 prendas más vendidas del mes',
                 'Ingresos por sucursal en gráfica circular',
                 'Tendencia de ventas de los últimos 30 días',
                 'Prendas con inventario bajo por categoría',
-                'Ventas por canal digital y presencial',
               ].map((sug, idx) => (
                 <button
                   key={idx}
@@ -1787,7 +1820,8 @@ export const QbeTab: React.FC = () => {
               data={results.chartData}
               spec={results.chartSpec || interpretationResult?.chartSpec}
               entityName={results.entityName}
-              onExportPdf={() => handleExport('pdf')}
+              onChartTypeChange={(t) => setSelectedChartType(t)}
+              onExportPdf={(type, png) => handleExport('pdf', type, png)}
               onExportExcel={() => handleExport('excel')}
             />
           )}
