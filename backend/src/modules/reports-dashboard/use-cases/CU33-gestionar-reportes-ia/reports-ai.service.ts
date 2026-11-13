@@ -1,3 +1,4 @@
+import { PrismaService } from '../../../../prisma/prisma.service.js';
 /**
  * @caso-de-uso CU33 — Gestionar Reportes por Voz y Lenguaje Natural con IA
  * @subsistema Inteligencia de Negocios y Reportes
@@ -35,6 +36,7 @@ export class ReportsAiService implements OnModuleInit, OnModuleDestroy {
     private readonly nlpService: QbeNlpService,
     @Inject(forwardRef(() => QbeService))
     private readonly qbeService: QbeService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async onModuleInit() {
@@ -717,6 +719,23 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
   async processChat(dto: AiChatQueryDto, user?: any): Promise<AiChatResponse> {
     const { message, history } = dto;
     const rawMsg = (message || '').trim();
+    const normalizedQuestion = rawMsg.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (user?.id_usuario && /vend|venta/.test(normalizedQuestion) && /producto|prenda|empleado|vendedor|cajero|sucursal|tienda/.test(normalizedQuestion)) {
+      const employee = /empleado|vendedor|cajero/.test(normalizedQuestion);
+      const branch = !employee && /sucursal|tienda/.test(normalizedQuestion);
+      const today = /\bhoy\b/.test(normalizedQuestion);
+      const scope = await this.qbeService.authorizedScope(user);
+      const branchFilter = scope.isGlobal ? '' : ' AND v.id_sucursal = ANY($1::int[])';
+      const scopeParams = scope.isGlobal ? [] : [scope.branchIds];
+      const dateFilter = branchFilter + (today ? " AND (v.fecha_venta AT TIME ZONE 'America/La_Paz')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'America/La_Paz')::date" : '');
+      const rows = await this.prisma.$queryRawUnsafe<Record<string, any>[]>(branch
+        ? "SELECT s.nombre, SUM(d.cantidad)::int AS unidades, SUM(d.subtotal)::float8 AS importe FROM venta v JOIN detalle_venta d ON d.id_venta=v.id_venta JOIN sucursal s ON s.id_sucursal=v.id_sucursal WHERE lower(v.estado)='pagada'" + dateFilter + " GROUP BY s.id_sucursal,s.nombre ORDER BY unidades DESC LIMIT 100"
+        : employee
+        ? "SELECT e.nombre || ' ' || e.apellido AS nombre, SUM(d.cantidad)::int AS unidades, SUM(d.subtotal)::float8 AS importe FROM venta v JOIN detalle_venta d ON d.id_venta=v.id_venta JOIN empleado e ON e.id_empleado=v.id_empleado WHERE lower(v.estado)='pagada'" + dateFilter + " GROUP BY e.id_empleado,e.nombre,e.apellido ORDER BY unidades DESC LIMIT 100"
+        : "SELECT p.nombre, SUM(d.cantidad)::int AS unidades, SUM(d.subtotal)::float8 AS importe FROM venta v JOIN detalle_venta d ON d.id_venta=v.id_venta JOIN producto_variante pv ON pv.id_producto_variante=d.id_producto_variante JOIN producto p ON p.id_producto=pv.id_producto WHERE lower(v.estado)='pagada'" + dateFilter + " GROUP BY p.id_producto,p.nombre ORDER BY unidades DESC LIMIT 100", ...scopeParams);
+      const columns = [{key:'nombre',label:employee ? 'Empleado' : branch ? 'Sucursal' : 'Producto'},{key:'unidades',label:'Unidades vendidas'},{key:'importe',label:'Importe (Bs)'}];
+      return {reply: rows.length ? rows.map((r, index) => (index + 1) + '. ' + r.nombre + ': ' + r.unidades + ' unidades, Bs ' + Number(r.importe).toFixed(2)).join('\n') : 'No hay ventas pagadas para el periodo consultado' + (today ? ' (hoy, Bolivia).' : '.'), queryResult:{entity:'venta',entityName:'Ventas',totalCount:rows.length,columns,rows},engine:'Consulta de ventas del tenant'};
+    }
     const apiKey = this.getApiKey();
 
     // 1. Detectar saludos o preguntas de presentación generales
@@ -808,6 +827,7 @@ INSTRUCCIONES CLAVE:
         entityName = qbeRes.entityName || normalizedPayload.entity;
       } catch (err: any) {
         this.logger.warn(`Could not execute real-time analytical query for chat: ${err.message}`);
+        throw err;
       }
     }
 

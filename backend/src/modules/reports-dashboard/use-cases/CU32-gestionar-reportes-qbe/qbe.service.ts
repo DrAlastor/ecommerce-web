@@ -206,6 +206,8 @@ export class QbeService {
   /**
    * Ejecuta la consulta visual dinámica QBE con validación y prevención de inyección
    */
+  async authorizedScope(user: any) { return this.reportsService.getAuthorizedBranches(user); }
+
   async executeQuery(dto: ExecuteQbeQueryDto, user: any) {
     const entityMeta = this.entitiesMetadata.find((e) => e.id === dto.entity);
     if (!entityMeta) {
