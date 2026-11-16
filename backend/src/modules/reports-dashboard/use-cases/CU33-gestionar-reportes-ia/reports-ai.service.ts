@@ -173,30 +173,39 @@ export class ReportsAiService implements OnModuleInit, OnModuleDestroy {
     const apiKey = this.getApiKey();
     if (apiKey) {
       try {
+        const systemDateStr = new Date().toISOString().split('T')[0];
+        const threeMonthsAgoDate = new Date();
+        threeMonthsAgoDate.setMonth(threeMonthsAgoDate.getMonth() - 3);
+        const threeMonthsAgoStr = threeMonthsAgoDate.toISOString().split('T')[0];
+
         const geminiPrompt = `
 Eres el motor de traducción y generación de visualizaciones analíticas avanzadas de Dressly Boutique (sistema de moda y retail).
 El usuario escribe o dicta por voz la siguiente consulta: "${raw}".
+Fecha de referencia del sistema: ${systemDateStr}.
 
 Las entidades disponibles son:
-- "venta": Campos: id_venta, codigo_factura, fecha_venta, total, subtotal, impuestos, tipo_venta, estado, sucursal, cliente, cajero.
-- "producto": Campos: id_producto, nombre, sku, descripcion, precio_base, categoria, genero, estado.
-- "inventario_sucursal": Campos: sucursal, producto, sku_variante, talla, color, stock_disponible, stock_minimo, estado_stock.
-- "cliente": Campos: id_cliente, nombre, apellido, email, telefono, puntos_fidelidad, total_compras, ciudad, estado.
-- "reserva": Campos: id_reserva, codigo_reserva, fecha_reserva, fecha_limite, estado, total_estimado, sucursal, cliente.
-- "movimiento_inventario": Campos: id_movimiento, tipo_movimiento, cantidad, motivo, fecha, sucursal, producto.
+- "venta": Campos: id_venta, codigo_factura, fecha_venta, total, subtotal, tipo_venta, estado, sucursal, cliente, producto, categoria, cantidad, precio_unitario.
+- "producto": Campos: id_producto, nombre, sku, descripcion, precio_base, categoria, genero, temporada, estado.
+- "inventario_sucursal": Campos: id_inventario, sucursal, producto, sku_variante, talla, color, stock_disponible, stock_minimo.
+- "cliente": Campos: id_cliente, nombre_completo, email, ci, puntos_fidelidad, sexo.
+- "reserva": Campos: id_reserva, codigo, fecha_reserva, estado, sucursal, cliente.
+- "movimiento_inventario": Campos: id_movimiento, tipo_movimiento, cantidad, motivo, fecha, sucursal.
 
-Analiza qué métrica o entidad solicita el usuario, cómo agruparla y cuál es la MEJOR VISUALIZACIÓN GRÁFICA (bar_vertical, bar_horizontal, peak_area, line_temporal, donut_percentage).
+Reglas clave para traducción analítica:
+1. Para consultas de "más vendidos", "productos más vendidos", "ranking de prendas" o rotación comercial, usa la entidad "venta" agrupada por ["sucursal", "producto"] (o ["producto"] si no se menciona sucursal), calculando SUM(cantidad) como alias "unidades_vendidas" y SUM(total) como alias "total_ventas", ordenando por "cantidad" DESC con chartType: "bar_horizontal".
+2. Para filtros temporales (como "últimos 3 meses", "este mes"), calcula SIEMPRE fechas exactas en formato YYYY-MM-DD (ej: para los últimos 3 meses usa operator: "gte", value: "${threeMonthsAgoStr}"). NUNCA uses texto relativo como "ultimos_3_meses" en value.
+3. Elige la MEJOR VISUALIZACIÓN GRÁFICA (bar_vertical, bar_horizontal, peak_area, line_temporal, donut_percentage).
 
 Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin formato Markdown, sin comillas invertidas):
 {
   "entity": "venta | producto | inventario_sucursal | cliente | reserva | movimiento_inventario",
   "fields": ["campo1", "campo2"],
   "filters": [
-    { "field": "campo", "operator": "eq|neq|gt|gte|lt|lte|contains|between|in", "value": "valor" }
+    { "field": "campo", "operator": "eq|neq|gt|gte|lt|lte|contains|between|in", "value": "YYYY-MM-DD o valor" }
   ],
   "groupBy": ["campo_agrupador"],
   "aggregations": [
-    { "field": "campo", "func": "sum|avg|count|min|max", "alias": "Total Vendido" }
+    { "field": "campo", "func": "SUM|AVG|COUNT|MIN|MAX", "alias": "Total Vendido" }
   ],
   "orderBy": { "field": "campo", "direction": "asc|desc" },
   "limit": 50,
@@ -255,11 +264,32 @@ Genera una respuesta en formato JSON EXACTO con la siguiente estructura (sin for
                     if (op === 'not_equals' || op === '!=' || op === '<>') op = 'neq';
                     if (op === 'like') op = 'contains';
                     if (op === 'not_in' || op === 'notin') op = 'notIn';
+
+                    let val = f.value;
+                    let val2 = f.value2;
+
+                    // Normalizar fechas relativas que Gemini pudiera generar
+                    if (typeof val === 'string' && /^(ultimos?_\d+_(?:meses|dias)|ultimo_trimestre|este_mes|hoy)/i.test(val)) {
+                      const now = new Date();
+                      if (val.includes('trimestre') || val.includes('3_meses')) {
+                        const past = new Date(now.getTime());
+                        past.setMonth(now.getMonth() - 3);
+                        val = past.toISOString().split('T')[0];
+                        if (op === 'between') op = 'gte';
+                      } else if (val.includes('mes')) {
+                        val = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                        if (op === 'between') op = 'gte';
+                      } else if (val.includes('hoy')) {
+                        val = now.toISOString().split('T')[0];
+                        if (op === 'between') op = 'gte';
+                      }
+                    }
+
                     return {
                       field: f.field,
                       operator: op,
-                      value: f.value,
-                      value2: f.value2,
+                      value: val,
+                      value2: val2,
                     };
                   })
                 : [],
@@ -457,7 +487,7 @@ Genera un diagnóstico ejecutivo profundo en formato JSON EXACTO (sin markdown, 
     const entity = validEntities[entityNorm] || 'venta';
 
     const defaultFieldsMap: Record<string, string[]> = {
-      venta: ['id_venta', 'codigo_factura', 'fecha_venta', 'total', 'sucursal', 'tipo_venta'],
+      venta: ['id_venta', 'codigo_factura', 'fecha_venta', 'total', 'sucursal', 'tipo_venta', 'producto', 'categoria', 'cantidad'],
       producto: ['id_producto', 'nombre', 'sku', 'precio_base', 'categoria', 'genero'],
       inventario_sucursal: ['sucursal', 'producto', 'sku_variante', 'talla', 'color', 'stock_disponible', 'stock_minimo'],
       cliente: ['id_cliente', 'nombre_completo', 'email', 'ci', 'puntos_fidelidad'],

@@ -510,11 +510,13 @@ export class ReportExporterService {
 
               if (rawType.includes('horizontal')) {
                 // Gráfico de barras horizontales (Ranking)
-                const topItems = report.chartData.slice(0, 6);
+                const maxCount = Math.min(report.chartData.length, 8);
+                const topItems = report.chartData.slice(0, maxCount);
                 const maxVal = Math.max(...topItems.map((d: any) => Number(d.total) || 0), 1);
-                const rowH = 19;
+                const rowH = topItems.length > 6 ? 13 : 19;
+                const barH = topItems.length > 6 ? 8 : 10;
                 const startY = yPos + 34;
-                const labelWidth = 150;
+                const labelWidth = 165;
                 const maxBarWidth = contentWidth - labelWidth - 95;
 
                 topItems.forEach((item: any, idx: number) => {
@@ -526,22 +528,22 @@ export class ReportExporterService {
 
                   doc
                     .fillColor('#2E221A')
-                    .fontSize(6.8)
+                    .fontSize(topItems.length > 6 ? 6.2 : 6.8)
                     .font('Helvetica-Bold')
-                    .text(String(item.name || 'Segmento'), margin + 12, curY + 2, {
+                    .text(String(item.name || 'Segmento'), margin + 12, curY + (topItems.length > 6 ? 1 : 2), {
                       width: labelWidth - 10,
                       ellipsis: true,
                     });
 
-                  doc.roundedRect(margin + labelWidth, curY, maxBarWidth, 10, 2).fill('#F2EFEA');
-                  doc.roundedRect(margin + labelWidth, curY, barW, 10, 2).fill(col);
+                  doc.roundedRect(margin + labelWidth, curY, maxBarWidth, barH, 2).fill('#F2EFEA');
+                  doc.roundedRect(margin + labelWidth, curY, barW, barH, 2).fill(col);
 
                   const valFormatted = item.formattedTotal || val.toLocaleString('es-BO');
                   doc
                     .fillColor('#1C1510')
-                    .fontSize(6.8)
+                    .fontSize(topItems.length > 6 ? 6.2 : 6.8)
                     .font('Helvetica-Bold')
-                    .text(`${valFormatted} (${pct}%)`, margin + labelWidth + maxBarWidth + 8, curY + 2, {
+                    .text(`${valFormatted} (${pct}%)`, margin + labelWidth + maxBarWidth + 8, curY + (topItems.length > 6 ? 1 : 2), {
                       width: 75,
                       align: 'left',
                     });

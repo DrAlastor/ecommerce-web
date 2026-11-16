@@ -208,7 +208,7 @@ export class QbeNlpService {
     // 2. Extraer Agrupamientos (Group By)
     const groupByDetected = this.detectGroupBy(normalized, entity);
     if (groupByDetected) {
-      groupBy = [groupByDetected.field];
+      groupBy = groupByDetected.fields;
       detectedKeywords.groupByFound.push(groupByDetected.label);
     } else if (isComparison) {
       const fallbackGroup = entity === 'venta' ? 'sucursal' : (entity === 'inventario_sucursal' ? 'sucursal' : 'categoria');
@@ -265,7 +265,7 @@ export class QbeNlpService {
       limit = limitDetected;
     }
 
-    const orderDetected = this.detectOrderBy(normalized, entityMatch.rule, groupByDetected?.field);
+    const orderDetected = this.detectOrderBy(normalized, entityMatch.rule, groupBy);
     if (orderDetected) {
       orderBy = orderDetected;
     }
@@ -273,8 +273,8 @@ export class QbeNlpService {
     // Campos a mostrar
     let fields: string[] = entityMatch.rule.defaultFields;
     if (groupBy && groupBy.length > 0) {
-      // En consultas agrupadas, mostramos el campo agrupado y las métricas
-      fields = [groupBy[0]];
+      // En consultas agrupadas, mostramos los campos agrupados y las métricas
+      fields = [...groupBy];
     }
 
     // Construir explicación en español fluido
@@ -328,21 +328,22 @@ export class QbeNlpService {
   ): QbeChartSpecDto {
     const norm = this.normalizeText(prompt);
     const isComparison = /\b(compara|comparar|comparativa|vs|contra|frente|diferencia)\b/.test(norm);
+    const hasRanking = /\b(ranking|top|los \d+|primeros|primeras|mas vendido|menos vendido|menor stock)\b/.test(norm);
     let chartType: QbeChartType = isComparison ? 'bar_vertical' : 'bar_vertical';
 
     if (/\b(circular|torta|pie|donut|dona|distribucion|proporcion|porcentaje)\b/.test(norm)) {
       chartType = 'donut_percentage';
     } else if (/\b(pico|picos|area|linea|lineas|tendencia|historico|evolucion|diario|semanal|mensual|tiempo)\b/.test(norm)) {
       chartType = 'peak_area';
-    } else if (/\b(ranking|top|horizontal|mas vendido|menos vendido|menor stock)\b/.test(norm)) {
+    } else if (hasRanking) {
       chartType = 'bar_horizontal';
     } else if (groupBy && groupBy.length === 1 && ['sucursal', 'tipo_venta', 'categoria'].includes(groupBy[0])) {
       chartType = 'bar_vertical';
     }
 
-    const xKey = groupBy && groupBy.length > 0 ? groupBy[0] : (entity === 'producto' ? 'nombre' : (entity === 'venta' ? 'sucursal' : 'id'));
+    const xKey = groupBy && groupBy.length > 0 ? groupBy.join(' — ') : (entity === 'producto' ? 'nombre' : (entity === 'venta' ? 'sucursal' : 'id'));
     const yKey = aggregations.length > 0 ? (aggregations[0].alias || aggregations[0].field) : (entity === 'venta' ? 'total' : 'stock_disponible');
-    const unit = ['total', 'subtotal', 'precio_base'].some((k) => yKey.toLowerCase().includes(k)) ? 'Bs.' : 'unidades';
+    const unit = ['total', 'subtotal', 'precio_base', 'monto'].some((k) => yKey.toLowerCase().includes(k)) ? 'Bs.' : 'unidades';
 
     const entityTitles: Record<string, string> = {
       venta: 'Análisis de Facturación y Ventas',
@@ -354,22 +355,31 @@ export class QbeNlpService {
     };
 
     const baseTitle = entityTitles[entity] || 'Reporte Dinámico';
-    const title = isComparison
-      ? `Comparativa: ${baseTitle} ${groupBy && groupBy.length > 0 ? `por ${groupBy[0]}` : ''}`.trim()
-      : `${baseTitle} ${groupBy && groupBy.length > 0 ? `por ${groupBy[0]}` : ''}`.trim();
+    let title = baseTitle;
+    if (hasRanking) {
+      const topNumMatch = norm.match(/\b(?:top|los|las|primeros)\s+(\d+)\b/);
+      const topN = topNumMatch ? `Top ${topNumMatch[1]} ` : 'Ranking ';
+      title = `${topN}Productos Más Vendidos${groupBy && groupBy.length > 0 ? ` por ${groupBy.join(' y ')}` : ''}`.trim();
+    } else if (isComparison) {
+      title = `Comparativa: ${baseTitle} ${groupBy && groupBy.length > 0 ? `por ${groupBy.join(' y ')}` : ''}`.trim();
+    } else if (groupBy && groupBy.length > 0) {
+      title = `${baseTitle} por ${groupBy.join(' y ')}`.trim();
+    }
 
     return {
       chartType,
       title,
       subtitle: `Visualización generada a partir de consulta: "${prompt.slice(0, 50)}${prompt.length > 50 ? '...' : ''}"`,
       xAxisKey: xKey,
-      xAxisLabel: xKey.charAt(0).toUpperCase() + xKey.slice(1).replace('_', ' '),
+      xAxisLabel: groupBy && groupBy.length > 0 ? groupBy.map(g => g.charAt(0).toUpperCase() + g.slice(1).replace('_', ' ')).join(' / ') : 'Concepto',
       yAxisKey: yKey,
-      yAxisLabel: unit === 'Bs.' ? 'Monto Acumulado (Bs.)' : 'Cantidad',
+      yAxisLabel: unit === 'Bs.' ? 'Monto Acumulado (Bs.)' : 'Unidades Vendidas',
       unit,
-      aiInsight: isComparison
-        ? `Evaluación comparativa multi-variable para contrastar métricas y variaciones entre segmentos.`
-        : `Visualización analítica configurada para evaluar ${title.toLowerCase()} en base a los registros activos.`,
+      aiInsight: hasRanking
+        ? `Ranking comparativo de rotación comercial para identificar los artículos con mayor volumen de salida.`
+        : isComparison
+          ? `Evaluación comparativa multi-variable para contrastar métricas y variaciones entre segmentos.`
+          : `Visualización analítica configurada para evaluar ${title.toLowerCase()} en base a los registros activos.`,
     };
   }
 
@@ -386,6 +396,11 @@ export class QbeNlpService {
   private detectEntity(text: string): { entity: string; rule: KeywordRule } {
     let bestRule = this.entityRules[1]; // default: venta
     let highestScore = 0;
+
+    // Regla de alta prioridad: consultas comerciales y rankings de ventas apuntan a venta
+    if (/\b(mas vendid[ao]s?|menos vendid[ao]s?|ventas por|ventas de|facturacion|recaudacion)\b/.test(text)) {
+      return { entity: 'venta', rule: this.entityRules[1] };
+    }
 
     // Regla de alta prioridad: "stock" o "existencias" apunta con fuerza a inventario_sucursal
     if (/\b(stock|existencia|existencias|inventario|almacen)\b/.test(text)) {
@@ -413,45 +428,67 @@ export class QbeNlpService {
   private detectGroupBy(
     text: string,
     entity: string,
-  ): { field: string; label: string } | null {
-    if (/\b(por sucursal|por tienda|por sede|agrupado por sucursal|entre sucursales|entre tiendas|comparar sucursales|compara sucursales)\b/.test(text)) {
-      return { field: 'sucursal', label: 'Sucursal' };
+  ): { fields: string[]; label: string } | null {
+    const hasSucursal = /\b(sucursal|sucursales|tienda|tiendas|sede|sedes)\b/.test(text);
+    const hasProducto = /\b(producto|productos|prenda|prendas|articulo|articulos|mas vendid[ao]s?|menos vendid[ao]s?)\b/.test(text);
+    const hasCategoria = /\b(categoria|categorias|rubro|rubros)\b/.test(text);
+    const hasTipo = /\b(por tipo|por canal|por tipo de venta|presencial vs digital|digital vs presencial|canales de venta)\b/.test(text);
+    const hasGenero = /\b(por genero|por sexo|hombres vs mujeres|mujeres vs hombres)\b/.test(text);
+    const hasTemporada = /\b(por temporada|por coleccion)\b/.test(text);
+
+    // Agrupaciones compuestas multi-dimensión (ej: "productos más vendidos agrupados por sucursal")
+    if (hasSucursal && hasProducto && /\b(por|agrupad[ao]s?|entre|en cada|vs)\b/.test(text)) {
+      return { fields: ['sucursal', 'producto'], label: 'Sucursal y Prenda' };
     }
-    if (/\b(por categoria|por rubro|por tipo de prenda|agrupado por categoria|entre categorias|comparar categorias)\b/.test(text)) {
-      return { field: 'categoria', label: 'Categoría' };
+    if (hasSucursal && hasCategoria && /\b(por|agrupad[ao]s?|entre|en cada|vs)\b/.test(text)) {
+      return { fields: ['sucursal', 'categoria'], label: 'Sucursal y Categoría' };
     }
-    if (/\b(por estado|por estatus|agrupado por estado)\b/.test(text)) {
-      return { field: 'estado', label: 'Estado' };
-    }
-    if (/\b(por tipo|por canal|por tipo de venta|presencial vs digital|digital vs presencial|canales de venta)\b/.test(text)) {
-      return { field: entity === 'venta' ? 'tipo_venta' : 'tipo_movimiento', label: 'Tipo / Canal' };
-    }
-    if (/\b(por genero|por sexo|hombres vs mujeres|mujeres vs hombres)\b/.test(text)) {
-      return { field: entity === 'cliente' ? 'sexo' : 'genero', label: 'Género' };
-    }
-    if (/\b(por temporada|por coleccion)\b/.test(text)) {
-      return { field: 'temporada', label: 'Temporada' };
-    }
-    if (/\b(por producto|por prenda|entre productos|entre prendas)\b/.test(text)) {
-      return { field: 'producto', label: 'Prenda' };
+    if (hasCategoria && hasProducto && /\b(por|agrupad[ao]s?|entre|en cada|vs)\b/.test(text)) {
+      return { fields: ['categoria', 'producto'], label: 'Categoría y Prenda' };
     }
 
-    // Si es una consulta comparativa explícita y no se especificó 'por ...', inferir el agrupamiento lógico
+    // Agrupaciones simples
+    if (/\b(por sucursal|por tienda|por sede|agrupad[ao]s? por sucursal|entre sucursales|entre tiendas|comparar sucursales|compara sucursales)\b/.test(text)) {
+      return { fields: ['sucursal'], label: 'Sucursal' };
+    }
+    if (/\b(por categoria|por rubro|por tipo de prenda|agrupad[ao]s? por categoria|entre categorias|comparar categorias)\b/.test(text)) {
+      return { fields: ['categoria'], label: 'Categoría' };
+    }
+    if (/\b(por producto|por prenda|entre productos|entre prendas|agrupad[ao]s? por prenda|agrupad[ao]s? por producto)\b/.test(text)) {
+      return { fields: ['producto'], label: 'Prenda' };
+    }
+    if (hasProducto && /\b(mas vendid[ao]s?|menos vendid[ao]s?|top.*prendas|top.*productos|ranking.*productos)\b/.test(text)) {
+      return { fields: ['producto'], label: 'Prenda' };
+    }
+    if (/\b(por estado|por estatus|agrupad[ao]s? por estado)\b/.test(text)) {
+      return { fields: ['estado'], label: 'Estado' };
+    }
+    if (hasTipo) {
+      return { fields: [entity === 'venta' ? 'tipo_venta' : 'tipo_movimiento'], label: 'Tipo / Canal' };
+    }
+    if (hasGenero) {
+      return { fields: [entity === 'cliente' ? 'sexo' : 'genero'], label: 'Género' };
+    }
+    if (hasTemporada) {
+      return { fields: ['temporada'], label: 'Temporada' };
+    }
+
+    // Inferencias por comparativas
     if (/\b(compara|comparar|comparativa|vs|contra|diferencia)\b/.test(text)) {
       if (/\b(sucursal|tienda|cochabamba|la paz|santa cruz)\b/.test(text)) {
-        return { field: 'sucursal', label: 'Sucursal' };
+        return { fields: ['sucursal'], label: 'Sucursal' };
       }
       if (/\b(canal|presencial|digital|online)\b/.test(text)) {
-        return { field: entity === 'venta' ? 'tipo_venta' : 'tipo_movimiento', label: 'Tipo / Canal' };
+        return { fields: [entity === 'venta' ? 'tipo_venta' : 'tipo_movimiento'], label: 'Tipo / Canal' };
       }
       if (/\b(categoria|prenda|vestido|abrigo|pantalon)\b/.test(text)) {
-        return { field: entity === 'inventario_sucursal' ? 'producto' : 'categoria', label: 'Categoría / Prenda' };
+        return { fields: [entity === 'inventario_sucursal' ? 'producto' : 'categoria'], label: 'Categoría / Prenda' };
       }
       if (/\b(genero|sexo|mujer|hombre)\b/.test(text)) {
-        return { field: entity === 'cliente' ? 'sexo' : 'genero', label: 'Género' };
+        return { fields: [entity === 'cliente' ? 'sexo' : 'genero'], label: 'Género' };
       }
       if (entity === 'venta') {
-        return { field: 'sucursal', label: 'Sucursal' };
+        return { fields: ['sucursal'], label: 'Sucursal' };
       }
     }
 
@@ -464,6 +501,15 @@ export class QbeNlpService {
     hasGroupBy: boolean,
   ): QbeAggregationDto[] {
     const aggs: QbeAggregationDto[] = [];
+
+    // Más vendidos / Menos vendidos (prioridad en ventas)
+    if (/\b(mas vendid[ao]s?|menos vendid[ao]s?|prendas mas vendidas|productos mas vendidos|rotacion)\b/.test(text)) {
+      if (entity === 'venta') {
+        aggs.push({ field: 'cantidad', func: 'SUM', alias: 'unidades_vendidas' });
+        aggs.push({ field: 'total', func: 'SUM', alias: 'total_ventas' });
+        return aggs;
+      }
+    }
 
     // Suma / Total
     if (/\b(total|suma|monto|ingreso|ingresos|ganancia|ganancias|recaudacion)\b/.test(text)) {
@@ -723,6 +769,17 @@ export class QbeNlpService {
     const dateField = rule.dateField || 'fecha';
     const now = new Date();
 
+    const parseSpanishNum = (val: string): number => {
+      const map: Record<string, number> = {
+        un: 1, uno: 1, una: 1,
+        dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
+        siete: 7, ocho: 8, nueve: 9, diez: 10,
+        once: 11, doce: 12,
+      };
+      const n = parseInt(val, 10);
+      return !isNaN(n) ? n : (map[val.toLowerCase()] || 1);
+    };
+
     if (/\b(hoy|el dia de hoy|actual)\b/.test(text)) {
       const todayStr = now.toISOString().split('T')[0];
       list.push({
@@ -741,11 +798,47 @@ export class QbeNlpService {
         filter: { field: dateField, operator: 'gte', value: firstDayYear },
         description: `${dateField} desde inicio de año (${firstDayYear})`,
       });
-    } else if (/\b(ultimos|ultimas)\s+(\d+)\s+dias\b/.test(text)) {
-      const match = text.match(/\b(ultimos|ultimas)\s+(\d+)\s+dias\b/);
+    } else if (/\b(?:ultimo|el ultimo)\s+trimestre\b/.test(text)) {
+      const past = new Date(now.getTime());
+      past.setMonth(now.getMonth() - 3);
+      const pastStr = past.toISOString().split('T')[0];
+      list.push({
+        filter: { field: dateField, operator: 'gte', value: pastStr },
+        description: `${dateField} del último trimestre (desde ${pastStr})`,
+      });
+    } else if (/\b(?:ultimo|el ultimo)\s+semestre\b/.test(text)) {
+      const past = new Date(now.getTime());
+      past.setMonth(now.getMonth() - 6);
+      const pastStr = past.toISOString().split('T')[0];
+      list.push({
+        filter: { field: dateField, operator: 'gte', value: pastStr },
+        description: `${dateField} del último semestre (desde ${pastStr})`,
+      });
+    } else if (/\b(?:ultimo|el ultimo)\s+mes\b/.test(text)) {
+      const past = new Date(now.getTime());
+      past.setMonth(now.getMonth() - 1);
+      const pastStr = past.toISOString().split('T')[0];
+      list.push({
+        filter: { field: dateField, operator: 'gte', value: pastStr },
+        description: `${dateField} del último mes (desde ${pastStr})`,
+      });
+    } else if (/\b(?:ultimos|ultimas)\s+(\d+|un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\s+meses\b/.test(text)) {
+      const match = text.match(/\b(?:ultimos|ultimas)\s+(\d+|un|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce)\s+meses\b/);
       if (match) {
-        const days = parseInt(match[2], 10);
-        const past = new Date();
+        const months = parseSpanishNum(match[1]);
+        const past = new Date(now.getTime());
+        past.setMonth(now.getMonth() - months);
+        const pastStr = past.toISOString().split('T')[0];
+        list.push({
+          filter: { field: dateField, operator: 'gte', value: pastStr },
+          description: `${dateField} de los últimos ${months} meses (desde ${pastStr})`,
+        });
+      }
+    } else if (/\b(?:ultimos|ultimas)\s+(\d+)\s+dias\b/.test(text)) {
+      const match = text.match(/\b(?:ultimos|ultimas)\s+(\d+)\s+dias\b/);
+      if (match) {
+        const days = parseInt(match[1], 10);
+        const past = new Date(now.getTime());
         past.setDate(now.getDate() - days);
         const pastStr = past.toISOString().split('T')[0];
         list.push({
@@ -753,8 +846,20 @@ export class QbeNlpService {
           description: `${dateField} de los últimos ${days} días`,
         });
       }
+    } else if (/\b(?:ultimas|ultimos)\s+(\d+)\s+semanas\b/.test(text)) {
+      const match = text.match(/\b(?:ultimas|ultimos)\s+(\d+)\s+semanas\b/);
+      if (match) {
+        const weeks = parseInt(match[1], 10);
+        const past = new Date(now.getTime());
+        past.setDate(now.getDate() - weeks * 7);
+        const pastStr = past.toISOString().split('T')[0];
+        list.push({
+          filter: { field: dateField, operator: 'gte', value: pastStr },
+          description: `${dateField} de las últimas ${weeks} semanas`,
+        });
+      }
     } else if (/\b(esta semana|semana actual)\b/.test(text)) {
-      const past = new Date();
+      const past = new Date(now.getTime());
       past.setDate(now.getDate() - 7);
       const pastStr = past.toISOString().split('T')[0];
       list.push({
@@ -767,29 +872,54 @@ export class QbeNlpService {
   }
 
   private detectLimit(text: string): number | null {
-    const match = text.match(/\b(?:top|primeros|primeras|mejores|limite)\s+(\d+)\b/);
-    if (match) {
-      const n = parseInt(match[1], 10);
+    // Caso 1: "top 10", "primeros 5", "los 10", "las 10", "mejores 3", "limite 20"
+    const match1 = text.match(/\b(?:top|primeros|primeras|mejores|limite|los|las)\s+(\d+)\b/);
+    if (match1) {
+      const n = parseInt(match1[1], 10);
       if (n > 0 && n <= 1000) return n;
     }
+
+    // Caso 2: "10 productos", "5 prendas", "10 mas vendidos", "5 mejores"
+    const match2 = text.match(/\b(\d+)\s+(?:productos|prendas|articulos|items|mas vendid[ao]s?|mejores|ventas|registros)\b/);
+    if (match2) {
+      const n = parseInt(match2[1], 10);
+      if (n > 0 && n <= 1000) return n;
+    }
+
+    // Caso 3: Palabras numéricas comunes: "los diez productos", "los cinco más vendidos"
+    const wordNumMatch = text.match(/\b(?:top|primeros|primeras|mejores|los|las)\s+(uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|quince|veinte)\b/);
+    if (wordNumMatch) {
+      const map: Record<string, number> = {
+        uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5,
+        seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
+        quince: 15, veinte: 20,
+      };
+      return map[wordNumMatch[1]] || null;
+    }
+
     return null;
   }
 
   private detectOrderBy(
     text: string,
     rule: KeywordRule,
-    groupByField?: string,
+    groupByFields?: string[],
   ): { field: string; direction: 'asc' | 'desc' } | undefined {
     let direction: 'asc' | 'desc' = 'desc';
 
     if (/\b(mas caros|mas caras|mayor precio|mas vendidos|mayor total|mas recientes|ultimos|mayor stock)\b/.test(text)) {
       direction = 'desc';
-    } else if (/\b(mas baratos|mas baratas|menor precio|mas economicos|mas antiguos|primeros|menor stock)\b/.test(text)) {
+    } else if (/\b(mas baratos|mas baratas|menor precio|mas economicos|menos vendidos|mas antiguos|primeros|menor stock)\b/.test(text)) {
       direction = 'asc';
     }
 
+    // Si es consulta de "más vendidos" o "menos vendidos"
+    if (/\b(mas vendid[ao]s?|menos vendid[ao]s?)\b/.test(text)) {
+      return { field: 'cantidad', direction: /\bmenos\b/.test(text) ? 'asc' : 'desc' };
+    }
+
     // Campo a ordenar
-    let field = groupByField || rule.primarySortField || 'id_' + rule.entity;
+    let field = (groupByFields && groupByFields[0]) || rule.primarySortField || 'id_' + rule.entity;
     if (/\b(precio|caro|barato|economico)\b/.test(text)) {
       field = rule.entity === 'venta' ? 'total' : 'precio_base';
     } else if (/\b(stock|existencias|unidades)\b/.test(text)) {

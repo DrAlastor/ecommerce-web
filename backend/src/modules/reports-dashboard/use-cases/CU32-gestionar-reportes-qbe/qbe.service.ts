@@ -64,6 +64,10 @@ export class QbeService {
         { id: 'codigo_factura', label: 'Código Factura / Ticket', type: 'string', sortable: true },
         { id: 'fecha_venta', label: 'Fecha de Venta', type: 'date', sortable: true },
         { id: 'tipo_venta', label: 'Canal de Venta', type: 'enum', options: ['digital', 'presencial'], sortable: true },
+        { id: 'producto', label: 'Prenda / Producto', type: 'string', sortable: true },
+        { id: 'categoria', label: 'Categoría', type: 'string', sortable: true },
+        { id: 'cantidad', label: 'Cantidad Vendida', type: 'number', aggregatable: true, sortable: true },
+        { id: 'precio_unitario', label: 'Precio Unitario (Bs.)', type: 'currency', aggregatable: true, sortable: true },
         { id: 'subtotal', label: 'Subtotal (Bs.)', type: 'currency', aggregatable: true, sortable: true },
         { id: 'descuento', label: 'Descuento (Bs.)', type: 'currency', aggregatable: true, sortable: true },
         { id: 'total', label: 'Total Neto (Bs.)', type: 'currency', aggregatable: true, sortable: true },
@@ -279,6 +283,39 @@ export class QbeService {
       finalColumns = grouped.columns;
       chartData = grouped.chartData;
       chartSuggestion = dto.groupBy.length === 1 && finalRows.length <= 8 ? 'pie' : 'bar';
+
+      // Ordenamiento en consultas agrupadas
+      if (dto.orderBy?.field) {
+        const { field, direction } = dto.orderBy;
+        const targetCol = finalColumns.find(
+          (c) => c.key === field || c.key.endsWith(`_${field}`) || c.label.toLowerCase().includes(field.toLowerCase()),
+        );
+        const actualSortKey = targetCol?.key || field;
+
+        finalRows.sort((a, b) => {
+          const valA = a[actualSortKey] ?? a[field] ?? 0;
+          const valB = b[actualSortKey] ?? b[field] ?? 0;
+          if (typeof valA === 'number' && typeof valB === 'number') {
+            return direction === 'asc' ? valA - valB : valB - valA;
+          }
+          return direction === 'asc'
+            ? String(valA).localeCompare(String(valB))
+            : String(valB).localeCompare(String(valA));
+        });
+
+        // Sincronizar el orden de chartData con finalRows
+        const nameOrder = new Map(
+          finalRows.map((r, i) => [
+            dto.groupBy!.map((f) => String(r[f] ?? 'Sin asignar')).join(' — '),
+            i,
+          ]),
+        );
+        chartData.sort((a, b) => {
+          const orderA = nameOrder.get(a.name) ?? 999999;
+          const orderB = nameOrder.get(b.name) ?? 999999;
+          return orderA - orderB;
+        });
+      }
     } else {
       // Proyección estándar de columnas seleccionadas
       const selectedFields =
@@ -326,6 +363,11 @@ export class QbeService {
     const limit = isExport ? Math.min(dto.limit || 10000, 10000) : Math.min(dto.limit || 100, 1000);
     const page = Math.max(dto.page || 1, 1);
     const paginatedRows = isExport ? finalRows.slice(0, limit) : finalRows.slice((page - 1) * limit, page * limit);
+
+    // Si limit está activo y no es export, restringir chartData a los elementos del limit
+    if (!isExport && limit > 0 && chartData.length > limit) {
+      chartData = chartData.slice(0, limit);
+    }
 
     // Indicadores clave para el encabezado del reporte
     const isGrouped = Boolean(dto.groupBy && dto.groupBy.length > 0 && dto.aggregations && dto.aggregations.length > 0);
@@ -499,30 +541,82 @@ export class QbeService {
         },
         cliente: { select: { nombre: true, apellido: true } },
         pago: { select: { metodo_pago: true } },
+        detalle_venta: {
+          include: {
+            producto_variante: {
+              include: {
+                producto: {
+                  include: {
+                    categoria: { select: { nombre: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: { fecha_venta: 'desc' },
       take: 10000,
     });
 
-    return ventas.map((v) => {
+    const records: Record<string, any>[] = [];
+
+    for (const v of ventas) {
       const sucursalName =
         v.empleado?.empleado_sucursal[0]?.sucursal?.nombre ||
         (v.tipo_venta === 'digital' ? 'Tienda Online' : 'Sucursal Central');
+      const clienteName = v.cliente ? `${v.cliente.nombre} ${v.cliente.apellido}` : 'Consumidor Final';
+      const metodoPago = v.pago[0]?.metodo_pago || 'No especificado';
+      const fechaVentaStr = v.fecha_venta.toISOString().split('T')[0];
 
-      return {
-        id_venta: v.id_venta,
-        codigo_factura: v.codigo_factura || `FAC-${v.id_venta}`,
-        fecha_venta: v.fecha_venta.toISOString().split('T')[0],
-        tipo_venta: v.tipo_venta,
-        subtotal: Number(v.subtotal || 0),
-        descuento: Number(v.descuento || 0),
-        total: Number(v.total || 0),
-        estado: v.estado,
-        sucursal: sucursalName,
-        cliente: v.cliente ? `${v.cliente.nombre} ${v.cliente.apellido}` : 'Consumidor Final',
-        metodo_pago: v.pago[0]?.metodo_pago || 'No especificado',
-      };
-    });
+      if (v.detalle_venta && v.detalle_venta.length > 0) {
+        for (const item of v.detalle_venta) {
+          const prodName = item.producto_variante?.producto?.nombre || 'Prenda Desconocida';
+          const catName = item.producto_variante?.producto?.categoria?.nombre || 'General';
+          const qty = Number(item.cantidad || 1);
+          const unitPrice = Number(item.precio_unitario || 0);
+          const lineSubtotal = Number(item.subtotal || qty * unitPrice);
+
+          records.push({
+            id_venta: v.id_venta,
+            codigo_factura: v.codigo_factura || `FAC-${v.id_venta}`,
+            fecha_venta: fechaVentaStr,
+            tipo_venta: v.tipo_venta,
+            producto: prodName,
+            categoria: catName,
+            cantidad: qty,
+            precio_unitario: unitPrice,
+            subtotal: lineSubtotal,
+            descuento: Number(v.descuento || 0),
+            total: lineSubtotal,
+            estado: v.estado,
+            sucursal: sucursalName,
+            cliente: clienteName,
+            metodo_pago: metodoPago,
+          });
+        }
+      } else {
+        records.push({
+          id_venta: v.id_venta,
+          codigo_factura: v.codigo_factura || `FAC-${v.id_venta}`,
+          fecha_venta: fechaVentaStr,
+          tipo_venta: v.tipo_venta,
+          producto: 'Venta General',
+          categoria: 'General',
+          cantidad: 1,
+          precio_unitario: Number(v.subtotal || v.total || 0),
+          subtotal: Number(v.subtotal || 0),
+          descuento: Number(v.descuento || 0),
+          total: Number(v.total || 0),
+          estado: v.estado,
+          sucursal: sucursalName,
+          cliente: clienteName,
+          metodo_pago: metodoPago,
+        });
+      }
+    }
+
+    return records;
   }
 
   private async fetchProductos(): Promise<Record<string, any>[]> {
@@ -666,7 +760,7 @@ export class QbeService {
 
   private matchesFilter(record: Record<string, any>, filter: QbeFilterDto): boolean {
     const rawVal = record[filter.field];
-    const targetVal = filter.value;
+    let targetVal = filter.value;
 
     if (rawVal === undefined || rawVal === null) {
       return false;
@@ -679,13 +773,28 @@ export class QbeService {
         .replace(/[\u0300-\u036f]/g, '')
         .trim();
 
-    const isDate = typeof rawVal === 'string' && /^\d{4}-\d{2}-\d{2}/.test(rawVal);
+    const isDate =
+      (typeof rawVal === 'string' && /^\d{4}-\d{2}-\d{2}/.test(rawVal)) ||
+      filter.field.includes('fecha');
+
+    if (isDate && typeof targetVal === 'string' && /^(ultimos?_\d+_(?:meses|dias)|ultimo_trimestre|este_mes|hoy)/i.test(targetVal)) {
+      const now = new Date();
+      if (targetVal.includes('trimestre') || targetVal.includes('3_meses')) {
+        const past = new Date(now.getTime());
+        past.setMonth(now.getMonth() - 3);
+        targetVal = past.toISOString().split('T')[0];
+      } else if (targetVal.includes('mes')) {
+        targetVal = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      } else if (targetVal.includes('hoy')) {
+        targetVal = now.toISOString().split('T')[0];
+      }
+    }
 
     switch (filter.operator) {
       case 'eq':
-        return normalize(rawVal) === normalize(targetVal);
+        return isDate ? String(rawVal) === String(targetVal) : normalize(rawVal) === normalize(targetVal);
       case 'neq':
-        return normalize(rawVal) !== normalize(targetVal);
+        return isDate ? String(rawVal) !== String(targetVal) : normalize(rawVal) !== normalize(targetVal);
       case 'contains':
         return normalize(rawVal).includes(normalize(targetVal));
       case 'startsWith':
@@ -720,6 +829,9 @@ export class QbeService {
         const cur = Number(rawVal);
         if (!isNaN(v1) && !isNaN(v2) && !isNaN(cur)) {
           return cur >= v1 && cur <= v2;
+        }
+        if (filter.value2 === undefined || filter.value2 === null || filter.value2 === '') {
+          return String(rawVal) >= String(targetVal);
         }
         return String(rawVal) >= String(targetVal) && String(rawVal) <= String(filter.value2);
       }
@@ -766,7 +878,7 @@ export class QbeService {
       const aggKey = `${agg.func.toLowerCase()}_${agg.field}`;
       columns.push({
         key: aggKey,
-        label: agg.alias || `${agg.func} de ${fm?.label || agg.field}`,
+        label: agg.alias ? agg.alias.replace(/_/g, ' ') : `${agg.func} de ${fm?.label || agg.field}`,
         type: agg.func === 'COUNT' ? 'number' : fm?.type || 'number',
       });
     }
@@ -801,16 +913,23 @@ export class QbeService {
           result = values.length ? Math.min(...values) : 0;
         }
 
-        rowItem[aggKey] = Number(result.toFixed(2));
+        const formattedResult = Number(result.toFixed(2));
+        rowItem[aggKey] = formattedResult;
+        if (agg.alias) {
+          rowItem[agg.alias] = formattedResult;
+        }
+        if (rowItem[agg.field] === undefined) {
+          rowItem[agg.field] = formattedResult;
+        }
       }
 
       rows.push(rowItem);
 
       // Dato para gráfico
-      const primaryAggKey = `${aggregations[0].func.toLowerCase()}_${aggregations[0].field}`;
+      const primaryAggKey = aggregations[0].alias || `${aggregations[0].func.toLowerCase()}_${aggregations[0].field}`;
       chartData.push({
         name: key,
-        total: rowItem[primaryAggKey] || 0,
+        total: rowItem[primaryAggKey] || rowItem[`${aggregations[0].func.toLowerCase()}_${aggregations[0].field}`] || 0,
         count: groupRows.length,
       });
     }
